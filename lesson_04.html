@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Master PHP operators: arithmetic, assignment, comparison, logical, string, ternary, null coalescing, and operator precedence.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Operators &amp; Expressions - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 2: Core Language</a></li>
+            <li aria-current="page">Lesson 4: Operators &amp; Expressions</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>⚙️ Lesson 4: Operators &amp; Expressions</h1>
+                <p class="lead">Operators are the verbs of programming — they <em>do things</em> to your data. In this lesson, you'll learn every operator you need to write meaningful PHP programs.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Perform arithmetic, string, and assignment operations</li>
+                        <li>Use comparison operators (including the difference between <code>==</code> and <code>===</code>)</li>
+                        <li>Combine conditions with logical operators</li>
+                        <li>Write concise code with the ternary and null coalescing operators</li>
+                        <li>Predict evaluation order using operator precedence rules</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 40 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 3 (variables, data types)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">What Are Operators and Expressions?</a></li>
+                        <li><a href="#section2" class="toc-link">Arithmetic Operators</a></li>
+                        <li><a href="#section3" class="toc-link">Assignment Operators</a></li>
+                        <li><a href="#section4" class="toc-link">String Operators</a></li>
+                        <li><a href="#section5" class="toc-link">Comparison Operators</a></li>
+                        <li><a href="#section6" class="toc-link">Logical Operators</a></li>
+                        <li><a href="#section7" class="toc-link">The Ternary Operator</a></li>
+                        <li><a href="#section8" class="toc-link">The Null Coalescing Operator</a></li>
+                        <li><a href="#section9" class="toc-link">Operator Precedence</a></li>
+                        <li><a href="#section10" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section11" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: What Are Operators -->
+            <section id="section1" class="lesson-section">
+                <h2>What Are Operators and Expressions?</h2>
+
+                <div class="card card-accent">
+                    <h4>📖 Definitions</h4>
+                    <p><strong>Operator:</strong> A symbol that performs an operation on one or more values (called <em>operands</em>).</p>
+                    <p><strong>Expression:</strong> Any combination of values, variables, operators, and function calls that PHP can evaluate to produce a result.</p>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+//    operand  operator  operand
+//       ↓        ↓        ↓
+$result = 10      +        5;       // Expression: 10 + 5 evaluates to 15
+
+// Everything that produces a value is an expression:
+$x = 42;              // 42 is an expression
+$y = $x * 2;          // $x * 2 is an expression
+$z = strlen("hello"); // strlen("hello") is an expression</code></pre>
+
+                <p>PHP groups operators into several categories. Let's work through each one.</p>
+            </section>
+
+            <!-- Section 2: Arithmetic -->
+            <section id="section2" class="lesson-section">
+                <h2>Arithmetic Operators</h2>
+
+                <p>These work exactly like math class — with a couple of programming-specific additions.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operator</th>
+                                <th>Name</th>
+                                <th>Example</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>+</code></td>
+                                <td>Addition</td>
+                                <td><code>10 + 3</code></td>
+                                <td><code>13</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>-</code></td>
+                                <td>Subtraction</td>
+                                <td><code>10 - 3</code></td>
+                                <td><code>7</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>*</code></td>
+                                <td>Multiplication</td>
+                                <td><code>10 * 3</code></td>
+                                <td><code>30</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>/</code></td>
+                                <td>Division</td>
+                                <td><code>10 / 3</code></td>
+                                <td><code>3.3333...</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%</code></td>
+                                <td>Modulo (remainder)</td>
+                                <td><code>10 % 3</code></td>
+                                <td><code>1</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>**</code></td>
+                                <td>Exponentiation</td>
+                                <td><code>2 ** 8</code></td>
+                                <td><code>256</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>-</code></td>
+                                <td>Negation (unary)</td>
+                                <td><code>-$x</code></td>
+                                <td>Negative of <code>$x</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+$a = 17;
+$b = 5;
+
+echo $a + $b;   // 22
+echo $a - $b;   // 12
+echo $a * $b;   // 85
+echo $a / $b;   // 3.4
+echo $a % $b;   // 2  (17 divided by 5 = 3 remainder 2)
+echo $a ** $b;  // 1419857  (17 to the power of 5)</code></pre>
+
+                <h3>Division Details</h3>
+                <pre><code class="language-php">&lt;?php
+// Division of two integers that divides evenly → integer result
+var_dump(10 / 2);    // int(5)
+
+// Division that doesn't divide evenly → float result
+var_dump(10 / 3);    // float(3.3333...)
+
+// Integer division (discard remainder) — use intdiv()
+var_dump(intdiv(10, 3));  // int(3)</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Division by Zero</h4>
+                    <p>Dividing by zero throws a <code>DivisionByZeroError</code> in PHP 8. Always check before dividing:</p>
+                    <pre><code class="language-php">$denominator = 0;
+if ($denominator !== 0) {
+    echo 100 / $denominator;
+} else {
+    echo "Cannot divide by zero!";
+}</code></pre>
+                </div>
+
+                <h3>Common Uses for Modulo (%)</h3>
+                <p>Modulo is more useful than it first appears:</p>
+                <pre><code class="language-php">&lt;?php
+// Check if a number is even or odd
+$num = 42;
+if ($num % 2 === 0) {
+    echo "$num is even";   // This runs
+}
+
+// Cycle through values (e.g., alternating row colors)
+for ($i = 0; $i &lt; 6; $i++) {
+    $class = ($i % 2 === 0) ? "even-row" : "odd-row";
+    echo "&lt;tr class='$class'&gt;Row $i&lt;/tr&gt;\n";
+}
+
+// Check if a number is divisible by another
+$year = 2024;
+$isLeapYear = ($year % 4 === 0 &amp;&amp; $year % 100 !== 0) || ($year % 400 === 0);
+// true — 2024 is a leap year</code></pre>
+
+                <h3>Increment and Decrement</h3>
+                <pre><code class="language-php">&lt;?php
+$count = 10;
+
+// Pre-increment: increment, THEN return the value
+echo ++$count;  // 11 (increments first, then outputs 11)
+
+// Post-increment: return the value, THEN increment
+$count = 10;
+echo $count++;  // 10 (outputs 10, then increments to 11)
+echo $count;    // 11
+
+// Same idea for decrement
+$count = 10;
+echo --$count;  // 9  (pre-decrement)
+$count = 10;
+echo $count--;  // 10 (post-decrement, $count is now 9)</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Practical Rule</h4>
+                    <p>If you just need to add or subtract 1 and don't care about the return value, <code>$count++</code> and <code>++$count</code> do the same thing. The distinction only matters when you use the result inline (like in an <code>echo</code> or array index).</p>
+                </div>
+            </section>
+
+            <!-- Section 3: Assignment -->
+            <section id="section3" class="lesson-section">
+                <h2>Assignment Operators</h2>
+
+                <p>The basic assignment operator is <code>=</code>. PHP also has <strong>compound assignment operators</strong> that combine an operation with assignment:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operator</th>
+                                <th>Example</th>
+                                <th>Equivalent To</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>=</code></td>
+                                <td><code>$x = 5</code></td>
+                                <td>—</td>
+                                <td>Assign</td>
+                            </tr>
+                            <tr>
+                                <td><code>+=</code></td>
+                                <td><code>$x += 3</code></td>
+                                <td><code>$x = $x + 3</code></td>
+                                <td>Add and assign</td>
+                            </tr>
+                            <tr>
+                                <td><code>-=</code></td>
+                                <td><code>$x -= 3</code></td>
+                                <td><code>$x = $x - 3</code></td>
+                                <td>Subtract and assign</td>
+                            </tr>
+                            <tr>
+                                <td><code>*=</code></td>
+                                <td><code>$x *= 3</code></td>
+                                <td><code>$x = $x * 3</code></td>
+                                <td>Multiply and assign</td>
+                            </tr>
+                            <tr>
+                                <td><code>/=</code></td>
+                                <td><code>$x /= 3</code></td>
+                                <td><code>$x = $x / 3</code></td>
+                                <td>Divide and assign</td>
+                            </tr>
+                            <tr>
+                                <td><code>%=</code></td>
+                                <td><code>$x %= 3</code></td>
+                                <td><code>$x = $x % 3</code></td>
+                                <td>Modulo and assign</td>
+                            </tr>
+                            <tr>
+                                <td><code>**=</code></td>
+                                <td><code>$x **= 2</code></td>
+                                <td><code>$x = $x ** 2</code></td>
+                                <td>Exponent and assign</td>
+                            </tr>
+                            <tr>
+                                <td><code>.=</code></td>
+                                <td><code>$s .= " world"</code></td>
+                                <td><code>$s = $s . " world"</code></td>
+                                <td>Concatenate and assign</td>
+                            </tr>
+                            <tr>
+                                <td><code>??=</code></td>
+                                <td><code>$x ??= 10</code></td>
+                                <td><code>$x = $x ?? 10</code></td>
+                                <td>Assign if null</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+$score = 100;
+$score += 25;    // $score is now 125
+$score -= 10;    // $score is now 115
+$score *= 2;     // $score is now 230
+
+$message = "Hello";
+$message .= ", ";     // "Hello, "
+$message .= "World!"; // "Hello, World!"
+
+echo $message;   // Hello, World!
+echo $score;     // 230</code></pre>
+
+                <blockquote>
+                    <strong>💡 Tip:</strong> The <code>.=</code> (concatenate-assign) operator is incredibly common in PHP — you'll use it anytime you build up a string piece by piece, like constructing HTML output.
+                </blockquote>
+            </section>
+
+            <!-- Section 4: String Operators -->
+            <section id="section4" class="lesson-section">
+                <h2>String Operators</h2>
+
+                <p>PHP has just two string operators, but you'll use them constantly:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operator</th>
+                                <th>Name</th>
+                                <th>Example</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>.</code></td>
+                                <td>Concatenation</td>
+                                <td><code>"Hello" . " " . "World"</code></td>
+                                <td><code>"Hello World"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>.=</code></td>
+                                <td>Concatenation assignment</td>
+                                <td><code>$s .= "!"</code></td>
+                                <td>Appends to <code>$s</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+$firstName = "Alice";
+$lastName = "Johnson";
+
+// Concatenation — joining strings together
+$fullName = $firstName . " " . $lastName;
+echo $fullName;  // Alice Johnson
+
+// Building HTML with concatenation
+$html = "&lt;div class='user-card'&gt;";
+$html .= "&lt;h3&gt;" . $fullName . "&lt;/h3&gt;";
+$html .= "&lt;p&gt;Member since 2024&lt;/p&gt;";
+$html .= "&lt;/div&gt;";
+echo $html;</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ The + Operator Does NOT Concatenate Strings</h4>
+                    <p>Unlike JavaScript, PHP's <code>+</code> is <em>always</em> arithmetic. If you use <code>+</code> on strings, PHP type-juggles them to numbers:</p>
+                    <pre><code class="language-php">echo "Hello" + " World";   // 0 (both become 0, then 0 + 0 = 0)
+echo "5" + "3";             // 8 (not "53"!)
+echo "5" . "3";             // "53" (concatenation — this is what you want)</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 5: Comparison -->
+            <section id="section5" class="lesson-section">
+                <h2>Comparison Operators</h2>
+
+                <p>Comparison operators compare two values and return a boolean (<code>true</code> or <code>false</code>). They're essential for making decisions in your code.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operator</th>
+                                <th>Name</th>
+                                <th>Example</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>==</code></td>
+                                <td>Equal (loose)</td>
+                                <td><code>"5" == 5</code></td>
+                                <td><code>true</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>===</code></td>
+                                <td>Identical (strict)</td>
+                                <td><code>"5" === 5</code></td>
+                                <td><code>false</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>!=</code></td>
+                                <td>Not equal (loose)</td>
+                                <td><code>"5" != 5</code></td>
+                                <td><code>false</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>!==</code></td>
+                                <td>Not identical (strict)</td>
+                                <td><code>"5" !== 5</code></td>
+                                <td><code>true</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>&lt;</code></td>
+                                <td>Less than</td>
+                                <td><code>3 &lt; 5</code></td>
+                                <td><code>true</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>&gt;</code></td>
+                                <td>Greater than</td>
+                                <td><code>3 &gt; 5</code></td>
+                                <td><code>false</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>&lt;=</code></td>
+                                <td>Less than or equal</td>
+                                <td><code>5 &lt;= 5</code></td>
+                                <td><code>true</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>&gt;=</code></td>
+                                <td>Greater than or equal</td>
+                                <td><code>5 &gt;= 3</code></td>
+                                <td><code>true</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>&lt;=&gt;</code></td>
+                                <td>Spaceship</td>
+                                <td><code>1 &lt;=&gt; 2</code></td>
+                                <td><code>-1</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>== vs. === (Revisited)</h3>
+                <p>We covered this in Lesson 3, but it's worth repeating because it's that important:</p>
+
+                <pre><code class="language-php">&lt;?php
+// Loose comparison (==) — type juggling happens
+var_dump(1 == "1");      // true — string "1" becomes int 1
+var_dump(0 == "");       // true — both become 0/false
+var_dump(null == false);  // true — both are falsy
+var_dump("" == false);    // true — empty string is falsy
+
+// Strict comparison (===) — no type juggling
+var_dump(1 === "1");     // false — int vs string
+var_dump(0 === "");      // false — int vs string
+var_dump(null === false); // false — null vs bool
+var_dump("" === false);   // false — string vs bool</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Rule of Thumb</h4>
+                    <p>Default to <code>===</code> and <code>!==</code>. Only use <code>==</code> when you specifically <em>want</em> type juggling — and even then, think twice.</p>
+                </div>
+
+                <h3>The Spaceship Operator (&lt;=&gt;)</h3>
+                <p>The spaceship operator (PHP 7+) performs a three-way comparison. It returns <code>-1</code>, <code>0</code>, or <code>1</code>:</p>
+
+                <pre><code class="language-php">&lt;?php
+echo 1 &lt;=&gt; 2;   // -1 (left is less)
+echo 2 &lt;=&gt; 2;   //  0 (equal)
+echo 3 &lt;=&gt; 2;   //  1 (left is greater)
+
+// Most useful for sorting
+$prices = [29.99, 9.99, 49.99, 19.99];
+usort($prices, function($a, $b) {
+    return $a &lt;=&gt; $b;  // Sort ascending
+});
+// $prices is now [9.99, 19.99, 29.99, 49.99]
+
+// For descending, swap $a and $b:
+usort($prices, function($a, $b) {
+    return $b &lt;=&gt; $a;  // Sort descending
+});</code></pre>
+            </section>
+
+            <!-- Section 6: Logical -->
+            <section id="section6" class="lesson-section">
+                <h2>Logical Operators</h2>
+
+                <p>Logical operators combine boolean expressions. They're the glue that holds complex conditions together.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operator</th>
+                                <th>Name</th>
+                                <th>Example</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>&amp;&amp;</code></td>
+                                <td>AND</td>
+                                <td><code>true &amp;&amp; false</code></td>
+                                <td><code>false</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>||</code></td>
+                                <td>OR</td>
+                                <td><code>true || false</code></td>
+                                <td><code>true</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>!</code></td>
+                                <td>NOT</td>
+                                <td><code>!true</code></td>
+                                <td><code>false</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>and</code></td>
+                                <td>AND (low precedence)</td>
+                                <td><code>true and false</code></td>
+                                <td><code>false</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>or</code></td>
+                                <td>OR (low precedence)</td>
+                                <td><code>true or false</code></td>
+                                <td><code>true</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>xor</code></td>
+                                <td>XOR (exclusive or)</td>
+                                <td><code>true xor true</code></td>
+                                <td><code>false</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Truth Tables</h3>
+                <div class="mermaid">
+                    graph LR
+                        subgraph "AND (&&)"
+                        A1["T && T = T"]
+                        A2["T && F = F"]
+                        A3["F && T = F"]
+                        A4["F && F = F"]
+                        end
+                        subgraph "OR (||)"
+                        B1["T || T = T"]
+                        B2["T || F = T"]
+                        B3["F || T = T"]
+                        B4["F || F = F"]
+                        end
+                        subgraph "XOR"
+                        C1["T xor T = F"]
+                        C2["T xor F = T"]
+                        C3["F xor T = T"]
+                        C4["F xor F = F"]
+                        end
+                </div>
+
+                <h3>Practical Examples</h3>
+                <pre><code class="language-php">&lt;?php
+$age = 25;
+$hasID = true;
+$isMember = false;
+
+// AND — both conditions must be true
+if ($age &gt;= 21 &amp;&amp; $hasID) {
+    echo "Entry allowed";  // This runs
+}
+
+// OR — at least one condition must be true
+if ($isMember || $age &gt;= 18) {
+    echo "Can register";   // This runs (age condition is true)
+}
+
+// NOT — inverts the boolean
+if (!$isMember) {
+    echo "Not a member yet"; // This runs
+}
+
+// Combining operators
+$isAdmin = false;
+$isEditor = true;
+$isPublished = true;
+
+if (($isAdmin || $isEditor) &amp;&amp; $isPublished) {
+    echo "Can view article"; // This runs
+}</code></pre>
+
+                <h3>Short-Circuit Evaluation</h3>
+                <p>PHP's logical operators are <strong>short-circuit</strong> — they stop evaluating as soon as the result is determined:</p>
+
+                <pre><code class="language-php">&lt;?php
+// AND (&&): if the left side is false, PHP skips the right side
+$x = false;
+$result = $x &amp;&amp; expensiveFunction(); // expensiveFunction() NEVER runs
+
+// OR (||): if the left side is true, PHP skips the right side
+$x = true;
+$result = $x || expensiveFunction(); // expensiveFunction() NEVER runs
+
+// This is useful for guard clauses:
+if (isset($user) &amp;&amp; $user-&gt;isActive()) {
+    // $user->isActive() only runs if $user exists
+    // Without short-circuiting, this could crash
+}</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ and/or vs. &amp;&amp;/||</h4>
+                    <p>The word forms (<code>and</code>, <code>or</code>) have <strong>lower precedence</strong> than the symbol forms (<code>&amp;&amp;</code>, <code>||</code>). This can cause surprising behavior:</p>
+                    <pre><code class="language-php">// These are NOT the same:
+$result = true || false &amp;&amp; false;
+// Evaluates as: true || (false && false) → true
+
+$result = true or false &amp;&amp; false;
+// Evaluates as: ($result = true) or (false && false)
+// $result is true, but for the wrong reason!
+
+// Best practice: always use && and ||</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 7: Ternary -->
+            <section id="section7" class="lesson-section">
+                <h2>The Ternary Operator</h2>
+
+                <p>The ternary operator is a compact way to write simple if/else statements. It's called "ternary" because it takes <em>three</em> operands.</p>
+
+                <h3>Basic Syntax</h3>
+                <pre><code class="language-php">$result = (condition) ? valueIfTrue : valueIfFalse;</code></pre>
+
+                <pre><code class="language-php">&lt;?php
+$age = 20;
+
+// Instead of this:
+if ($age &gt;= 18) {
+    $status = "adult";
+} else {
+    $status = "minor";
+}
+
+// You can write this:
+$status = ($age &gt;= 18) ? "adult" : "minor";
+echo $status; // "adult"</code></pre>
+
+                <h3>Common Use Cases</h3>
+                <pre><code class="language-php">&lt;?php
+// Setting defaults
+$name = isset($_GET['name']) ? $_GET['name'] : "Guest";
+
+// Conditional CSS classes
+$rowClass = ($index % 2 === 0) ? "even" : "odd";
+echo "&lt;tr class='$rowClass'&gt;";
+
+// Pluralization
+$count = 5;
+$label = ($count === 1) ? "item" : "items";
+echo "$count $label";  // "5 items"
+
+// Display logic
+$score = 85;
+$grade = ($score &gt;= 90) ? "A" : (($score &gt;= 80) ? "B" : "C");
+echo $grade; // "B"</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Don't Nest Too Deep</h4>
+                    <p>Nested ternaries become unreadable fast. If you need more than one level of nesting, use an <code>if/elseif</code> block instead. PHP 8 actually <em>requires</em> parentheses for nested ternaries to prevent confusion.</p>
+                    <pre><code class="language-php">// BAD — hard to read
+$result = $a ? $b ? "both" : "only a" : "neither";
+
+// GOOD — use if/elseif for complex logic
+if ($a &amp;&amp; $b) {
+    $result = "both";
+} elseif ($a) {
+    $result = "only a";
+} else {
+    $result = "neither";
+}</code></pre>
+                </div>
+
+                <h3>Short Ternary (Elvis Operator)</h3>
+                <p>PHP has a shorthand when you want to use the tested value itself as the "true" result:</p>
+                <pre><code class="language-php">&lt;?php
+// Normal ternary
+$display = $username ? $username : "Anonymous";
+
+// Short ternary (Elvis operator) — same result
+$display = $username ?: "Anonymous";
+
+// If $username is truthy, use it; otherwise use "Anonymous"</code></pre>
+                <p>The <code>?:</code> is called the "Elvis operator" because if you tilt your head, the characters look like Elvis's hair. Really.</p>
+            </section>
+
+            <!-- Section 8: Null Coalescing -->
+            <section id="section8" class="lesson-section">
+                <h2>The Null Coalescing Operator</h2>
+
+                <p>The null coalescing operator (<code>??</code>) was introduced in PHP 7 and quickly became one of the most-loved features. It provides a default value when something is <code>null</code> or undefined.</p>
+
+                <h3>Basic Syntax</h3>
+                <pre><code class="language-php">$result = $value ?? $default;</code></pre>
+                <p>Translation: "Use <code>$value</code> if it exists and isn't null; otherwise, use <code>$default</code>."</p>
+
+                <pre><code class="language-php">&lt;?php
+// Before PHP 7 — verbose
+$name = isset($_GET['name']) ? $_GET['name'] : "Guest";
+
+// PHP 7+ — clean and concise
+$name = $_GET['name'] ?? "Guest";
+
+// They do the same thing, but ?? is much cleaner</code></pre>
+
+                <h3>Chaining</h3>
+                <p>You can chain multiple <code>??</code> operators — PHP uses the first non-null value it finds:</p>
+                <pre><code class="language-php">&lt;?php
+// Try multiple sources, use the first non-null value
+$color = $_GET['color'] ?? $_SESSION['color'] ?? $defaultColor ?? "blue";
+
+// PHP checks each from left to right:
+// 1. Is $_GET['color'] set and not null? If yes, use it.
+// 2. Is $_SESSION['color'] set and not null? If yes, use it.
+// 3. Is $defaultColor set and not null? If yes, use it.
+// 4. Fall back to "blue"</code></pre>
+
+                <h3>Null Coalescing Assignment (??=)</h3>
+                <pre><code class="language-php">&lt;?php
+// Only assign if the variable is null or undefined
+$settings['theme'] ??= "light";
+
+// Equivalent to:
+if (!isset($settings['theme'])) {
+    $settings['theme'] = "light";
+}
+
+// Useful for setting defaults:
+$config['timeout'] ??= 30;
+$config['retries'] ??= 3;
+$config['debug'] ??= false;</code></pre>
+
+                <h3>?? vs. ?:</h3>
+                <p>These look similar but behave differently:</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operator</th>
+                                <th>Returns default when value is...</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>??</code></td>
+                                <td><code>null</code> or undefined only</td>
+                                <td><code>0 ?? "default"</code> → <code>0</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>?:</code></td>
+                                <td>Any falsy value (0, "", false, null, etc.)</td>
+                                <td><code>0 ?: "default"</code> → <code>"default"</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+$count = 0;
+
+echo $count ?? "no data";    // 0   — ?? only checks for null
+echo $count ?: "no data";    // "no data" — ?: treats 0 as falsy
+
+// ?? is usually what you want for form/API data
+// ?: is useful when you want to reject all falsy values</code></pre>
+            </section>
+
+            <!-- Section 9: Operator Precedence -->
+            <section id="section9" class="lesson-section">
+                <h2>Operator Precedence</h2>
+
+                <p>When an expression has multiple operators, PHP evaluates them in a specific order — just like math class where multiplication happens before addition.</p>
+
+                <h3>Precedence Table (Highest to Lowest)</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Priority</th>
+                                <th>Operators</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1 (highest)</td>
+                                <td><code>**</code></td>
+                                <td>Exponentiation</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><code>++</code> <code>--</code> <code>!</code> <code>(type)</code></td>
+                                <td>Increment, decrement, not, casting</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td><code>*</code> <code>/</code> <code>%</code></td>
+                                <td>Multiplication, division, modulo</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td><code>+</code> <code>-</code> <code>.</code></td>
+                                <td>Addition, subtraction, concatenation</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td><code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code></td>
+                                <td>Comparison</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td><code>==</code> <code>!=</code> <code>===</code> <code>!==</code> <code>&lt;=&gt;</code></td>
+                                <td>Equality</td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td><code>&amp;&amp;</code></td>
+                                <td>Logical AND</td>
+                            </tr>
+                            <tr>
+                                <td>8</td>
+                                <td><code>||</code></td>
+                                <td>Logical OR</td>
+                            </tr>
+                            <tr>
+                                <td>9</td>
+                                <td><code>??</code></td>
+                                <td>Null coalescing</td>
+                            </tr>
+                            <tr>
+                                <td>10</td>
+                                <td><code>?:</code></td>
+                                <td>Ternary</td>
+                            </tr>
+                            <tr>
+                                <td>11</td>
+                                <td><code>=</code> <code>+=</code> <code>-=</code> <code>.=</code> etc.</td>
+                                <td>Assignment</td>
+                            </tr>
+                            <tr>
+                                <td>12 (lowest)</td>
+                                <td><code>and</code> <code>or</code> <code>xor</code></td>
+                                <td>Logical (word form)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Examples</h3>
+                <pre><code class="language-php">&lt;?php
+// Multiplication before addition (like math)
+echo 2 + 3 * 4;      // 14, not 20
+echo (2 + 3) * 4;    // 20 — parentheses override precedence
+
+// && before ||
+$result = true || false &amp;&amp; false;
+// Evaluates as: true || (false && false) → true
+
+// Comparison before logical
+$result = 5 &gt; 3 &amp;&amp; 10 &lt; 20;
+// Evaluates as: (5 > 3) && (10 < 20) → true && true → true</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ The Golden Rule</h4>
+                    <p><strong>When in doubt, use parentheses.</strong> They make your intent explicit and prevent bugs. Nobody will complain about "too many parentheses" — they'll complain about code that's hard to understand.</p>
+                    <pre><code class="language-php">// Ambiguous — relies on knowing precedence
+$canEdit = $isAdmin || $isOwner &amp;&amp; !$isLocked;
+
+// Clear — intent is explicit
+$canEdit = $isAdmin || ($isOwner &amp;&amp; !$isLocked);</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 10: Exercises -->
+            <section id="section10" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Price Calculator</h3>
+                    <p><strong>Objective:</strong> Practice arithmetic and assignment operators by building a simple price calculator.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create <code>exercise_04a.php</code> in your exercises folder</li>
+                        <li>Define a base price, quantity, tax rate, and discount percentage</li>
+                        <li>Calculate subtotal, discount amount, tax amount, and final total</li>
+                        <li>Output a formatted receipt</li>
+                    </ol>
+
+                    <h4>Starter Code:</h4>
+                    <pre><code class="language-php">&lt;?php
+$basePrice = 29.99;
+$quantity = 3;
+$taxRate = 0.0825;    // 8.25%
+$discountPercent = 10; // 10% off
+
+// TODO: Calculate these
+$subtotal = 0;
+$discountAmount = 0;
+$afterDiscount = 0;
+$taxAmount = 0;
+$total = 0;
+
+// TODO: Output a formatted receipt</code></pre>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Calculate in order: subtotal = price × quantity, discount = subtotal × (percent/100), after discount = subtotal - discount, tax = after discount × rate, total = after discount + tax. Use <code>number_format($value, 2)</code> to format to 2 decimal places.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$basePrice = 29.99;
+$quantity = 3;
+$taxRate = 0.0825;
+$discountPercent = 10;
+
+$subtotal = $basePrice * $quantity;
+$discountAmount = $subtotal * ($discountPercent / 100);
+$afterDiscount = $subtotal - $discountAmount;
+$taxAmount = $afterDiscount * $taxRate;
+$total = $afterDiscount + $taxAmount;
+
+echo "===== RECEIPT =====\n";
+echo "Price: $" . number_format($basePrice, 2) . " × $quantity\n";
+echo "Subtotal:  $" . number_format($subtotal, 2) . "\n";
+echo "Discount:  -$" . number_format($discountAmount, 2) . " ($discountPercent%)\n";
+echo "After Discount: $" . number_format($afterDiscount, 2) . "\n";
+echo "Tax:       +$" . number_format($taxAmount, 2) . " (" . ($taxRate * 100) . "%)\n";
+echo "-------------------\n";
+echo "TOTAL:     $" . number_format($total, 2) . "\n";</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Operator Challenge</h3>
+                    <p><strong>Objective:</strong> Predict the output of each expression, then verify with <code>var_dump()</code>.</p>
+
+                    <pre><code class="language-php">&lt;?php
+// Predict each result before running!
+
+// 1. Arithmetic precedence
+$a = 2 + 3 * 4 - 1;
+
+// 2. String vs arithmetic
+$b = "10" + "20 cats";
+
+// 3. Null coalescing
+$c = null ?? 0 ?? "default";
+
+// 4. Elvis vs null coalescing
+$d = "" ?: "empty";
+$e = "" ?? "empty";
+
+// 5. Combined comparison
+$f = (10 &gt; 5) &amp;&amp; (3 &lt;= 3) || false;
+
+// 6. Spaceship
+$g = 5 &lt;=&gt; 5;
+
+// 7. Concatenation with types
+$h = "Score: " . 95 . "%";
+
+// 8. Assignment returns a value
+$i = $j = $k = 42;</code></pre>
+
+                    <details>
+                        <summary>✅ Answers</summary>
+                        <pre><code class="language-php">$a = 2 + 3 * 4 - 1;        // int(13) — 2 + 12 - 1
+$b = "10" + "20 cats";      // int(30) — "10" → 10, "20 cats" → 20
+$c = null ?? 0 ?? "default"; // int(0) — first non-null is 0
+$d = "" ?: "empty";          // string("empty") — "" is falsy
+$e = "" ?? "empty";          // string("") — "" is not null!
+$f = (10 &gt; 5) &amp;&amp; (3 &lt;= 3) || false; // bool(true) — true && true = true
+$g = 5 &lt;=&gt; 5;              // int(0) — equal
+$h = "Score: " . 95 . "%";  // string("Score: 95%") — concatenation
+$i = $j = $k = 42;          // All are int(42) — right-to-left assignment</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What does <code>"5" + "3"</code> evaluate to in PHP?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="That would be concatenation. The + operator in PHP is always arithmetic.">
+                                A) "53"
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! In PHP, + is always arithmetic. Both strings are type-juggled to integers, so '5' + '3' = 8. For concatenation, use the dot operator: '5' . '3' = '53'.">
+                                B) 8
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP can add string numbers. It converts them to integers automatically.">
+                                C) An error
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What does <code>$x = 0 ?? "default"</code> assign to <code>$x</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The ?? operator only checks for null. Since 0 is not null (it's an integer), $x gets the value 0. If you wanted to catch all falsy values, you'd use ?: instead.">
+                                A) 0
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The ?? operator only checks for null — not for falsy values like 0.">
+                                B) "default"
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="?? always returns one of its operands.">
+                                C) null
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What is the result of <code>10 % 3</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="That's the result of division. Modulo gives the remainder.">
+                                A) 3.33
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Close, but 10 ÷ 3 = 3 with remainder 1, not 0.">
+                                B) 0
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! 10 % 3 gives the remainder when 10 is divided by 3. Since 3 × 3 = 9 with 1 left over, the result is 1.">
+                                C) 1
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What's the key difference between <code>&amp;&amp;</code> and <code>and</code> in PHP?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Both are valid PHP operators. The difference is subtle but important.">
+                                A) && is valid PHP; "and" is not
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! && has higher precedence than =, while 'and' has lower precedence than =. This means $x = true and false assigns true to $x (then evaluates 'and false' separately), while $x = true && false assigns false to $x.">
+                                B) They have different operator precedence
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both are logical AND operators with the same boolean logic.">
+                                C) "and" is bitwise, && is logical
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What does the ternary expression <code>($age &gt;= 18) ? "adult" : "minor"</code> return if <code>$age</code> is 18?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! 18 >= 18 is true, so the ternary returns the value after the '?' — which is 'adult'.">
+                                A) "adult"
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Check the condition: is 18 >= 18? Remember, >= means 'greater than or equal to'.">
+                                B) "minor"
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The ternary always returns one of its two values — it never returns true/false unless those are the specified values.">
+                                C) true
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 11: Summary -->
+            <section id="section11" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Arithmetic:</strong> <code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code> <code>**</code> — standard math, plus modulo for remainders and exponentiation</li>
+                        <li><strong>Assignment:</strong> <code>=</code> plus compound forms (<code>+=</code>, <code>-=</code>, <code>.=</code>, etc.) for cleaner code</li>
+                        <li><strong>Strings:</strong> Use <code>.</code> for concatenation (not <code>+</code>!) and <code>.=</code> to append</li>
+                        <li><strong>Comparison:</strong> Always prefer <code>===</code> over <code>==</code> to avoid type juggling surprises</li>
+                        <li><strong>Logical:</strong> <code>&amp;&amp;</code>, <code>||</code>, <code>!</code> for combining conditions — use <code>&amp;&amp;</code>/<code>||</code> not <code>and</code>/<code>or</code></li>
+                        <li><strong>Ternary:</strong> <code>condition ? true : false</code> for compact conditionals; don't over-nest</li>
+                        <li><strong>Null coalescing:</strong> <code>??</code> for defaults when null; <code>??=</code> for assign-if-null</li>
+                        <li><strong>Precedence:</strong> When in doubt, use parentheses to make intent clear</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/language.operators.php" target="_blank" rel="noopener">PHP Manual: Operators</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.operators.precedence.php" target="_blank" rel="noopener">PHP Manual: Operator Precedence</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.operators.comparison.php" target="_blank" rel="noopener">PHP Manual: Comparison Operators</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>You can now calculate, compare, and combine data. In <strong>Lesson 5: Control Flow</strong>, you'll learn to make <em>decisions</em> with <code>if</code>/<code>elseif</code>/<code>else</code>, <code>switch</code>, and PHP 8's powerful <code>match</code> expression.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've mastered PHP's operators — the tools that make your data <em>do things</em>. Now let's put them to work with control flow!</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_03.html" class="prev-lesson">← Previous: PHP Syntax Basics</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_05.html" class="next-lesson">Next: Control Flow →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Common PHP errors explained — what they mean, why they happen, and how to fix them. A quick-reference guide for the PHP Foundations course.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Common Errors - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">☰</button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li aria-current="page">Common Errors</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>❌ Common PHP Errors</h1>
+                <p class="lead">A reference guide to the most frequently encountered PHP errors, what causes them, and how to fix them. When you hit an error, search this page for the error message.</p>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary><h2 style="display: inline; margin: 0;">📑 Sections</h2></summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#parse" class="toc-link">Parse (Syntax) Errors</a></li>
+                        <li><a href="#fatal" class="toc-link">Fatal Errors</a></li>
+                        <li><a href="#warnings" class="toc-link">Warnings</a></li>
+                        <li><a href="#notices" class="toc-link">Notices &amp; Deprecations</a></li>
+                        <li><a href="#pdo-errors" class="toc-link">PDO &amp; Database Errors</a></li>
+                        <li><a href="#file-errors" class="toc-link">File &amp; Permission Errors</a></li>
+                        <li><a href="#session-errors" class="toc-link">Session &amp; Header Errors</a></li>
+                        <li><a href="#oop-errors" class="toc-link">OOP Errors</a></li>
+                        <li><a href="#tips" class="toc-link">General Debugging Tips</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Parse Errors -->
+            <section id="parse" class="lesson-section">
+                <h2>Parse (Syntax) Errors</h2>
+                <p>Parse errors mean PHP can't even <em>read</em> your code — it's structurally broken. The script won't run at all.</p>
+
+                <div class="card card-warning">
+                    <h3>Parse error: syntax error, unexpected token "..."</h3>
+                    <p><strong>What it means:</strong> PHP found something it wasn't expecting at that position.</p>
+                    <h4>Common Causes &amp; Fixes:</h4>
+                    <pre><code class="language-php">
+// 1. Missing semicolon — error usually points to NEXT line
+$name = "Ray"    // ← Missing ;
+echo $name;      // ← Error reported HERE
+
+// Fix:
+$name = "Ray";
+
+// 2. Unclosed string
+echo "Hello world;  // Missing closing quote
+
+// 3. Unclosed parenthesis or bracket
+if ($x > 5 {        // Missing )
+    echo "big";
+}
+
+// 4. Extra closing brace
+function test() {
+    echo "hello";
+}}                   // ← Extra }
+
+// 5. Using PHP 8 syntax on PHP 7
+$result = match($x) { ... };  // match requires PHP 8.0+
+                    </code></pre>
+                    <div class="card card-info" style="margin-top: 1rem;">
+                        <h4>💡 Pro Tip</h4>
+                        <p>The error line number often points to where PHP <em>noticed</em> the problem, not where the actual mistake is. Check the line <strong>before</strong> the reported line first.</p>
+                    </div>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Parse error: syntax error, unexpected end of file</h3>
+                    <p><strong>What it means:</strong> PHP reached the end of the file but expected more code (something is unclosed).</p>
+                    <pre><code class="language-php">
+// Usually means: unclosed { } or missing &lt;?php / ?&gt;
+
+function greet($name) {
+    if ($name) {
+        echo "Hello, $name!";
+    // ← Missing closing } for the function
+
+// Fix: count your opening and closing braces
+// Tip: Use an editor with brace matching
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Fatal Errors -->
+            <section id="fatal" class="lesson-section">
+                <h2>Fatal Errors</h2>
+                <p>Fatal errors stop script execution immediately.</p>
+
+                <div class="card card-warning">
+                    <h3>Fatal error: Uncaught Error: Call to undefined function foo()</h3>
+                    <p><strong>Common Causes:</strong></p>
+                    <ul>
+                        <li>Typo in the function name (<code>streln()</code> instead of <code>strlen()</code>)</li>
+                        <li>Function defined in a file that hasn't been included</li>
+                        <li>Missing PHP extension (e.g., <code>json_encode</code> needs the JSON extension)</li>
+                    </ul>
+                    <pre><code class="language-php">
+// Check spelling carefully
+// strlen() not streln()
+
+// Make sure the file is included
+require_once __DIR__ . '/functions.php';
+
+// Check if a function exists before calling
+if (function_exists('my_function')) {
+    my_function();
+}
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Fatal error: Uncaught Error: Class "ClassName" not found</h3>
+                    <p><strong>Common Causes:</strong></p>
+                    <ul>
+                        <li>Class file not included/required</li>
+                        <li>Typo in the class name (case-sensitive!)</li>
+                        <li>Namespace not imported</li>
+                    </ul>
+                    <pre><code class="language-php">
+// Include the class file
+require_once __DIR__ . '/classes/User.php';
+
+// Or if using namespaces:
+use App\Models\User;
+
+// Check your spelling — class names are case-insensitive
+// but it's best practice to match the exact case
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Fatal error: Cannot redeclare function/class</h3>
+                    <p><strong>Cause:</strong> The same function or class is defined twice (usually from including a file twice).</p>
+                    <pre><code class="language-php">
+// Bad — file gets included multiple times
+include 'functions.php';  // Page A includes it
+include 'functions.php';  // Page A includes it again via another file
+
+// Fix — use require_once or include_once
+require_once __DIR__ . '/functions.php';
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Fatal error: Allowed memory size of X bytes exhausted</h3>
+                    <p><strong>Cause:</strong> Script consumed more memory than the limit (usually 128 MB).</p>
+                    <pre><code class="language-php">
+// Quick fix — increase the limit
+ini_set('memory_limit', '256M');
+
+// Better fix — find the cause:
+// - Infinite loop
+// - Loading a massive file into memory
+// - Fetching millions of database rows at once
+// - Recursive function without a base case
+
+// Process large datasets in chunks:
+$stmt = $pdo->query("SELECT * FROM huge_table");
+while ($row = $stmt->fetch()) {
+    // Process one row at a time instead of fetchAll()
+}
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Fatal error: Maximum execution time of 30 seconds exceeded</h3>
+                    <p><strong>Cause:</strong> Script ran longer than <code>max_execution_time</code> (default 30s).</p>
+                    <pre><code class="language-php">
+// Increase the limit (for specific scripts)
+set_time_limit(120);  // 120 seconds
+
+// Or in php.ini:
+// max_execution_time = 120
+
+// Better: figure out WHY it's slow
+// - Slow database query? Add indexes
+// - Infinite loop? Check loop conditions
+// - External API timeout? Set a timeout
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Warnings -->
+            <section id="warnings" class="lesson-section">
+                <h2>Warnings</h2>
+                <p>Warnings don't stop execution but indicate something is likely wrong.</p>
+
+                <div class="card card-warning">
+                    <h3>Warning: Undefined variable $varname</h3>
+                    <p><strong>Cause:</strong> Using a variable that hasn't been assigned a value.</p>
+                    <pre><code class="language-php">
+// Bad
+echo $username;  // $username was never set
+
+// Fix 1: Initialize the variable
+$username = '';
+
+// Fix 2: Use null coalescing for optional data
+$username = $_POST['username'] ?? '';
+
+// Fix 3: Check with isset()
+if (isset($username)) {
+    echo $username;
+}
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Warning: Undefined array key "keyname"</h3>
+                    <p><strong>Cause:</strong> Accessing an array key that doesn't exist.</p>
+                    <pre><code class="language-php">
+// Bad — 'email' key might not exist
+echo $_POST['email'];
+
+// Fix: use null coalescing
+$email = $_POST['email'] ?? '';
+
+// Or check first
+if (isset($_POST['email'])) {
+    $email = $_POST['email'];
+}
+
+// Or use array_key_exists()
+if (array_key_exists('email', $_POST)) { ... }
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Warning: foreach() argument must be of type array|object, null given</h3>
+                    <p><strong>Cause:</strong> The variable you're iterating over is <code>null</code> instead of an array.</p>
+                    <pre><code class="language-php">
+// Bad
+$items = null;
+foreach ($items as $item) { ... }  // Warning!
+
+// Fix: provide a default empty array
+$items = getItems() ?? [];
+foreach ($items as $item) { ... }
+
+// Or check first
+if (!empty($items)) {
+    foreach ($items as $item) { ... }
+}
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Warning: Division by zero</h3>
+                    <pre><code class="language-php">
+// Bad
+$average = $total / $count;  // Crashes if $count is 0
+
+// Fix: check before dividing
+$average = ($count > 0) ? $total / $count : 0;
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Warning: Cannot modify header information — headers already sent</h3>
+                    <p><strong>Cause:</strong> Output was sent to the browser before calling <code>header()</code>, <code>session_start()</code>, or <code>setcookie()</code>.</p>
+                    <pre><code class="language-php">
+// The error message tells you WHERE output started:
+// "headers already sent by (output started at /var/www/html/page.php:5)"
+
+// Check line 5 of page.php for:
+// - echo or print statements
+// - HTML before &lt;?php
+// - Whitespace or blank lines before &lt;?php
+// - A BOM (byte order mark) — save file as UTF-8 without BOM
+
+// Fix: put all header/session/cookie calls BEFORE any output
+&lt;?php
+session_start();              // ← First
+header("Location: /home");    // ← Before any HTML
+exit;
+?&gt;
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Notices & Deprecations -->
+            <section id="notices" class="lesson-section">
+                <h2>Notices &amp; Deprecations</h2>
+                <p>Less severe, but you should still fix them.</p>
+
+                <div class="card card-warning">
+                    <h3>Deprecated: Function name() is deprecated</h3>
+                    <p><strong>Cause:</strong> You're using a function that will be removed in a future PHP version.</p>
+                    <pre><code class="language-php">
+// Common deprecated functions and their replacements:
+
+// mysql_connect → use PDO instead (mysql_* removed in PHP 7)
+// each() → use foreach instead (deprecated in PHP 7.2)
+// create_function() → use anonymous functions (deprecated in PHP 7.2)
+// utf8_encode/decode → use mb_convert_encoding (deprecated in PHP 8.2)
+
+// Old:
+$encoded = utf8_encode($string);
+// New:
+$encoded = mb_convert_encoding($string, 'UTF-8', 'ISO-8859-1');
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Notice: Array to string conversion</h3>
+                    <p><strong>Cause:</strong> Trying to use an array where a string is expected.</p>
+                    <pre><code class="language-php">
+// Bad
+$colors = ["red", "green", "blue"];
+echo $colors;  // Notice: Array to string conversion → prints "Array"
+
+// Fix: use implode() or print_r()
+echo implode(", ", $colors);    // "red, green, blue"
+print_r($colors);               // Array ( [0] => red ... )
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- PDO Errors -->
+            <section id="pdo-errors" class="lesson-section">
+                <h2>PDO &amp; Database Errors</h2>
+
+                <div class="card card-warning">
+                    <h3>PDOException: could not find driver</h3>
+                    <p><strong>Cause:</strong> The PDO MySQL extension isn't installed.</p>
+                    <pre><code class="language-bash">
+sudo apt install php-mysql
+sudo service apache2 restart
+# Verify: php -m | grep pdo
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>PDOException: SQLSTATE[HY000] [2002] Connection refused</h3>
+                    <p><strong>Cause:</strong> MySQL isn't running or the host/port is wrong.</p>
+                    <pre><code class="language-bash">
+# Check if MySQL is running
+sudo service mysql status
+
+# Start it if needed
+sudo service mysql start
+
+# Verify your DSN uses the correct host:
+# "mysql:host=localhost" or "mysql:host=127.0.0.1"
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>PDOException: SQLSTATE[HY000] [1045] Access denied for user</h3>
+                    <p><strong>Cause:</strong> Wrong username, password, or user lacks database access.</p>
+                    <pre><code class="language-php">
+// 1. Verify credentials work from command line:
+// mysql -u your_user -p
+
+// 2. Check the user exists and has access:
+// sudo mysql
+// SELECT User, Host FROM mysql.user;
+// SHOW GRANTS FOR 'your_user'@'localhost';
+
+// 3. Double-check your PHP connection:
+$pdo = new PDO(
+    "mysql:host=localhost;dbname=your_db;charset=utf8mb4",
+    "your_user",     // ← correct?
+    "your_password",  // ← correct?
+    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+);
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>PDOException: SQLSTATE[42S02] Table 'db.table' doesn't exist</h3>
+                    <p><strong>Cause:</strong> The table name is wrong or the database doesn't contain that table.</p>
+                    <pre><code class="language-php">
+// Check your table name (case-sensitive on Linux!)
+// In MySQL: SHOW TABLES;
+
+// Common mistake: connecting to the wrong database
+// Check your DSN: dbname=correct_database
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>PDOException: SQLSTATE[HY093] Invalid parameter number</h3>
+                    <p><strong>Cause:</strong> Mismatch between placeholders and values.</p>
+                    <pre><code class="language-php">
+// Bad — 2 placeholders, 3 values
+$stmt = $pdo->prepare("INSERT INTO users (name, email) VALUES (?, ?)");
+$stmt->execute([$name, $email, $age]);  // 3 values!
+
+// Fix: match the count
+$stmt->execute([$name, $email]);
+
+// With named placeholders, keys must match exactly:
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id");
+$stmt->execute(['id' => $userId]);  // 'id' matches ':id'
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- File Errors -->
+            <section id="file-errors" class="lesson-section">
+                <h2>File &amp; Permission Errors</h2>
+
+                <div class="card card-warning">
+                    <h3>Warning: file_get_contents(): Failed to open stream: No such file or directory</h3>
+                    <pre><code class="language-php">
+// Check: does the file exist?
+if (file_exists('data.txt')) {
+    $content = file_get_contents('data.txt');
+}
+
+// Use __DIR__ for reliable paths:
+$content = file_get_contents(__DIR__ . '/data/file.txt');
+
+// Remember: paths are relative to the EXECUTING script
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Warning: file_put_contents(): Failed to open stream: Permission denied</h3>
+                    <pre><code class="language-bash">
+# Apache runs as www-data — give it write permission
+sudo chown www-data:www-data /var/www/html/data/
+sudo chmod 755 /var/www/html/data/
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Warning: require(): Failed opening required 'file.php'</h3>
+                    <p><strong>Cause:</strong> <code>require</code> can't find the file — fatal error, script stops.</p>
+                    <pre><code class="language-php">
+// Use absolute paths with __DIR__
+require __DIR__ . '/includes/config.php';
+
+// If the file is optional, use include instead:
+include __DIR__ . '/includes/optional.php';  // Warning only, script continues
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Session Errors -->
+            <section id="session-errors" class="lesson-section">
+                <h2>Session &amp; Header Errors</h2>
+
+                <div class="card card-warning">
+                    <h3>Warning: session_start(): Session cannot be started after headers have already been sent</h3>
+                    <p><strong>Fix:</strong> Move <code>session_start()</code> to the very first line of your script, before any output.</p>
+                    <pre><code class="language-php">
+&lt;?php
+session_start();  // Must be FIRST — before any HTML, whitespace, or echo
+?&gt;
+&lt;!DOCTYPE html&gt;
+...
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Session data disappears between pages</h3>
+                    <p><strong>Checklist:</strong></p>
+                    <ul>
+                        <li><code>session_start()</code> is called at the top of <strong>every</strong> page that reads <code>$_SESSION</code></li>
+                        <li>You're not accidentally calling <code>session_destroy()</code></li>
+                        <li>URLs are consistent (not mixing <code>localhost</code> / <code>127.0.0.1</code> / IP address)</li>
+                        <li>Browser cookies aren't disabled</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- OOP Errors -->
+            <section id="oop-errors" class="lesson-section">
+                <h2>OOP Errors</h2>
+
+                <div class="card card-warning">
+                    <h3>Fatal error: Using $this when not in object context</h3>
+                    <p><strong>Cause:</strong> Using <code>$this</code> in a static method, or calling an instance method statically.</p>
+                    <pre><code class="language-php">
+class User {
+    public string $name;
+
+    public static function create(): self {
+        // $this->name = "Ray";  // WRONG — no $this in static methods
+        $user = new self();      // Create an instance instead
+        $user->name = "Ray";
+        return $user;
+    }
+}
+
+// Also wrong: calling an instance method statically
+// User::greet();  // If greet() uses $this, this fails
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Fatal error: Cannot access private property</h3>
+                    <pre><code class="language-php">
+class Account {
+    private float $balance = 0;
+
+    public function getBalance(): float {
+        return $this->balance;
+    }
+}
+
+$account = new Account();
+// echo $account->balance;     // FATAL — private!
+echo $account->getBalance();   // Correct
+                    </code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h3>Fatal error: Class must implement all abstract methods</h3>
+                    <pre><code class="language-php">
+abstract class Shape {
+    abstract public function area(): float;
+    abstract public function perimeter(): float;
+}
+
+class Circle extends Shape {
+    public function area(): float { return M_PI * $this->r ** 2; }
+    // FATAL — missing perimeter() implementation!
+
+    public function perimeter(): float { return 2 * M_PI * $this->r; }
+    // Fix: implement ALL abstract methods
+}
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- General Tips -->
+            <section id="tips" class="lesson-section">
+                <h2>General Debugging Tips</h2>
+
+                <div class="card card-accent">
+                    <h3>🔹 Step 1: Make Errors Visible</h3>
+                    <pre><code class="language-php">
+// Add to the top of your script during development:
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// For production, log errors instead of displaying them:
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+// Check: sudo tail -f /var/log/apache2/error.log
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h3>🔹 Step 2: Use var_dump() Strategically</h3>
+                    <pre><code class="language-php">
+// Dump and die — quick debug, then stop
+var_dump($variable); die();
+
+// Pretty-print arrays
+echo "&lt;pre&gt;";
+var_dump($data);
+echo "&lt;/pre&gt;";
+
+// Check what a form actually sent
+echo "&lt;pre&gt;";
+var_dump($_POST);
+echo "&lt;/pre&gt;";
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h3>🔹 Step 3: Read the Error Message</h3>
+                    <p>PHP error messages contain everything you need:</p>
+                    <ul>
+                        <li><strong>Error type</strong> — Parse error, Fatal error, Warning, Notice</li>
+                        <li><strong>Description</strong> — what went wrong</li>
+                        <li><strong>File path</strong> — which file contains the error</li>
+                        <li><strong>Line number</strong> — where PHP noticed the problem (check the line before too)</li>
+                    </ul>
+                </div>
+
+                <div class="card card-accent">
+                    <h3>🔹 Step 4: Check the Apache Error Log</h3>
+                    <pre><code class="language-bash">
+# View the most recent errors
+sudo tail -30 /var/log/apache2/error.log
+
+# Watch errors in real-time (leave this running in a terminal)
+sudo tail -f /var/log/apache2/error.log
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h3>🔹 The "It Was Working Yesterday" Checklist</h3>
+                    <ol>
+                        <li>Are Apache and MySQL running? (<code>sudo service apache2 status</code> / <code>sudo service mysql status</code>)</li>
+                        <li>Did you save the file? (Check the file's modification timestamp)</li>
+                        <li>Are you editing the right file? (The one Apache is serving, not a copy somewhere else)</li>
+                        <li>Is your browser caching the old page? (Hard refresh: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>)</li>
+                        <li>Did you recently change php.ini? (Restart Apache: <code>sudo service apache2 restart</code>)</li>
+                    </ol>
+                </div>
+            </section>
+
+            <nav class="lesson-nav" aria-label="Page Navigation">
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

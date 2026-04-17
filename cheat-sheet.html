@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PHP cheat sheet — quick reference for syntax, data types, operators, arrays, strings, forms, sessions, OOP, PDO, and security functions covered in the PHP Foundations course.">
+    <meta name="author" content="Ray De La Paz">
+    <title>PHP Cheat Sheet - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">☰</button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li aria-current="page">PHP Cheat Sheet</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>📋 PHP Cheat Sheet</h1>
+                <p class="lead">A quick-reference guide to every essential PHP concept and function from this course. Bookmark this page and come back whenever you need a syntax reminder.</p>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary><h2 style="display: inline; margin: 0;">📑 Sections</h2></summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#basics" class="toc-link">PHP Basics</a></li>
+                        <li><a href="#data-types" class="toc-link">Data Types</a></li>
+                        <li><a href="#operators" class="toc-link">Operators</a></li>
+                        <li><a href="#control-flow" class="toc-link">Control Flow</a></li>
+                        <li><a href="#loops" class="toc-link">Loops</a></li>
+                        <li><a href="#functions" class="toc-link">Functions</a></li>
+                        <li><a href="#arrays" class="toc-link">Arrays</a></li>
+                        <li><a href="#array-functions" class="toc-link">Array Functions</a></li>
+                        <li><a href="#strings" class="toc-link">String Functions</a></li>
+                        <li><a href="#forms" class="toc-link">Forms &amp; Input</a></li>
+                        <li><a href="#validation" class="toc-link">Validation &amp; Sanitization</a></li>
+                        <li><a href="#files" class="toc-link">File Handling</a></li>
+                        <li><a href="#superglobals" class="toc-link">Superglobals</a></li>
+                        <li><a href="#sessions" class="toc-link">Sessions &amp; Cookies</a></li>
+                        <li><a href="#oop" class="toc-link">Object-Oriented PHP</a></li>
+                        <li><a href="#errors" class="toc-link">Error Handling</a></li>
+                        <li><a href="#pdo" class="toc-link">PDO &amp; Database</a></li>
+                        <li><a href="#security" class="toc-link">Security</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- PHP Basics -->
+            <section id="basics" class="lesson-section">
+                <h2>PHP Basics</h2>
+
+                <div class="card card-accent">
+                    <h4>PHP Tags &amp; Output</h4>
+                    <pre><code class="language-php">
+&lt;?php
+// Full PHP block
+echo "Hello, World!";    // Output a string
+print "Hello!";          // Similar to echo (returns 1)
+?&gt;
+
+&lt;?= $variable ?&gt;         &lt;!-- Short echo tag (in HTML) --&gt;
+
+// Comments
+// Single line
+# Also single line
+/* Multi-line
+   comment */
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Variables &amp; Constants</h4>
+                    <pre><code class="language-php">
+// Variables — always start with $
+$name = "Ray";
+$age = 30;
+$price = 19.99;
+$isActive = true;
+$nothing = null;
+
+// Constants — cannot be changed
+define("SITE_NAME", "My App");
+const MAX_USERS = 100;
+
+// Use constants without $
+echo SITE_NAME;
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Data Types -->
+            <section id="data-types" class="lesson-section">
+                <h2>Data Types</h2>
+
+                <div class="card card-accent">
+                    <pre><code class="language-php">
+// Scalar types
+$string  = "Hello";        // string
+$int     = 42;             // int (integer)
+$float   = 3.14;           // float (double)
+$bool    = true;           // bool (boolean)
+
+// Compound types
+$array   = [1, 2, 3];     // array
+$obj     = new stdClass(); // object
+
+// Special types
+$nothing = null;           // null
+
+// Type checking
+gettype($var);             // Returns type as string
+is_string($var);           // true/false
+is_int($var);
+is_array($var);
+isset($var);               // true if exists and not null
+empty($var);               // true if "", 0, null, false, []
+
+// Type casting
+$int = (int) "42";         // 42
+$str = (string) 42;        // "42"
+$arr = (array) $object;    // Object → array
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Operators -->
+            <section id="operators" class="lesson-section">
+                <h2>Operators</h2>
+
+                <div class="card card-accent">
+                    <h4>Arithmetic &amp; Assignment</h4>
+                    <pre><code class="language-php">
+// Arithmetic
+$a + $b    // Addition
+$a - $b    // Subtraction
+$a * $b    // Multiplication
+$a / $b    // Division
+$a % $b    // Modulus (remainder)
+$a ** $b   // Exponentiation
+
+// Assignment shortcuts
+$a += 5;   // $a = $a + 5
+$a -= 5;   $a *= 5;   $a /= 5;   $a %= 5;
+$a .= " more";  // String concatenation assignment
+$a++;      // Increment
+$a--;      // Decrement
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Comparison &amp; Logical</h4>
+                    <pre><code class="language-php">
+// Comparison
+$a == $b    // Equal (loose — type juggling)
+$a === $b   // Identical (strict — same type AND value)
+$a != $b    // Not equal (loose)
+$a !== $b   // Not identical (strict)
+$a <=> $b   // Spaceship: -1, 0, or 1
+
+// Logical
+$a && $b    // AND
+$a || $b    // OR
+!$a         // NOT
+
+// Special operators
+$a ?? $b        // Null coalescing: $a if not null, else $b
+$a ??= $b       // Null coalescing assignment
+$a ? $b : $c    // Ternary
+$a ?: $b        // Elvis: $a if truthy, else $b
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Control Flow -->
+            <section id="control-flow" class="lesson-section">
+                <h2>Control Flow</h2>
+
+                <div class="card card-accent">
+                    <pre><code class="language-php">
+// if / elseif / else
+if ($score >= 90) {
+    echo "A";
+} elseif ($score >= 80) {
+    echo "B";
+} else {
+    echo "C";
+}
+
+// switch
+switch ($color) {
+    case "red":
+        echo "Stop";
+        break;
+    case "green":
+        echo "Go";
+        break;
+    default:
+        echo "Unknown";
+}
+
+// match (PHP 8) — strict comparison, returns a value
+$label = match ($status) {
+    'active'   => 'Online',
+    'inactive' => 'Offline',
+    default    => 'Unknown',
+};
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Loops -->
+            <section id="loops" class="lesson-section">
+                <h2>Loops</h2>
+
+                <div class="card card-accent">
+                    <pre><code class="language-php">
+// for — when you know the count
+for ($i = 0; $i < 10; $i++) {
+    echo $i;
+}
+
+// while — condition checked before each iteration
+while ($condition) {
+    // ...
+}
+
+// do-while — runs at least once
+do {
+    // ...
+} while ($condition);
+
+// foreach — best for arrays
+foreach ($items as $item) {
+    echo $item;
+}
+
+foreach ($users as $key => $value) {
+    echo "$key: $value";
+}
+
+// Loop control
+break;       // Exit the loop
+continue;    // Skip to next iteration
+break 2;     // Exit 2 levels of nesting
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Functions -->
+            <section id="functions" class="lesson-section">
+                <h2>Functions</h2>
+
+                <div class="card card-accent">
+                    <pre><code class="language-php">
+// Basic function
+function greet(string $name): string {
+    return "Hello, $name!";
+}
+
+// Default parameter values
+function connect(string $host = "localhost", int $port = 3306): void {
+    // ...
+}
+
+// Variadic function (accepts unlimited args)
+function sum(int ...$numbers): int {
+    return array_sum($numbers);
+}
+
+// Anonymous function (closure)
+$double = function($n) {
+    return $n * 2;
+};
+echo $double(5);  // 10
+
+// Arrow function (PHP 7.4+)
+$double = fn($n) => $n * 2;
+
+// Closure with use
+$greeting = "Hello";
+$greet = function($name) use ($greeting) {
+    return "$greeting, $name!";
+};
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Arrays -->
+            <section id="arrays" class="lesson-section">
+                <h2>Arrays</h2>
+
+                <div class="card card-accent">
+                    <pre><code class="language-php">
+// Indexed array
+$fruits = ["apple", "banana", "cherry"];
+echo $fruits[0];  // "apple"
+
+// Associative array
+$user = [
+    "name"  => "Ray",
+    "email" => "ray@example.com",
+    "age"   => 30,
+];
+echo $user["name"];  // "Ray"
+
+// Multidimensional array
+$matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+];
+echo $matrix[1][2];  // 6
+
+// Adding elements
+$fruits[] = "date";            // Append
+$user["role"] = "admin";       // Add key
+
+// Destructuring
+[$a, $b, $c] = [10, 20, 30];
+["name" => $name] = $user;
+
+// Spread operator (PHP 7.4+)
+$merged = [...$array1, ...$array2];
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Array Functions -->
+            <section id="array-functions" class="lesson-section">
+                <h2>Array Functions</h2>
+
+                <div class="card card-accent">
+                    <h4>Searching &amp; Checking</h4>
+                    <pre><code class="language-php">
+count($arr);                    // Number of elements
+in_array("apple", $arr);       // Check if value exists
+array_key_exists("name", $arr);// Check if key exists
+array_search("banana", $arr);  // Find key of value (or false)
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Transforming</h4>
+                    <pre><code class="language-php">
+// Map — apply function to each element
+$doubled = array_map(fn($n) => $n * 2, $numbers);
+
+// Filter — keep elements that pass a test
+$adults = array_filter($ages, fn($age) => $age >= 18);
+
+// Reduce — combine all elements into one value
+$total = array_reduce($prices, fn($carry, $price) => $carry + $price, 0);
+
+// Merge arrays
+$combined = array_merge($arr1, $arr2);
+
+// Extract keys or values
+$keys   = array_keys($assoc);
+$values = array_values($assoc);
+
+// Remove duplicates
+$unique = array_unique($arr);
+
+// Slice & splice
+$slice = array_slice($arr, 1, 3);     // Extract portion
+array_splice($arr, 1, 2, ["new"]);    // Remove & replace
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Sorting</h4>
+                    <pre><code class="language-php">
+sort($arr);        // Sort values ascending (reindexes)
+rsort($arr);       // Sort values descending
+asort($arr);       // Sort values ascending (preserves keys)
+arsort($arr);      // Sort values descending (preserves keys)
+ksort($arr);       // Sort by keys ascending
+krsort($arr);      // Sort by keys descending
+usort($arr, fn($a, $b) => $a <=> $b);  // Custom sort
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- String Functions -->
+            <section id="strings" class="lesson-section">
+                <h2>String Functions</h2>
+
+                <div class="card card-accent">
+                    <pre><code class="language-php">
+// Length & position
+strlen($str);                         // String length
+strpos($str, "needle");               // Find position (or false)
+str_contains($str, "needle");         // PHP 8: true/false
+str_starts_with($str, "Hello");       // PHP 8
+str_ends_with($str, "World");         // PHP 8
+
+// Extracting & replacing
+substr($str, 0, 5);                   // First 5 characters
+str_replace("old", "new", $str);      // Replace all occurrences
+str_ireplace("old", "new", $str);     // Case-insensitive replace
+
+// Case conversion
+strtolower($str);
+strtoupper($str);
+ucfirst($str);                        // Capitalize first letter
+ucwords($str);                        // Capitalize each word
+
+// Trimming
+trim($str);                           // Remove whitespace both ends
+ltrim($str);                          // Left trim
+rtrim($str);                          // Right trim
+
+// Splitting & joining
+explode(",", $str);                   // String → array
+implode(", ", $arr);                  // Array → string
+
+// Formatting
+sprintf("Hello, %s! You are %d.", $name, $age);
+number_format(1234567.89, 2);         // "1,234,567.89"
+
+// Multi-line strings
+$text = <<<EOT
+Hello, $name!
+This is a heredoc string.
+EOT;
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Forms -->
+            <section id="forms" class="lesson-section">
+                <h2>Forms &amp; Input</h2>
+
+                <div class="card card-accent">
+                    <h4>HTML Form → PHP Processing</h4>
+                    <pre><code class="language-php">
+// HTML form
+// &lt;form method="post" action="process.php"&gt;
+//     &lt;input type="text" name="username"&gt;
+//     &lt;input type="email" name="email"&gt;
+//     &lt;button type="submit"&gt;Submit&lt;/button&gt;
+// &lt;/form&gt;
+
+// process.php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'] ?? '';
+    $email    = $_POST['email'] ?? '';
+}
+
+// GET data (from URL: ?search=php)
+$search = $_GET['search'] ?? '';
+
+// Check if form was submitted
+if (isset($_POST['submit'])) { ... }
+
+// Sticky form (re-fills values after submission)
+// &lt;input value="&lt;?= htmlspecialchars($username) ?&gt;"&gt;
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Validation -->
+            <section id="validation" class="lesson-section">
+                <h2>Validation &amp; Sanitization</h2>
+
+                <div class="card card-accent">
+                    <pre><code class="language-php">
+// Validation — does the data meet the rules?
+filter_var($email, FILTER_VALIDATE_EMAIL);    // false if invalid
+filter_var($url, FILTER_VALIDATE_URL);
+filter_var($ip, FILTER_VALIDATE_IP);
+filter_var($num, FILTER_VALIDATE_INT);
+
+// Sanitization — clean the data
+filter_var($str, FILTER_SANITIZE_SPECIAL_CHARS);
+filter_var($email, FILTER_SANITIZE_EMAIL);
+filter_var($url, FILTER_SANITIZE_URL);
+filter_var($num, FILTER_SANITIZE_NUMBER_INT);
+
+// htmlspecialchars — escape for HTML output
+htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+
+// Basic regex validation
+preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username);  // 1 if match
+
+// Common validation pattern
+$errors = [];
+if (empty($name))     $errors[] = "Name is required.";
+if (strlen($name) < 2) $errors[] = "Name must be at least 2 characters.";
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors[] = "Invalid email address.";
+}
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- File Handling -->
+            <section id="files" class="lesson-section">
+                <h2>File Handling</h2>
+
+                <div class="card card-accent">
+                    <pre><code class="language-php">
+// Simple read/write
+$content = file_get_contents("data.txt");
+file_put_contents("data.txt", $content);     // Overwrite
+file_put_contents("log.txt", $line, FILE_APPEND);  // Append
+
+// Manual file handling
+$handle = fopen("data.txt", "r");  // r=read, w=write, a=append
+$line = fgets($handle);            // Read one line
+$content = fread($handle, 1024);   // Read bytes
+fwrite($handle, "Hello\n");
+fclose($handle);
+
+// File info
+file_exists("data.txt");   // true/false
+is_file("data.txt");       // Is it a file (not dir)?
+filesize("data.txt");      // Size in bytes
+unlink("data.txt");        // Delete file
+
+// Include other PHP files
+include "header.php";           // Warning if missing
+require "config.php";           // Fatal error if missing
+include_once "functions.php";   // Skip if already loaded
+require_once "database.php";    // Fatal + skip if loaded
+
+// Reliable path with __DIR__
+require __DIR__ . '/includes/config.php';
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Superglobals -->
+            <section id="superglobals" class="lesson-section">
+                <h2>Superglobals</h2>
+
+                <div class="card card-accent">
+                    <pre><code class="language-php">
+$_GET        // URL query parameters
+$_POST       // Form POST data
+$_REQUEST    // GET + POST + COOKIE combined
+$_FILES      // Uploaded file information
+$_COOKIE     // Cookie values
+$_SESSION    // Session data
+$_SERVER     // Server & request info
+$_ENV        // Environment variables
+
+// Useful $_SERVER values
+$_SERVER['REQUEST_METHOD']   // "GET" or "POST"
+$_SERVER['SCRIPT_NAME']      // Current script path
+$_SERVER['HTTP_HOST']        // Domain name
+$_SERVER['REMOTE_ADDR']      // Client IP address
+$_SERVER['HTTP_USER_AGENT']  // Browser info
+$_SERVER['DOCUMENT_ROOT']    // Web root path
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Sessions & Cookies -->
+            <section id="sessions" class="lesson-section">
+                <h2>Sessions &amp; Cookies</h2>
+
+                <div class="card card-accent">
+                    <h4>Sessions</h4>
+                    <pre><code class="language-php">
+// Start session — MUST be first thing on every page
+session_start();
+
+// Set session data
+$_SESSION['username'] = "Ray";
+$_SESSION['role'] = "admin";
+
+// Read session data
+echo $_SESSION['username'];
+
+// Check if session key exists
+if (isset($_SESSION['username'])) { ... }
+
+// Remove a key
+unset($_SESSION['username']);
+
+// Destroy entire session (logout)
+session_start();
+$_SESSION = [];
+session_destroy();
+
+// Regenerate ID (security — after login)
+session_regenerate_id(true);
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Cookies</h4>
+                    <pre><code class="language-php">
+// Set a cookie — must be before ANY output
+setcookie("theme", "dark", time() + 86400, "/");
+// name, value, expires (1 day), path
+
+// Read a cookie (available on NEXT request)
+$theme = $_COOKIE['theme'] ?? 'light';
+
+// Delete a cookie — set expiry in the past
+setcookie("theme", "", time() - 3600, "/");
+
+// Secure cookie options (PHP 7.3+)
+setcookie("token", $value, [
+    'expires'  => time() + 86400,
+    'path'     => '/',
+    'secure'   => true,      // HTTPS only
+    'httponly'  => true,      // No JavaScript access
+    'samesite' => 'Strict',  // CSRF protection
+]);
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- OOP -->
+            <section id="oop" class="lesson-section">
+                <h2>Object-Oriented PHP</h2>
+
+                <div class="card card-accent">
+                    <h4>Classes &amp; Objects</h4>
+                    <pre><code class="language-php">
+class User {
+    // Properties
+    public string $name;
+    private string $email;
+    protected int $age;
+    public static int $count = 0;
+
+    // Constructor
+    public function __construct(string $name, string $email) {
+        $this->name = $name;
+        $this->email = $email;
+        self::$count++;
+    }
+
+    // Method
+    public function getEmail(): string {
+        return $this->email;
+    }
+
+    // Static method
+    public static function getCount(): int {
+        return self::$count;
+    }
+}
+
+// Create objects
+$user = new User("Ray", "ray@example.com");
+echo $user->name;           // Access public property
+echo $user->getEmail();     // Access via method
+echo User::getCount();      // Call static method
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Inheritance, Interfaces &amp; Traits</h4>
+                    <pre><code class="language-php">
+// Inheritance
+class Admin extends User {
+    public function __construct(string $name, string $email) {
+        parent::__construct($name, $email);
+    }
+
+    public function promote(): void { ... }
+}
+
+// Abstract class
+abstract class Shape {
+    abstract public function area(): float;
+}
+
+// Interface
+interface Printable {
+    public function toString(): string;
+}
+
+class Circle extends Shape implements Printable {
+    public function __construct(private float $radius) {}
+    public function area(): float { return M_PI * $this->radius ** 2; }
+    public function toString(): string { return "Circle(r={$this->radius})"; }
+}
+
+// Trait
+trait Timestampable {
+    public string $createdAt;
+    public function setTimestamp(): void {
+        $this->createdAt = date('Y-m-d H:i:s');
+    }
+}
+
+class Post {
+    use Timestampable;
+}
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Error Handling -->
+            <section id="errors" class="lesson-section">
+                <h2>Error Handling</h2>
+
+                <div class="card card-accent">
+                    <pre><code class="language-php">
+// try / catch / finally
+try {
+    $result = riskyOperation();
+} catch (InvalidArgumentException $e) {
+    echo "Bad input: " . $e->getMessage();
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+} finally {
+    // Always runs (cleanup)
+}
+
+// Throw an exception
+throw new Exception("Something went wrong");
+throw new InvalidArgumentException("Age must be positive");
+
+// Custom exception
+class ValidationException extends Exception {
+    private array $errors;
+    public function __construct(array $errors) {
+        $this->errors = $errors;
+        parent::__construct("Validation failed");
+    }
+    public function getErrors(): array { return $this->errors; }
+}
+
+// Error reporting (development)
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- PDO -->
+            <section id="pdo" class="lesson-section">
+                <h2>PDO &amp; Database</h2>
+
+                <div class="card card-accent">
+                    <h4>Connecting</h4>
+                    <pre><code class="language-php">
+$dsn = "mysql:host=localhost;dbname=mydb;charset=utf8mb4";
+$pdo = new PDO($dsn, "username", "password", [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+]);
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Prepared Statements (CRUD)</h4>
+                    <pre><code class="language-php">
+// SELECT (read)
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$id]);
+$user = $stmt->fetch();            // One row
+$users = $stmt->fetchAll();        // All rows
+
+// Named placeholders
+$stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email");
+$stmt->execute(['email' => $email]);
+
+// INSERT (create)
+$stmt = $pdo->prepare("INSERT INTO users (name, email) VALUES (?, ?)");
+$stmt->execute([$name, $email]);
+$newId = $pdo->lastInsertId();
+
+// UPDATE
+$stmt = $pdo->prepare("UPDATE users SET name = ? WHERE id = ?");
+$stmt->execute([$name, $id]);
+$affected = $stmt->rowCount();
+
+// DELETE
+$stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+$stmt->execute([$id]);
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Transactions</h4>
+                    <pre><code class="language-php">
+try {
+    $pdo->beginTransaction();
+
+    $stmt1 = $pdo->prepare("UPDATE accounts SET balance = balance - ? WHERE id = ?");
+    $stmt1->execute([100, $fromId]);
+
+    $stmt2 = $pdo->prepare("UPDATE accounts SET balance = balance + ? WHERE id = ?");
+    $stmt2->execute([100, $toId]);
+
+    $pdo->commit();       // All succeed
+} catch (Exception $e) {
+    $pdo->rollBack();     // All fail — undo everything
+    throw $e;
+}
+                    </code></pre>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Fetch Styles</h4>
+                    <pre><code class="language-php">
+$stmt->fetch(PDO::FETCH_ASSOC);    // ['name' => 'Ray', ...]
+$stmt->fetch(PDO::FETCH_NUM);      // [0 => 'Ray', ...]
+$stmt->fetch(PDO::FETCH_OBJ);      // $row->name
+$stmt->fetch(PDO::FETCH_BOTH);     // Both assoc + numeric
+$stmt->fetchColumn();              // Single column value
+$stmt->fetchAll(PDO::FETCH_ASSOC); // Array of all rows
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Security -->
+            <section id="security" class="lesson-section">
+                <h2>Security</h2>
+
+                <div class="card card-accent">
+                    <h4>Quick Security Checklist</h4>
+                    <pre><code class="language-php">
+// 1. SQL Injection — ALWAYS use prepared statements
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$id]);
+// NEVER: "SELECT * FROM users WHERE id = $id"
+
+// 2. XSS — ALWAYS escape output
+echo htmlspecialchars($userInput, ENT_QUOTES, 'UTF-8');
+
+// 3. CSRF — use tokens in forms
+// Generate:
+$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+// In form: &lt;input type="hidden" name="csrf_token"
+//   value="&lt;?= $_SESSION['csrf_token'] ?&gt;"&gt;
+// Verify:
+if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+    die("Invalid CSRF token");
+}
+
+// 4. Passwords — hash, never store plain text
+$hash = password_hash($password, PASSWORD_DEFAULT);
+// Verify:
+if (password_verify($inputPassword, $storedHash)) {
+    echo "Login successful!";
+}
+
+// 5. File uploads — validate type and size
+$allowed = ['image/jpeg', 'image/png', 'image/gif'];
+if (!in_array($_FILES['file']['type'], $allowed)) {
+    die("Invalid file type");
+}
+                    </code></pre>
+                </div>
+            </section>
+
+            <nav class="lesson-nav" aria-label="Page Navigation">
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

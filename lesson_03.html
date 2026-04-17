@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn PHP syntax fundamentals: PHP tags, variables, data types, echo vs print, comments, and type juggling.">
+    <meta name="author" content="Ray De La Paz">
+    <title>PHP Syntax Basics - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 1: Getting Started</a></li>
+            <li aria-current="page">Lesson 3: PHP Syntax Basics</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>📝 Lesson 3: PHP Syntax Basics</h1>
+                <p class="lead">Time to learn the language itself. This lesson covers everything you need to start writing PHP — from opening tags to variables, data types, output, and the quirks of PHP's type system.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Use PHP opening and closing tags correctly</li>
+                        <li>Declare and use variables following PHP naming rules</li>
+                        <li>Identify and work with PHP's core data types (string, int, float, bool, null)</li>
+                        <li>Output content using <code>echo</code> and <code>print</code></li>
+                        <li>Write single-line and multi-line comments</li>
+                        <li>Understand PHP's type juggling and how to check types</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 45 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 2 (working LAMP environment)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">PHP Tags</a></li>
+                        <li><a href="#section2" class="toc-link">Statements and Semicolons</a></li>
+                        <li><a href="#section3" class="toc-link">Comments</a></li>
+                        <li><a href="#section4" class="toc-link">Variables</a></li>
+                        <li><a href="#section5" class="toc-link">Data Types</a></li>
+                        <li><a href="#section6" class="toc-link">Output: echo vs. print</a></li>
+                        <li><a href="#section7" class="toc-link">String Quoting: Single vs. Double</a></li>
+                        <li><a href="#section8" class="toc-link">Type Juggling and Type Checking</a></li>
+                        <li><a href="#section9" class="toc-link">Constants</a></li>
+                        <li><a href="#section10" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section11" class="toc-link">Knowledge Check</a></li>
+                        <li><a href="#section12" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: PHP Tags -->
+            <section id="section1" class="lesson-section">
+                <h2>PHP Tags</h2>
+
+                <p>PHP code lives inside special tags that tell the server "process this as PHP." Everything outside these tags is treated as plain HTML and sent directly to the browser.</p>
+
+                <h3>The Standard Tag</h3>
+                <pre><code class="language-php">&lt;?php
+    // PHP code goes here
+?&gt;</code></pre>
+
+                <p>This is the <strong>only tag style you should use</strong>. It works everywhere and is universally supported.</p>
+
+                <h3>Mixing PHP and HTML</h3>
+                <p>PHP files can contain both HTML and PHP. You can switch between them freely:</p>
+
+                <pre><code class="language-php">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+    &lt;h1&gt;Welcome&lt;/h1&gt;
+    &lt;p&gt;The current year is &lt;?php echo date('Y'); ?&gt;&lt;/p&gt;
+
+    &lt;?php
+        $name = "PHP Student";
+        $lessons = 24;
+    ?&gt;
+
+    &lt;p&gt;Hello, &lt;?php echo $name; ?&gt;! You have &lt;?php echo $lessons; ?&gt; lessons ahead.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Best Practice: Omit the Closing Tag in Pure PHP Files</h4>
+                    <p>If a file contains <em>only</em> PHP (no HTML), leave off the closing <code>?&gt;</code> tag. This prevents accidental whitespace after the tag, which can cause "headers already sent" errors.</p>
+                    <pre><code class="language-php">&lt;?php
+// Pure PHP file — no closing tag needed
+
+$greeting = "Hello, World!";
+echo $greeting;
+// End of file — no ?&gt; here</code></pre>
+                </div>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Avoid These Tag Styles</h4>
+                    <p>You may see these in old code, but <strong>don't use them</strong>:</p>
+                    <pre><code class="language-php">// Short open tag — depends on php.ini setting, not portable
+&lt;? echo "risky"; ?&gt;
+
+// ASP-style tags — removed in PHP 7
+&lt;% echo "deprecated"; %&gt;
+
+// Script tag — removed in PHP 7
+&lt;script language="php"&gt; echo "ancient"; &lt;/script&gt;</code></pre>
+                    <p>The one exception: <code>&lt;?= ... ?&gt;</code> is a shortcut for <code>&lt;?php echo ... ?&gt;</code> and is always available since PHP 5.4. It's fine to use in templates:</p>
+                    <pre><code class="language-php">&lt;p&gt;Hello, &lt;?= $name ?&gt;&lt;/p&gt;
+&lt;!-- Same as: &lt;?php echo $name; ?&gt; --&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 2: Statements and Semicolons -->
+            <section id="section2" class="lesson-section">
+                <h2>Statements and Semicolons</h2>
+
+                <p>Every PHP statement ends with a <strong>semicolon</strong> (<code>;</code>). This tells PHP where one instruction ends and the next begins.</p>
+
+                <pre><code class="language-php">&lt;?php
+$name = "Alice";      // Statement 1
+$age = 30;            // Statement 2
+echo $name;           // Statement 3
+echo " is ";          // Statement 4
+echo $age;            // Statement 5</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Forgetting Semicolons</h4>
+                    <p>A missing semicolon is one of the most common PHP errors. If you see an error message like <code>Parse error: syntax error, unexpected...</code>, check for a missing semicolon on the line <em>before</em> the reported error line.</p>
+                    <pre><code class="language-php">// This will cause an error
+$name = "Alice"    // ← Missing semicolon!
+echo $name;        // PHP reports the error here, but the problem is above</code></pre>
+                </div>
+
+                <p>You <em>can</em> put multiple statements on one line, but don't — it makes code harder to read:</p>
+                <pre><code class="language-php">// Legal but ugly — don't do this
+$a = 1; $b = 2; $c = $a + $b; echo $c;
+
+// Much better — one statement per line
+$a = 1;
+$b = 2;
+$c = $a + $b;
+echo $c;</code></pre>
+            </section>
+
+            <!-- Section 3: Comments -->
+            <section id="section3" class="lesson-section">
+                <h2>Comments</h2>
+
+                <p>Comments are notes in your code that PHP ignores completely. They're for <em>humans</em> — future you, your teammates, or anyone reading the code.</p>
+
+                <h3>Single-Line Comments</h3>
+                <pre><code class="language-php">&lt;?php
+// This is a single-line comment (C++ style)
+# This is also a single-line comment (shell style)
+
+$price = 29.99; // You can put comments at the end of a line too</code></pre>
+
+                <h3>Multi-Line Comments</h3>
+                <pre><code class="language-php">&lt;?php
+/*
+  This is a multi-line comment.
+  It can span as many lines as you need.
+  Useful for longer explanations or temporarily
+  disabling blocks of code.
+*/
+
+$tax_rate = 0.0825;</code></pre>
+
+                <h3>DocBlock Comments</h3>
+                <p>DocBlock comments use a special format that documentation tools can read. You'll see these in professional PHP code:</p>
+                <pre><code class="language-php">&lt;?php
+/**
+ * Calculate the total price including tax.
+ *
+ * @param float $price    The base price
+ * @param float $taxRate  The tax rate (e.g., 0.0825 for 8.25%)
+ * @return float          The total price with tax
+ */
+function calculateTotal($price, $taxRate) {
+    return $price * (1 + $taxRate);
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Comment Guidelines</h4>
+                    <p>Good comments explain <em>why</em>, not <em>what</em>. The code itself shows what's happening; comments should explain the reasoning behind non-obvious decisions.</p>
+                    <pre><code class="language-php">// Bad comment — restates the obvious
+$count = $count + 1; // Add 1 to count
+
+// Good comment — explains the why
+$count = $count + 1; // Account for the header row in the CSV</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 4: Variables -->
+            <section id="section4" class="lesson-section">
+                <h2>Variables</h2>
+
+                <p>Variables are containers that store data. In PHP, every variable starts with a dollar sign (<code>$</code>).</p>
+
+                <h3>Declaring and Assigning Variables</h3>
+                <pre><code class="language-php">&lt;?php
+// You don't need to declare types — just assign a value
+$name = "Alice";          // A string
+$age = 30;                // An integer
+$price = 19.99;           // A float
+$isStudent = true;        // A boolean
+$middleName = null;       // Null (no value)</code></pre>
+
+                <p>PHP variables are <strong>dynamically typed</strong> — you don't declare a type, and a variable can change types during its lifetime:</p>
+                <pre><code class="language-php">&lt;?php
+$x = 42;          // $x is an integer
+$x = "hello";     // Now $x is a string — PHP doesn't complain
+$x = 3.14;        // Now $x is a float</code></pre>
+
+                <h3>Variable Naming Rules</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rule</th>
+                                <th>Valid</th>
+                                <th>Invalid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Must start with <code>$</code></td>
+                                <td><code>$name</code></td>
+                                <td><code>name</code></td>
+                            </tr>
+                            <tr>
+                                <td>First character after <code>$</code> must be a letter or underscore</td>
+                                <td><code>$_count</code>, <code>$myVar</code></td>
+                                <td><code>$1name</code>, <code>$-value</code></td>
+                            </tr>
+                            <tr>
+                                <td>Can contain letters, numbers, and underscores</td>
+                                <td><code>$user_2</code>, <code>$totalPrice</code></td>
+                                <td><code>$my-var</code>, <code>$my var</code></td>
+                            </tr>
+                            <tr>
+                                <td>Case-sensitive</td>
+                                <td><code>$Name</code> ≠ <code>$name</code> ≠ <code>$NAME</code></td>
+                                <td>—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Naming Conventions</h3>
+                <p>PHP doesn't enforce a naming style, but most modern PHP code uses <strong>camelCase</strong> for variables:</p>
+                <pre><code class="language-php">&lt;?php
+// camelCase — recommended
+$firstName = "Alice";
+$totalPrice = 49.99;
+$isLoggedIn = true;
+
+// snake_case — also common, especially in older PHP / WordPress
+$first_name = "Alice";
+$total_price = 49.99;
+$is_logged_in = true;
+
+// Pick one style and be consistent!</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 Variable Variables (Advanced)</h4>
+                    <p>PHP has a curious feature called "variable variables" where the name of a variable is itself stored in another variable. You'll rarely need this, but you should know it exists:</p>
+                    <pre><code class="language-php">&lt;?php
+$field = "username";
+$$field = "alice";     // Creates $username = "alice"
+echo $username;        // Output: alice</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 5: Data Types -->
+            <section id="section5" class="lesson-section">
+                <h2>Data Types</h2>
+
+                <p>PHP has eight primitive types. In this lesson, we'll focus on the five you'll use most:</p>
+
+                <div class="mermaid">
+                    graph TD
+                        A["PHP Data Types"] --> B["Scalar Types"]
+                        A --> C["Compound Types"]
+                        A --> D["Special Types"]
+                        B --> E["string"]
+                        B --> F["int"]
+                        B --> G["float"]
+                        B --> H["bool"]
+                        C --> I["array<br/>(Lesson 8)"]
+                        C --> J["object<br/>(Lesson 16)"]
+                        D --> K["null"]
+                        D --> L["resource"]
+                        style E fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
+                        style F fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
+                        style G fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
+                        style H fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
+                        style K fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
+                        style I fill:#f3f4f6,stroke:#9ca3af,color:#6b7280
+                        style J fill:#f3f4f6,stroke:#9ca3af,color:#6b7280
+                        style L fill:#f3f4f6,stroke:#9ca3af,color:#6b7280
+                </div>
+
+                <h3>String</h3>
+                <p>A sequence of characters — text data. Enclosed in single quotes (<code>'...'</code>) or double quotes (<code>"..."</code>).</p>
+                <pre><code class="language-php">&lt;?php
+$greeting = "Hello, World!";
+$path = '/var/www/html';
+$empty = "";              // An empty string is still a string
+
+echo strlen($greeting);   // Output: 13 (string length)
+echo strtoupper($greeting); // Output: HELLO, WORLD!</code></pre>
+
+                <h3>Integer (int)</h3>
+                <p>Whole numbers — positive, negative, or zero. No decimal point.</p>
+                <pre><code class="language-php">&lt;?php
+$count = 42;
+$negative = -17;
+$zero = 0;
+
+// Different notations (all valid)
+$decimal = 255;        // Decimal
+$hex = 0xFF;           // Hexadecimal (= 255)
+$octal = 0377;         // Octal (= 255)
+$binary = 0b11111111;  // Binary (= 255)
+
+// Underscores for readability (PHP 7.4+)
+$million = 1_000_000;  // Same as 1000000</code></pre>
+
+                <h3>Float (Floating-Point / Double)</h3>
+                <p>Numbers with a decimal point, or numbers in scientific notation.</p>
+                <pre><code class="language-php">&lt;?php
+$price = 19.99;
+$pi = 3.14159265;
+$tiny = 1.2e-3;       // Scientific notation: 0.0012
+$big = 2.5E6;          // 2,500,000</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Float Precision</h4>
+                    <p>Floating-point numbers are not always exact. This is a fundamental computer science issue, not specific to PHP:</p>
+                    <pre><code class="language-php">&lt;?php
+echo 0.1 + 0.2;         // Output: 0.30000000000000004
+echo 0.1 + 0.2 == 0.3;  // Output: (empty — false!)
+
+// For money, use integers (cents) or the bcmath extension
+$priceInCents = 1999;    // $19.99 stored as cents</code></pre>
+                </div>
+
+                <h3>Boolean (bool)</h3>
+                <p>A true/false value. Used heavily in conditions and comparisons.</p>
+                <pre><code class="language-php">&lt;?php
+$isActive = true;
+$isAdmin = false;
+
+// Booleans are case-insensitive (TRUE, True, true all work)
+// Convention: use lowercase true/false</code></pre>
+
+                <h3>Null</h3>
+                <p>Represents "no value" or "nothing." A variable is null if it has been assigned <code>null</code>, hasn't been assigned any value yet, or has been <code>unset()</code>.</p>
+                <pre><code class="language-php">&lt;?php
+$data = null;
+
+// Check if something is null
+var_dump(is_null($data));    // bool(true)
+var_dump(isset($data));      // bool(false) — isset returns false for null</code></pre>
+
+                <h3>Checking Types</h3>
+                <p>Use <code>var_dump()</code> to inspect a variable's type and value — your best friend for debugging:</p>
+                <pre><code class="language-php">&lt;?php
+$name = "Alice";
+$age = 30;
+$price = 19.99;
+$active = true;
+$nothing = null;
+
+var_dump($name);     // string(5) "Alice"
+var_dump($age);      // int(30)
+var_dump($price);    // float(19.99)
+var_dump($active);   // bool(true)
+var_dump($nothing);  // NULL</code></pre>
+
+                <div class="card card-info">
+                    <h4>📊 var_dump vs. echo vs. print_r</h4>
+                    <p>PHP has several ways to output variable info:</p>
+                    <ul>
+                        <li><code>echo $var</code> — Outputs the value as a string. Fast, but doesn't show type info.</li>
+                        <li><code>print_r($var)</code> — Human-readable output. Great for arrays.</li>
+                        <li><code>var_dump($var)</code> — Shows type, length, and value. Best for debugging.</li>
+                    </ul>
+                    <p>Rule of thumb: use <code>echo</code> for output, <code>var_dump()</code> for debugging.</p>
+                </div>
+            </section>
+
+            <!-- Section 6: echo vs print -->
+            <section id="section6" class="lesson-section">
+                <h2>Output: echo vs. print</h2>
+
+                <p>PHP has two main ways to send output to the browser: <code>echo</code> and <code>print</code>. They're similar but not identical.</p>
+
+                <h3>echo</h3>
+                <pre><code class="language-php">&lt;?php
+// echo — the most common way to output
+echo "Hello, World!";
+echo "Hello", " ", "World!";   // echo accepts multiple arguments
+echo("Hello!");                 // Parentheses are optional
+
+// echo with HTML
+echo "&lt;h2&gt;Welcome&lt;/h2&gt;";
+echo "&lt;p&gt;This is a paragraph.&lt;/p&gt;";</code></pre>
+
+                <h3>print</h3>
+                <pre><code class="language-php">&lt;?php
+// print — similar to echo
+print "Hello, World!";
+print("Hello!");
+
+// print always returns 1, so it can be used in expressions
+$result = print "test";  // Outputs "test", $result = 1</code></pre>
+
+                <h3>echo vs. print: The Differences</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>echo</th>
+                                <th>print</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Multiple arguments</td>
+                                <td>Yes: <code>echo "a", "b";</code></td>
+                                <td>No — only one argument</td>
+                            </tr>
+                            <tr>
+                                <td>Return value</td>
+                                <td>None (void)</td>
+                                <td>Always returns <code>1</code></td>
+                            </tr>
+                            <tr>
+                                <td>Speed</td>
+                                <td>Marginally faster</td>
+                                <td>Marginally slower</td>
+                            </tr>
+                            <tr>
+                                <td>Use in expressions</td>
+                                <td>No</td>
+                                <td>Yes (because it returns 1)</td>
+                            </tr>
+                            <tr>
+                                <td>Recommendation</td>
+                                <td><strong>Use this by default</strong></td>
+                                <td>Use when you need a return value</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>In practice, most PHP developers use <code>echo</code> almost exclusively. The speed difference is negligible.</p>
+
+                <h3>Outputting Variables</h3>
+                <pre><code class="language-php">&lt;?php
+$name = "Alice";
+$age = 30;
+
+// Concatenation with the dot (.) operator
+echo "Name: " . $name . ", Age: " . $age;
+// Output: Name: Alice, Age: 30
+
+// Variable interpolation (double quotes only — see next section)
+echo "Name: $name, Age: $age";
+// Output: Name: Alice, Age: 30
+
+// Curly brace syntax for clarity
+echo "Name: {$name}, Age: {$age}";
+// Output: Name: Alice, Age: 30</code></pre>
+            </section>
+
+            <!-- Section 7: Single vs Double Quotes -->
+            <section id="section7" class="lesson-section">
+                <h2>String Quoting: Single vs. Double</h2>
+
+                <p>This is one of PHP's most important distinctions. Single-quoted and double-quoted strings behave differently:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Single Quotes <code>'...'</code></th>
+                                <th>Double Quotes <code>"..."</code></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Variable parsing</td>
+                                <td>No — <code>$name</code> is literal text</td>
+                                <td>Yes — <code>$name</code> is replaced with its value</td>
+                            </tr>
+                            <tr>
+                                <td>Escape sequences</td>
+                                <td>Only <code>\\</code> and <code>\'</code></td>
+                                <td>Full set: <code>\n</code>, <code>\t</code>, <code>\\</code>, <code>\"</code>, <code>\$</code>, etc.</td>
+                            </tr>
+                            <tr>
+                                <td>Performance</td>
+                                <td>Marginally faster (no parsing)</td>
+                                <td>Marginally slower</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+$language = "PHP";
+
+// Double quotes — variable IS parsed
+echo "I love $language!";
+// Output: I love PHP!
+
+// Single quotes — variable is NOT parsed
+echo 'I love $language!';
+// Output: I love $language!
+
+// Escape sequences
+echo "First line\nSecond line";  // \n creates a newline
+echo 'First line\nSecond line';  // \n is printed literally</code></pre>
+
+                <h3>When to Use Which?</h3>
+                <ul>
+                    <li><strong>Single quotes</strong> when the string has no variables and no special characters — slightly cleaner for simple strings</li>
+                    <li><strong>Double quotes</strong> when you want to embed variables or use escape sequences like <code>\n</code></li>
+                    <li><strong>Concatenation</strong> when mixing gets complicated — sometimes <code>'Hello, ' . $name . '!'</code> is clearer than <code>"Hello, $name!"</code></li>
+                </ul>
+
+                <h3>Heredoc and Nowdoc (Multi-Line Strings)</h3>
+                <p>For longer strings, PHP offers heredoc (like double quotes) and nowdoc (like single quotes):</p>
+
+                <pre><code class="language-php">&lt;?php
+$name = "Alice";
+
+// Heredoc — variables ARE parsed (like double quotes)
+$html = &lt;&lt;&lt;HTML
+&lt;div class="card"&gt;
+    &lt;h2&gt;Welcome, $name!&lt;/h2&gt;
+    &lt;p&gt;This is a heredoc string.&lt;/p&gt;
+&lt;/div&gt;
+HTML;
+
+// Nowdoc — variables are NOT parsed (like single quotes)
+$template = &lt;&lt;&lt;'TEMPLATE'
+&lt;div class="card"&gt;
+    &lt;h2&gt;Welcome, $name!&lt;/h2&gt;
+    &lt;p&gt;This is a nowdoc — $name stays as literal text.&lt;/p&gt;
+&lt;/div&gt;
+TEMPLATE;
+
+echo $html;      // Shows: Welcome, Alice!
+echo $template;   // Shows: Welcome, $name!</code></pre>
+            </section>
+
+            <!-- Section 8: Type Juggling -->
+            <section id="section8" class="lesson-section">
+                <h2>Type Juggling and Type Checking</h2>
+
+                <p>PHP is <strong>loosely typed</strong> — it automatically converts between types when it thinks it's helpful. This is called <strong>type juggling</strong> (or type coercion).</p>
+
+                <h3>Automatic Type Conversion</h3>
+                <pre><code class="language-php">&lt;?php
+// PHP converts types automatically in certain contexts
+$result = "5" + 3;
+var_dump($result);  // int(8) — PHP converted "5" to integer 5
+
+$result = "5.5" + 1.5;
+var_dump($result);  // float(7) — PHP converted "5.5" to float
+
+$result = true + true;
+var_dump($result);  // int(2) — true becomes 1
+
+$result = "hello" + 5;
+var_dump($result);  // int(5) — "hello" becomes 0 (no leading digits)</code></pre>
+
+                <h3>Truthy and Falsy Values</h3>
+                <p>When PHP converts a value to boolean (e.g., in an <code>if</code> statement), these values are considered <strong>falsy</strong> (they become <code>false</code>):</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Falsy Value</th>
+                                <th>Type</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>false</code></td>
+                                <td>bool</td>
+                                <td>The boolean false itself</td>
+                            </tr>
+                            <tr>
+                                <td><code>0</code></td>
+                                <td>int</td>
+                                <td>Integer zero</td>
+                            </tr>
+                            <tr>
+                                <td><code>0.0</code></td>
+                                <td>float</td>
+                                <td>Float zero</td>
+                            </tr>
+                            <tr>
+                                <td><code>""</code></td>
+                                <td>string</td>
+                                <td>Empty string</td>
+                            </tr>
+                            <tr>
+                                <td><code>"0"</code></td>
+                                <td>string</td>
+                                <td>The string "0" (this surprises many people!)</td>
+                            </tr>
+                            <tr>
+                                <td><code>[]</code></td>
+                                <td>array</td>
+                                <td>Empty array</td>
+                            </tr>
+                            <tr>
+                                <td><code>null</code></td>
+                                <td>null</td>
+                                <td>The null type</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p><strong>Everything else is truthy</strong> — including <code>"false"</code> (the string), <code>-1</code>, and non-empty arrays.</p>
+
+                <blockquote>
+                    <strong>💡 Key Gotcha:</strong> The string <code>"0"</code> is falsy in PHP. This catches many beginners off guard. <code>if ("0") { ... }</code> will <em>not</em> execute the block.
+                </blockquote>
+
+                <h3>Explicit Type Casting</h3>
+                <p>You can force a type conversion using casting:</p>
+
+                <pre><code class="language-php">&lt;?php
+$str = "42";
+
+$num = (int) $str;       // Cast to integer
+$flt = (float) $str;     // Cast to float
+$bln = (bool) $str;      // Cast to boolean
+$arr = (array) $str;     // Cast to array
+
+var_dump($num);  // int(42)
+var_dump($flt);  // float(42)
+var_dump($bln);  // bool(true)
+var_dump($arr);  // array(1) { [0]=> string(2) "42" }</code></pre>
+
+                <h3>Comparison Gotchas: == vs. ===</h3>
+                <p>This is critical. PHP has two equality operators:</p>
+
+                <pre><code class="language-php">&lt;?php
+// == (loose comparison) — compares values after type juggling
+var_dump(0 == "hello");    // bool(true) ← Surprise! (PHP 7)
+var_dump("" == false);     // bool(true)
+var_dump(null == false);   // bool(true)
+var_dump("1" == true);     // bool(true)
+
+// === (strict comparison) — compares value AND type
+var_dump(0 === "hello");   // bool(false) ✓ Different types
+var_dump("" === false);    // bool(false) ✓ Different types
+var_dump(1 === 1);         // bool(true)  ✓ Same type and value
+var_dump(1 === "1");       // bool(false) ✓ int vs string</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Best Practice: Use === (Strict Comparison)</h4>
+                    <p>Always prefer <code>===</code> and <code>!==</code> over <code>==</code> and <code>!=</code>. Strict comparison prevents an entire category of subtle bugs. The only time to use <code>==</code> is when you intentionally want type juggling (rare).</p>
+                </div>
+
+                <h3>Type-Checking Functions</h3>
+                <pre><code class="language-php">&lt;?php
+$value = 42;
+
+is_string($value);   // false
+is_int($value);      // true
+is_float($value);    // false
+is_bool($value);     // false
+is_null($value);     // false
+is_numeric($value);  // true (works for numeric strings too)
+isset($value);       // true (variable exists and is not null)
+empty($value);       // false (value is not falsy)
+
+// gettype() returns the type as a string
+echo gettype($value);  // "integer"</code></pre>
+            </section>
+
+            <!-- Section 9: Constants -->
+            <section id="section9" class="lesson-section">
+                <h2>Constants</h2>
+
+                <p>Constants are like variables, but once defined, their value <strong>cannot change</strong>. They're used for values that stay the same throughout your program.</p>
+
+                <h3>Using define()</h3>
+                <pre><code class="language-php">&lt;?php
+// define() — the traditional way
+define("SITE_NAME", "PHP Foundations");
+define("MAX_UPLOAD_SIZE", 5242880);  // 5 MB in bytes
+define("TAX_RATE", 0.0825);
+
+echo SITE_NAME;  // Output: PHP Foundations
+// Note: no $ sign for constants</code></pre>
+
+                <h3>Using const</h3>
+                <pre><code class="language-php">&lt;?php
+// const — the modern way (can be used at class level too)
+const DB_HOST = "localhost";
+const DB_NAME = "php_foundations";
+const VERSION = "1.0.0";</code></pre>
+
+                <h3>define() vs. const</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>define()</th>
+                                <th>const</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Used inside conditionals</td>
+                                <td>Yes</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td>Accepts expressions</td>
+                                <td>Yes</td>
+                                <td>Only literal values (PHP &lt; 8.1)</td>
+                            </tr>
+                            <tr>
+                                <td>Works at class level</td>
+                                <td>No</td>
+                                <td>Yes</td>
+                            </tr>
+                            <tr>
+                                <td>Convention</td>
+                                <td>Runtime definitions</td>
+                                <td>Compile-time definitions</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Built-In Constants</h3>
+                <p>PHP provides many useful predefined constants:</p>
+                <pre><code class="language-php">&lt;?php
+echo PHP_VERSION;       // e.g., "8.3.6"
+echo PHP_INT_MAX;       // Max integer value
+echo PHP_FLOAT_MAX;     // Max float value
+echo PHP_EOL;           // System line ending (\n on Linux, \r\n on Windows)
+echo PHP_OS;            // Operating system (e.g., "Linux")
+echo __FILE__;          // Current file path (magic constant)
+echo __LINE__;          // Current line number (magic constant)
+echo __DIR__;           // Current directory (magic constant)</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 Magic Constants</h4>
+                    <p>Constants that start and end with double underscores (like <code>__FILE__</code>) are called "magic constants." Their values change depending on where they're used. We'll see more of these as we progress through the course.</p>
+                </div>
+            </section>
+
+            <!-- Section 10: Hands-On Exercises -->
+            <section id="section10" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Personal Info Card</h3>
+                    <p><strong>Objective:</strong> Practice variables, types, and output by creating a dynamic "about me" page.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a file called <code>exercise_03a.php</code> in your <code>/var/www/html/php-foundations/exercises/</code> folder</li>
+                        <li>Define variables for your name, age, favorite language, years of experience, and whether you're currently a student</li>
+                        <li>Use <code>echo</code> with double-quoted strings to output an HTML card displaying all the information</li>
+                        <li>Use <code>var_dump()</code> inside a <code>&lt;pre&gt;</code> tag to display the type of each variable</li>
+                    </ol>
+
+                    <h4>Starter Code:</h4>
+                    <pre><code class="language-php">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Exercise 3A: Personal Info Card&lt;/title&gt;
+    &lt;style&gt;
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; }
+        .card { background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 15px 0; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;?php
+        // TODO: Define your variables here
+        $name = "";
+        $age = 0;
+        $favLanguage = "";
+        $yearsExperience = 0;
+        $isStudent = false;
+    ?&gt;
+
+    &lt;div class="card"&gt;
+        &lt;h2&gt;About Me&lt;/h2&gt;
+        &lt;!-- TODO: Echo your info using double-quoted strings --&gt;
+    &lt;/div&gt;
+
+    &lt;div class="card"&gt;
+        &lt;h2&gt;Type Information&lt;/h2&gt;
+        &lt;pre&gt;
+        &lt;!-- TODO: Use var_dump() on each variable --&gt;
+        &lt;/pre&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Remember: double quotes allow variable interpolation. You can write <code>echo "&lt;p&gt;Name: $name&lt;/p&gt;";</code> to embed the variable directly in the string.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Exercise 3A: Personal Info Card&lt;/title&gt;
+    &lt;style&gt;
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; }
+        .card { background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 15px 0; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;?php
+        $name = "Alice Johnson";
+        $age = 28;
+        $favLanguage = "PHP";
+        $yearsExperience = 3.5;
+        $isStudent = true;
+    ?&gt;
+
+    &lt;div class="card"&gt;
+        &lt;h2&gt;About Me&lt;/h2&gt;
+        &lt;?php
+            echo "&lt;p&gt;&lt;strong&gt;Name:&lt;/strong&gt; $name&lt;/p&gt;";
+            echo "&lt;p&gt;&lt;strong&gt;Age:&lt;/strong&gt; $age&lt;/p&gt;";
+            echo "&lt;p&gt;&lt;strong&gt;Favorite Language:&lt;/strong&gt; $favLanguage&lt;/p&gt;";
+            echo "&lt;p&gt;&lt;strong&gt;Experience:&lt;/strong&gt; $yearsExperience years&lt;/p&gt;";
+            echo "&lt;p&gt;&lt;strong&gt;Student:&lt;/strong&gt; " . ($isStudent ? "Yes" : "No") . "&lt;/p&gt;";
+        ?&gt;
+    &lt;/div&gt;
+
+    &lt;div class="card"&gt;
+        &lt;h2&gt;Type Information&lt;/h2&gt;
+        &lt;pre&gt;&lt;?php
+            var_dump($name);
+            var_dump($age);
+            var_dump($favLanguage);
+            var_dump($yearsExperience);
+            var_dump($isStudent);
+        ?&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Type Juggling Explorer</h3>
+                    <p><strong>Objective:</strong> Explore PHP's type juggling by predicting then verifying the results of various operations.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create <code>exercise_03b.php</code></li>
+                        <li>For each expression below, first <em>predict</em> what you think the result will be, then use <code>var_dump()</code> to check</li>
+                    </ol>
+
+                    <pre><code class="language-php">&lt;?php
+// Predict the output of each, then run var_dump() to check
+
+// 1. What type and value?
+$a = "10" + 5;
+
+// 2. What type and value?
+$b = "10 apples" + 5;
+
+// 3. True or false?
+$c = (0 == "php");
+
+// 4. True or false?
+$d = (0 === "php");
+
+// 5. True or false?
+$e = ("" == null);
+
+// 6. True or false?
+$f = ("" === null);
+
+// 7. What type and value?
+$g = true + true + false;
+
+// 8. True or false?
+$h = ("0" == false);
+
+// 9. True or false? (tricky!)
+$i = ("0" == null);
+
+// 10. What type and value?
+$j = (int) "99 bottles";</code></pre>
+
+                    <details>
+                        <summary>✅ Answers</summary>
+                        <pre><code class="language-php">$a = "10" + 5;        // int(15) — "10" becomes 10
+$b = "10 apples" + 5; // int(15) — PHP reads leading "10", ignores " apples"
+$c = (0 == "php");     // bool(true) in PHP 7 — "php" becomes 0
+                       // bool(false) in PHP 8 — changed behavior!
+$d = (0 === "php");    // bool(false) — different types (int vs string)
+$e = ("" == null);     // bool(true) — both are falsy
+$f = ("" === null);    // bool(false) — string vs null
+$g = true + true + false; // int(2) — 1 + 1 + 0
+$h = ("0" == false);   // bool(true) — "0" is falsy
+$i = ("0" == null);    // bool(false) — "0" is a non-empty string vs null
+$j = (int) "99 bottles"; // int(99) — PHP reads leading digits</code></pre>
+                        <p><strong>Note on #3:</strong> PHP 8 changed how <code>0 == "string"</code> works. In PHP 7, the string was converted to 0, making them equal. In PHP 8, the comparison returns <code>false</code>. This is a major reason to use <code>===</code>!</p>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> Which is the correct way to declare a PHP variable?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP variables don't use type keywords like 'var'.">
+                                A) var name = "Alice";
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! PHP variables always start with $ and don't need a type declaration.">
+                                B) $name = "Alice";
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP doesn't require type declarations for variables. Also, remember the $.">
+                                C) string name = "Alice";
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Variable names can't start with a number after the $.">
+                                D) $1name = "Alice";
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What's the difference between single and double quotes in PHP?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Both create strings — the difference is in how they handle content inside.">
+                                A) Single quotes create characters, double quotes create strings
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Double quotes parse variables ($name becomes its value) and escape sequences (\n becomes a newline). Single quotes treat everything as literal text.">
+                                B) Double quotes parse variables and escape sequences; single quotes don't
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both single and double quotes can handle multi-line strings in PHP.">
+                                C) Single quotes are for one-line strings, double quotes for multi-line
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What does <code>var_dump("42")</code> output?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="var_dump shows the type AND value. Also consider: is '42' a number or a string here?">
+                                A) 42
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The value was created with quotes, making it a string, not an integer.">
+                                B) int(42)
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! var_dump shows the type (string), the length (2 characters), and the value ('42'). The quotes make it a string, not a number.">
+                                C) string(2) "42"
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="var_dump provides detailed output including type information, not just the raw value.">
+                                D) "42"
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> Which of these values is <strong>truthy</strong> in PHP?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="The string '0' is one of PHP's falsy values — a common gotcha!">
+                                A) "0"
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Empty arrays are falsy in PHP.">
+                                B) []
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The string 'false' is truthy because it's a non-empty string that isn't '0'. Only the boolean false, the number 0, empty string, '0', empty array, and null are falsy.">
+                                C) "false"
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="null is always falsy in PHP.">
+                                D) null
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> Why should you prefer <code>===</code> over <code>==</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Both operators run at essentially the same speed.">
+                                A) === is faster than ==
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! === checks both value AND type, preventing unexpected results from PHP's type juggling. For example, 0 == 'hello' is true with ==, but false with ===.">
+                                B) === prevents unexpected results from type juggling
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both == and === are valid PHP. The difference is in behavior, not compatibility.">
+                                C) == is deprecated and will be removed
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 11: Knowledge Check -->
+            <section id="section11" class="lesson-section">
+                <h2>Knowledge Check</h2>
+
+                <p>Before moving on, make sure you can answer these questions confidently:</p>
+                <ol>
+                    <li>What happens if you forget a semicolon at the end of a PHP statement?</li>
+                    <li>What character must every PHP variable name start with?</li>
+                    <li>Name PHP's five basic scalar/special types.</li>
+                    <li>What's the difference between <code>echo</code> and <code>print</code>?</li>
+                    <li>Why is the string <code>"0"</code> falsy in PHP?</li>
+                    <li>What does <code>var_dump()</code> show that <code>echo</code> doesn't?</li>
+                </ol>
+
+                <details>
+                    <summary>✅ Quick Answers</summary>
+                    <ol>
+                        <li>You get a parse/syntax error, usually reported on the <em>next</em> line.</li>
+                        <li>A dollar sign (<code>$</code>), followed by a letter or underscore.</li>
+                        <li>string, int, float, bool, null</li>
+                        <li><code>echo</code> can take multiple arguments and has no return value; <code>print</code> takes one argument and returns 1. Both output text.</li>
+                        <li>PHP treats <code>"0"</code> as equivalent to the integer <code>0</code>, which is falsy. It's a special case unique to PHP.</li>
+                        <li><code>var_dump()</code> shows the variable's type and length (for strings), not just its value.</li>
+                    </ol>
+                </details>
+            </section>
+
+            <!-- Section 12: Summary -->
+            <section id="section12" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>PHP tags:</strong> Use <code>&lt;?php ... ?&gt;</code> (or <code>&lt;?= ... ?&gt;</code> for short echo). Omit the closing tag in pure PHP files.</li>
+                        <li><strong>Variables:</strong> Start with <code>$</code>, are case-sensitive, dynamically typed, and don't require type declarations.</li>
+                        <li><strong>Five core types:</strong> <code>string</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>null</code></li>
+                        <li><strong>Output:</strong> Use <code>echo</code> for output, <code>var_dump()</code> for debugging.</li>
+                        <li><strong>Quotes:</strong> Double quotes parse variables; single quotes don't.</li>
+                        <li><strong>Type juggling:</strong> PHP auto-converts types — use <code>===</code> (strict comparison) to avoid surprises.</li>
+                        <li><strong>Constants:</strong> Use <code>define()</code> or <code>const</code> for values that never change.</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/language.types.php" target="_blank" rel="noopener">PHP Manual: Types</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.variables.basics.php" target="_blank" rel="noopener">PHP Manual: Variables</a></li>
+                    <li><a href="https://www.php.net/manual/en/types.comparisons.php" target="_blank" rel="noopener">PHP Type Comparison Tables</a> — Essential reference for == vs ===</li>
+                    <li><a href="https://www.php.net/manual/en/language.types.type-juggling.php" target="_blank" rel="noopener">PHP Manual: Type Juggling</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Now that you know how to create variables and understand PHP's types, it's time to <em>do things</em> with them. In <strong>Lesson 4: Operators &amp; Expressions</strong>, you'll learn arithmetic, comparison, logical, and string operators — the building blocks of every PHP program.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've learned PHP's syntax fundamentals — variables, types, output, and the type system. You're ready to start building logic!</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_02.html" class="prev-lesson">← Previous: Setting Up Your Environment</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_04.html" class="next-lesson">Next: Operators &amp; Expressions →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Master PHP loops: for, while, do-while, foreach, break, continue, nested loops, and practical iteration patterns.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Loops - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 2: Core Language</a></li>
+            <li aria-current="page">Lesson 6: Loops</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🔁 Lesson 6: Loops</h1>
+                <p class="lead">Computers are great at doing the same thing over and over — and that's exactly what loops are for. Instead of writing the same code 100 times, you write it once and let the loop handle the repetition.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Use <code>for</code> loops for counted iteration</li>
+                        <li>Use <code>while</code> and <code>do-while</code> loops for condition-based repetition</li>
+                        <li>Iterate arrays with <code>foreach</code> — PHP's most-used loop</li>
+                        <li>Control loop flow with <code>break</code> and <code>continue</code></li>
+                        <li>Nest loops for multi-dimensional data processing</li>
+                        <li>Choose the right loop for each situation</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 45 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 5 (control flow, truthy/falsy)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">Why Loops?</a></li>
+                        <li><a href="#section2" class="toc-link">The for Loop</a></li>
+                        <li><a href="#section3" class="toc-link">The while Loop</a></li>
+                        <li><a href="#section4" class="toc-link">The do-while Loop</a></li>
+                        <li><a href="#section5" class="toc-link">The foreach Loop</a></li>
+                        <li><a href="#section6" class="toc-link">break and continue</a></li>
+                        <li><a href="#section7" class="toc-link">Nested Loops</a></li>
+                        <li><a href="#section8" class="toc-link">Choosing the Right Loop</a></li>
+                        <li><a href="#section9" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section10" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Why Loops? -->
+            <section id="section1" class="lesson-section">
+                <h2>Why Loops?</h2>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>Loop:</strong> A control structure that repeats a block of code as long as a specified condition remains true (or for a specified number of iterations).</p>
+                </div>
+
+                <p>Imagine you need to display a list of 50 products from a database. Without loops, you'd need 50 nearly identical blocks of code. With a loop, you write the display logic once:</p>
+
+                <pre><code class="language-php">&lt;?php
+// Without a loop (terrible!) 😱
+echo "&lt;li&gt;" . $products[0] . "&lt;/li&gt;";
+echo "&lt;li&gt;" . $products[1] . "&lt;/li&gt;";
+echo "&lt;li&gt;" . $products[2] . "&lt;/li&gt;";
+// ... 47 more lines ...
+
+// With a loop (much better!) ✅
+foreach ($products as $product) {
+    echo "&lt;li&gt;$product&lt;/li&gt;";
+}</code></pre>
+
+                <p>PHP provides four types of loops:</p>
+
+                <div class="mermaid">
+                    flowchart LR
+                        A["PHP Loops"] --> B["for"]
+                        A --> C["while"]
+                        A --> D["do-while"]
+                        A --> E["foreach"]
+                        B --- B1["Know iteration count"]
+                        C --- C1["Condition checked first"]
+                        D --- D1["Runs at least once"]
+                        E --- E1["Iterate arrays/objects"]
+                </div>
+            </section>
+
+            <!-- Section 2: for Loop -->
+            <section id="section2" class="lesson-section">
+                <h2>The for Loop</h2>
+
+                <p>The <code>for</code> loop is best when you <strong>know how many times</strong> you want to iterate. It packs three pieces into one line: initialization, condition, and update.</p>
+
+                <h3>Syntax</h3>
+                <pre><code class="language-php">for (initialization; condition; update) {
+    // Code to repeat
+}</code></pre>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A["Initialize: $i = 0"] --> B{"Condition: $i &lt; 5?"}
+                        B -->|Yes| C["Execute loop body"]
+                        C --> D["Update: $i++"]
+                        D --> B
+                        B -->|No| E["Exit loop"]
+                </div>
+
+                <h3>Basic Examples</h3>
+                <pre><code class="language-php">&lt;?php
+// Count from 1 to 5
+for ($i = 1; $i &lt;= 5; $i++) {
+    echo "$i ";
+}
+// Output: 1 2 3 4 5
+
+// Count down from 10 to 1
+for ($i = 10; $i >= 1; $i--) {
+    echo "$i ";
+}
+// Output: 10 9 8 7 6 5 4 3 2 1
+
+// Count by twos
+for ($i = 0; $i &lt;= 20; $i += 2) {
+    echo "$i ";
+}
+// Output: 0 2 4 6 8 10 12 14 16 18 20</code></pre>
+
+                <h3>Practical: Building an HTML Table</h3>
+                <pre><code class="language-php">&lt;?php
+echo "&lt;table&gt;\n";
+echo "  &lt;tr&gt;&lt;th&gt;#&lt;/th&gt;&lt;th&gt;Square&lt;/th&gt;&lt;th&gt;Cube&lt;/th&gt;&lt;/tr&gt;\n";
+
+for ($n = 1; $n &lt;= 10; $n++) {
+    $square = $n ** 2;
+    $cube = $n ** 3;
+    $class = ($n % 2 === 0) ? "even" : "odd";
+    echo "  &lt;tr class='$class'&gt;";
+    echo "&lt;td&gt;$n&lt;/td&gt;&lt;td&gt;$square&lt;/td&gt;&lt;td&gt;$cube&lt;/td&gt;";
+    echo "&lt;/tr&gt;\n";
+}
+
+echo "&lt;/table&gt;";</code></pre>
+
+                <h3>Looping Through Strings</h3>
+                <pre><code class="language-php">&lt;?php
+$word = "PHP";
+
+for ($i = 0; $i &lt; strlen($word); $i++) {
+    echo "Character $i: $word[$i]\n";
+}
+// Output:
+// Character 0: P
+// Character 1: H
+// Character 2: P</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Performance Tip</h4>
+                    <p>Don't call functions in the condition part — they run every iteration:</p>
+                    <pre><code class="language-php">// BAD — strlen() called every iteration
+for ($i = 0; $i &lt; strlen($word); $i++) { ... }
+
+// GOOD — calculate once
+$length = strlen($word);
+for ($i = 0; $i &lt; $length; $i++) { ... }</code></pre>
+                </div>
+
+                <h3>Multiple Expressions</h3>
+                <p>You can use commas to have multiple initializations or updates:</p>
+                <pre><code class="language-php">&lt;?php
+// Two counters moving in opposite directions
+for ($left = 0, $right = 9; $left &lt; $right; $left++, $right--) {
+    echo "L=$left, R=$right\n";
+}
+// Output:
+// L=0, R=9
+// L=1, R=8
+// L=2, R=7
+// L=3, R=6
+// L=4, R=5</code></pre>
+            </section>
+
+            <!-- Section 3: while Loop -->
+            <section id="section3" class="lesson-section">
+                <h2>The while Loop</h2>
+
+                <p>The <code>while</code> loop is best when you <strong>don't know in advance</strong> how many iterations you need. It checks the condition <em>before</em> each iteration.</p>
+
+                <h3>Syntax</h3>
+                <pre><code class="language-php">while (condition) {
+    // Code to repeat
+    // Must include something that eventually makes condition false!
+}</code></pre>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A["Start"] --> B{"Condition true?"}
+                        B -->|Yes| C["Execute loop body"]
+                        C --> B
+                        B -->|No| D["Exit loop"]
+                </div>
+
+                <h3>Basic Examples</h3>
+                <pre><code class="language-php">&lt;?php
+// Count down — we know when to stop, but while is still natural here
+$countdown = 5;
+while ($countdown > 0) {
+    echo "$countdown... ";
+    $countdown--;
+}
+echo "Liftoff! 🚀";
+// Output: 5... 4... 3... 2... 1... Liftoff! 🚀</code></pre>
+
+                <h3>Practical: Reading User Input (Simulated)</h3>
+                <pre><code class="language-php">&lt;?php
+// Simulating a menu system
+$choices = ["view", "edit", "delete", "quit"]; // Simulated input
+$index = 0;
+
+while ($index &lt; count($choices)) {
+    $choice = $choices[$index];
+    echo "Processing: $choice\n";
+
+    if ($choice === "quit") {
+        echo "Goodbye!\n";
+        break; // Exit early
+    }
+
+    $index++;
+}
+// Output:
+// Processing: view
+// Processing: edit
+// Processing: delete
+// Processing: quit
+// Goodbye!</code></pre>
+
+                <h3>Practical: Halving Until Small Enough</h3>
+                <pre><code class="language-php">&lt;?php
+// How many times can you halve 1000 before reaching less than 1?
+$value = 1000;
+$halvings = 0;
+
+while ($value >= 1) {
+    $value /= 2;
+    $halvings++;
+}
+
+echo "It took $halvings halvings to get below 1.";
+// Output: It took 10 halvings to get below 1.</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Infinite Loops!</h4>
+                    <p>If the condition never becomes false, the loop runs forever. This will crash your script (PHP will hit its <code>max_execution_time</code> and abort).</p>
+                    <pre><code class="language-php">// DANGER — infinite loop!
+$x = 1;
+while ($x > 0) {
+    echo $x;
+    $x++;  // x keeps growing — condition is always true!
+}
+
+// Always ensure your loop has a way to end:
+// ✅ A counter that reaches its limit
+// ✅ A condition that changes inside the loop
+// ✅ A break statement that exits</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 4: do-while Loop -->
+            <section id="section4" class="lesson-section">
+                <h2>The do-while Loop</h2>
+
+                <p>The <code>do-while</code> loop is identical to <code>while</code> except it checks the condition <em>after</em> the body runs. This guarantees the body executes <strong>at least once</strong>.</p>
+
+                <h3>Syntax</h3>
+                <pre><code class="language-php">do {
+    // Code to repeat (runs at least once)
+} while (condition);</code></pre>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A["Start"] --> B["Execute loop body"]
+                        B --> C{"Condition true?"}
+                        C -->|Yes| B
+                        C -->|No| D["Exit loop"]
+                </div>
+
+                <h3>while vs. do-while</h3>
+                <pre><code class="language-php">&lt;?php
+// while — checks FIRST, body may never run
+$x = 10;
+while ($x &lt; 5) {
+    echo "while: $x\n";  // Never runs! 10 is not < 5
+    $x++;
+}
+
+// do-while — runs FIRST, then checks
+$x = 10;
+do {
+    echo "do-while: $x\n";  // Runs once! Then condition fails
+    $x++;
+} while ($x &lt; 5);
+// Output: do-while: 10</code></pre>
+
+                <h3>Practical: Input Validation Pattern</h3>
+                <p>The <code>do-while</code> loop shines for validation — you need to get the input at least once before you can check it:</p>
+                <pre><code class="language-php">&lt;?php
+// Simulating user input validation
+$attempts = ["", "abc", "-5", "42"]; // Simulated inputs
+$index = 0;
+
+do {
+    $input = $attempts[$index] ?? null;
+    $index++;
+
+    if ($input === null) {
+        echo "No more input.\n";
+        break;
+    }
+
+    $isValid = is_numeric($input) &amp;&amp; (int)$input > 0;
+
+    if (!$isValid) {
+        echo "Invalid input: '$input'. Try again.\n";
+    }
+
+} while (!$isValid);
+
+if ($isValid) {
+    echo "Accepted: $input\n";
+}
+// Output:
+// Invalid input: ''. Try again.
+// Invalid input: 'abc'. Try again.
+// Invalid input: '-5'. Try again.
+// Accepted: 42</code></pre>
+
+                <h3>Practical: Generating Unique IDs</h3>
+                <pre><code class="language-php">&lt;?php
+$existingIds = ["usr_001", "usr_002", "usr_003"];
+
+do {
+    $newId = "usr_" . str_pad(rand(1, 999), 3, "0", STR_PAD_LEFT);
+} while (in_array($newId, $existingIds));
+
+echo "Generated unique ID: $newId";</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use do-while</h4>
+                    <p>Use <code>do-while</code> when the action must happen before you can evaluate the condition. Common scenarios: input validation, generating values until one meets criteria, menu loops, and retry logic.</p>
+                </div>
+            </section>
+
+            <!-- Section 5: foreach Loop -->
+            <section id="section5" class="lesson-section">
+                <h2>The foreach Loop</h2>
+
+                <p>The <code>foreach</code> loop is PHP's <strong>most-used loop</strong>. It's purpose-built for iterating over arrays and objects — no counters, no index management, no off-by-one errors.</p>
+
+                <h3>Syntax: Values Only</h3>
+                <pre><code class="language-php">foreach ($array as $value) {
+    // $value is the current element
+}</code></pre>
+
+                <h3>Syntax: Keys and Values</h3>
+                <pre><code class="language-php">foreach ($array as $key => $value) {
+    // $key is the current key/index
+    // $value is the current element
+}</code></pre>
+
+                <h3>Indexed Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+$fruits = ["Apple", "Banana", "Cherry", "Date"];
+
+// Values only
+foreach ($fruits as $fruit) {
+    echo "🍎 $fruit\n";
+}
+// Output:
+// 🍎 Apple
+// 🍎 Banana
+// 🍎 Cherry
+// 🍎 Date
+
+// With index
+foreach ($fruits as $index => $fruit) {
+    $num = $index + 1;
+    echo "$num. $fruit\n";
+}
+// Output:
+// 1. Apple
+// 2. Banana
+// 3. Cherry
+// 4. Date</code></pre>
+
+                <h3>Associative Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+$user = [
+    "name"  => "Alice",
+    "email" => "alice@example.com",
+    "role"  => "admin",
+    "age"   => 28,
+];
+
+foreach ($user as $key => $value) {
+    echo ucfirst($key) . ": $value\n";
+}
+// Output:
+// Name: Alice
+// Email: alice@example.com
+// Role: admin
+// Age: 28</code></pre>
+
+                <h3>Practical: Rendering an HTML List</h3>
+                <pre><code class="language-php">&lt;?php
+$tasks = [
+    ["title" => "Buy groceries",    "done" => true],
+    ["title" => "Write PHP lesson", "done" => false],
+    ["title" => "Walk the dog",     "done" => true],
+    ["title" => "Fix login bug",    "done" => false],
+];
+
+echo "&lt;ul class='task-list'&gt;\n";
+foreach ($tasks as $task) {
+    $icon = $task["done"] ? "✅" : "⬜";
+    $class = $task["done"] ? "completed" : "pending";
+    echo "  &lt;li class='$class'&gt;$icon {$task['title']}&lt;/li&gt;\n";
+}
+echo "&lt;/ul&gt;";
+// Output:
+// <ul class='task-list'>
+//   <li class='completed'>✅ Buy groceries</li>
+//   <li class='pending'>⬜ Write PHP lesson</li>
+//   <li class='completed'>✅ Walk the dog</li>
+//   <li class='pending'>⬜ Fix login bug</li>
+// </ul></code></pre>
+
+                <h3>Modifying Values with Reference (&amp;)</h3>
+                <p>By default, <code>foreach</code> gives you a <em>copy</em> of each value. To modify the original array, use a reference (<code>&amp;</code>):</p>
+                <pre><code class="language-php">&lt;?php
+$prices = [10.50, 20.00, 15.75, 8.99];
+
+// This does NOT modify the original array (copy)
+foreach ($prices as $price) {
+    $price *= 1.10; // 10% increase — only modifies the copy
+}
+print_r($prices); // Still the original values!
+
+// This DOES modify the original array (reference)
+foreach ($prices as &amp;$price) {
+    $price *= 1.10; // 10% increase — modifies the original
+}
+unset($price); // ⚠️ Always unset the reference after the loop!
+
+print_r($prices);
+// Output: [11.55, 22.0, 17.325, 9.889]</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Always unset() After Reference Loops</h4>
+                    <p>After a <code>foreach</code> with <code>&amp;$value</code>, the variable <code>$value</code> still points to the last array element. If you reuse that variable later, you'll accidentally modify the array:</p>
+                    <pre><code class="language-php">$colors = ["red", "green", "blue"];
+foreach ($colors as &amp;$color) {
+    $color = strtoupper($color);
+}
+// $color still references $colors[2]!
+
+$color = "yellow";
+print_r($colors); // ["RED", "GREEN", "yellow"] ← BUG!
+
+// Fix: unset($color) right after the loop
+foreach ($colors as &amp;$color) {
+    $color = strtoupper($color);
+}
+unset($color); // ✅ Breaks the reference</code></pre>
+                </div>
+
+                <h3>foreach with list() for Destructuring</h3>
+                <pre><code class="language-php">&lt;?php
+$coordinates = [[1, 2], [3, 4], [5, 6]];
+
+foreach ($coordinates as [$x, $y]) {
+    echo "Point: ($x, $y)\n";
+}
+// Output:
+// Point: (1, 2)
+// Point: (3, 4)
+// Point: (5, 6)</code></pre>
+            </section>
+
+            <!-- Section 6: break and continue -->
+            <section id="section6" class="lesson-section">
+                <h2>break and continue</h2>
+
+                <p>These two keywords give you fine-grained control over loop execution.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Keyword</th>
+                                <th>Effect</th>
+                                <th>Analogy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>break</code></td>
+                                <td>Exits the loop entirely</td>
+                                <td>Walking out of the building</td>
+                            </tr>
+                            <tr>
+                                <td><code>continue</code></td>
+                                <td>Skips the rest of the current iteration</td>
+                                <td>Skipping one step on the staircase</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>break — Exit Early</h3>
+                <pre><code class="language-php">&lt;?php
+// Find the first negative number
+$numbers = [4, 7, 2, -3, 8, -1, 5];
+
+foreach ($numbers as $num) {
+    if ($num &lt; 0) {
+        echo "Found negative number: $num\n";
+        break; // Stop searching — we found what we need
+    }
+    echo "Checked: $num (positive)\n";
+}
+// Output:
+// Checked: 4 (positive)
+// Checked: 7 (positive)
+// Checked: 2 (positive)
+// Found negative number: -3</code></pre>
+
+                <h3>continue — Skip an Iteration</h3>
+                <pre><code class="language-php">&lt;?php
+// Print only even numbers
+for ($i = 1; $i &lt;= 10; $i++) {
+    if ($i % 2 !== 0) {
+        continue; // Skip odd numbers
+    }
+    echo "$i ";
+}
+// Output: 2 4 6 8 10
+
+// Skip inactive users
+$users = [
+    ["name" => "Alice", "active" => true],
+    ["name" => "Bob",   "active" => false],
+    ["name" => "Carol", "active" => true],
+    ["name" => "Dave",  "active" => false],
+];
+
+foreach ($users as $user) {
+    if (!$user["active"]) {
+        continue; // Skip inactive users
+    }
+    echo "Sending email to {$user['name']}...\n";
+}
+// Output:
+// Sending email to Alice...
+// Sending email to Carol...</code></pre>
+
+                <h3>break with Nested Loops</h3>
+                <p>By default, <code>break</code> only exits the <strong>innermost</strong> loop. You can pass a number to break out of multiple levels:</p>
+                <pre><code class="language-php">&lt;?php
+// break 1 — exits inner loop only (default)
+// break 2 — exits inner AND outer loop
+
+for ($i = 0; $i &lt; 3; $i++) {
+    for ($j = 0; $j &lt; 3; $j++) {
+        if ($i === 1 &amp;&amp; $j === 1) {
+            break 2; // Exit BOTH loops
+        }
+        echo "[$i,$j] ";
+    }
+}
+echo "\nDone!";
+// Output: [0,0] [0,1] [0,2] [1,0]
+// Done!</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use break vs. continue</h4>
+                    <p><strong>break:</strong> Use when you've found what you're looking for and don't need to keep looping (search results, error conditions, early exit).</p>
+                    <p><strong>continue:</strong> Use when certain items should be skipped but you still need to process the rest (filtering, skipping invalid data).</p>
+                </div>
+            </section>
+
+            <!-- Section 7: Nested Loops -->
+            <section id="section7" class="lesson-section">
+                <h2>Nested Loops</h2>
+
+                <p>A loop inside a loop. The inner loop runs completely for each iteration of the outer loop. This is essential for working with multi-dimensional data.</p>
+
+                <h3>How Nested Loops Work</h3>
+                <pre><code class="language-php">&lt;?php
+// Outer loop runs 3 times
+// For each outer iteration, inner loop runs 4 times
+// Total iterations: 3 × 4 = 12
+
+for ($row = 1; $row &lt;= 3; $row++) {
+    for ($col = 1; $col &lt;= 4; $col++) {
+        echo "($row,$col) ";
+    }
+    echo "\n";
+}
+// Output:
+// (1,1) (1,2) (1,3) (1,4)
+// (2,1) (2,2) (2,3) (2,4)
+// (3,1) (3,2) (3,3) (3,4)</code></pre>
+
+                <h3>Practical: Multiplication Table</h3>
+                <pre><code class="language-php">&lt;?php
+echo "&lt;table border='1'&gt;\n";
+
+// Header row
+echo "&lt;tr&gt;&lt;th&gt;×&lt;/th&gt;";
+for ($col = 1; $col &lt;= 10; $col++) {
+    echo "&lt;th&gt;$col&lt;/th&gt;";
+}
+echo "&lt;/tr&gt;\n";
+
+// Data rows
+for ($row = 1; $row &lt;= 10; $row++) {
+    echo "&lt;tr&gt;&lt;th&gt;$row&lt;/th&gt;";
+    for ($col = 1; $col &lt;= 10; $col++) {
+        $product = $row * $col;
+        echo "&lt;td&gt;$product&lt;/td&gt;";
+    }
+    echo "&lt;/tr&gt;\n";
+}
+
+echo "&lt;/table&gt;";</code></pre>
+
+                <h3>Practical: Iterating Nested Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+$students = [
+    ["name" => "Alice", "grades" => [92, 88, 95]],
+    ["name" => "Bob",   "grades" => [78, 85, 72]],
+    ["name" => "Carol", "grades" => [95, 97, 100]],
+];
+
+foreach ($students as $student) {
+    $total = 0;
+    $count = count($student["grades"]);
+
+    foreach ($student["grades"] as $grade) {
+        $total += $grade;
+    }
+
+    $average = $total / $count;
+    echo "{$student['name']}: avg = " . number_format($average, 1) . "\n";
+}
+// Output:
+// Alice: avg = 91.7
+// Bob: avg = 78.3
+// Carol: avg = 97.3</code></pre>
+
+                <h3>Practical: Building a Star Pattern</h3>
+                <pre><code class="language-php">&lt;?php
+$rows = 5;
+
+// Right triangle
+for ($i = 1; $i &lt;= $rows; $i++) {
+    for ($j = 1; $j &lt;= $i; $j++) {
+        echo "⭐";
+    }
+    echo "\n";
+}
+// Output:
+// ⭐
+// ⭐⭐
+// ⭐⭐⭐
+// ⭐⭐⭐⭐
+// ⭐⭐⭐⭐⭐</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Watch the Performance</h4>
+                    <p>Nested loops multiply their iterations. A loop of 1,000 inside a loop of 1,000 = <strong>1,000,000 iterations</strong>. Three levels deep with 100 each = <strong>1,000,000</strong>. Always be mindful of nested loop depth with large datasets.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Choosing the Right Loop -->
+            <section id="section8" class="lesson-section">
+                <h2>Choosing the Right Loop</h2>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A["Need to repeat?"] --> B{"Iterating an array?"}
+                        B -->|Yes| C["foreach ✅"]
+                        B -->|No| D{"Know how many times?"}
+                        D -->|Yes| E["for"]
+                        D -->|No| F{"Must run at least once?"}
+                        F -->|Yes| G["do-while"]
+                        F -->|No| H["while"]
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Loop</th>
+                                <th>Best For</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>foreach</code></td>
+                                <td>Iterating arrays/objects</td>
+                                <td>Display all products, process form data</td>
+                            </tr>
+                            <tr>
+                                <td><code>for</code></td>
+                                <td>Known number of iterations</td>
+                                <td>Generate 10 rows, count from 1 to 100</td>
+                            </tr>
+                            <tr>
+                                <td><code>while</code></td>
+                                <td>Unknown iterations, check first</td>
+                                <td>Read file lines, wait for condition</td>
+                            </tr>
+                            <tr>
+                                <td><code>do-while</code></td>
+                                <td>Must run at least once</td>
+                                <td>Input validation, menu display, retry logic</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Common Patterns</h3>
+
+                <h4>Pattern: Accumulator</h4>
+                <pre><code class="language-php">&lt;?php
+// Sum all values in an array
+$prices = [12.99, 24.50, 7.25, 18.00];
+$total = 0;
+
+foreach ($prices as $price) {
+    $total += $price;
+}
+
+echo "Total: $" . number_format($total, 2);
+// Output: Total: $62.74</code></pre>
+
+                <h4>Pattern: Search</h4>
+                <pre><code class="language-php">&lt;?php
+// Find the first matching item
+$users = ["alice", "bob", "carol", "dave"];
+$search = "carol";
+$found = false;
+
+foreach ($users as $index => $user) {
+    if ($user === $search) {
+        echo "Found '$search' at index $index";
+        $found = true;
+        break;
+    }
+}
+
+if (!$found) {
+    echo "'$search' not found.";
+}
+// Output: Found 'carol' at index 2</code></pre>
+
+                <h4>Pattern: Filter</h4>
+                <pre><code class="language-php">&lt;?php
+// Build a new array with only items that pass a test
+$numbers = [3, 7, 12, 5, 18, 2, 9, 15];
+$bigNumbers = [];
+
+foreach ($numbers as $num) {
+    if ($num >= 10) {
+        $bigNumbers[] = $num;
+    }
+}
+
+print_r($bigNumbers);
+// Output: [12, 18, 15]</code></pre>
+
+                <h4>Pattern: Transform</h4>
+                <pre><code class="language-php">&lt;?php
+// Create a new array by transforming each element
+$names = ["alice", "bob", "carol"];
+$formatted = [];
+
+foreach ($names as $name) {
+    $formatted[] = ucfirst($name);
+}
+
+print_r($formatted);
+// Output: ["Alice", "Bob", "Carol"]</code></pre>
+
+                <blockquote>
+                    <strong>💡 Preview:</strong> In Lesson 9, you'll learn <code>array_filter()</code>, <code>array_map()</code>, and <code>array_reduce()</code> — built-in functions that replace many of these manual loop patterns with one-liners.
+                </blockquote>
+            </section>
+
+            <!-- Section 9: Exercises -->
+            <section id="section9" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: FizzBuzz</h3>
+                    <p><strong>Objective:</strong> The classic programming challenge! Print numbers 1 to 30, but:</p>
+                    <ol>
+                        <li>For multiples of 3, print "Fizz" instead of the number</li>
+                        <li>For multiples of 5, print "Buzz" instead of the number</li>
+                        <li>For multiples of both 3 and 5, print "FizzBuzz"</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Check for divisibility by both 3 AND 5 first (otherwise the individual checks will match first). Use the modulo operator (<code>%</code>) — a number is divisible by N if <code>$num % N === 0</code>.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+for ($i = 1; $i &lt;= 30; $i++) {
+    if ($i % 3 === 0 &amp;&amp; $i % 5 === 0) {
+        echo "FizzBuzz";
+    } elseif ($i % 3 === 0) {
+        echo "Fizz";
+    } elseif ($i % 5 === 0) {
+        echo "Buzz";
+    } else {
+        echo $i;
+    }
+    echo "\n";
+}
+// 1, 2, Fizz, 4, Buzz, Fizz, 7, 8, Fizz, Buzz,
+// 11, Fizz, 13, 14, FizzBuzz, 16, ...</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Shopping Cart Total</h3>
+                    <p><strong>Objective:</strong> Use <code>foreach</code> to calculate the total cost of a shopping cart, applying discounts and formatting the output.</p>
+
+                    <h4>Starter Code:</h4>
+                    <pre><code class="language-php">&lt;?php
+$cart = [
+    ["name" => "Widget",     "price" => 9.99,  "qty" => 3],
+    ["name" => "Gadget",     "price" => 24.99, "qty" => 1],
+    ["name" => "Doohickey",  "price" => 4.50,  "qty" => 5],
+    ["name" => "Thingamajig","price" => 15.00, "qty" => 2],
+];
+
+$discountThreshold = 50; // Orders over $50 get 10% off
+
+// TODO: Loop through cart, calculate line totals and grand total
+// TODO: Apply discount if over threshold
+// TODO: Display formatted receipt</code></pre>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use an accumulator variable for the grand total. For each item, calculate <code>$price * $qty</code>. After the loop, check if the total exceeds the threshold and apply a 10% discount.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$cart = [
+    ["name" => "Widget",     "price" => 9.99,  "qty" => 3],
+    ["name" => "Gadget",     "price" => 24.99, "qty" => 1],
+    ["name" => "Doohickey",  "price" => 4.50,  "qty" => 5],
+    ["name" => "Thingamajig","price" => 15.00, "qty" => 2],
+];
+
+$discountThreshold = 50;
+$subtotal = 0;
+
+echo "===== SHOPPING CART =====\n";
+echo str_pad("Item", 15) . str_pad("Qty", 5) . str_pad("Price", 10) . "Line Total\n";
+echo str_repeat("-", 45) . "\n";
+
+foreach ($cart as $item) {
+    $lineTotal = $item["price"] * $item["qty"];
+    $subtotal += $lineTotal;
+
+    echo str_pad($item["name"], 15);
+    echo str_pad($item["qty"], 5);
+    echo str_pad("$" . number_format($item["price"], 2), 10);
+    echo "$" . number_format($lineTotal, 2) . "\n";
+}
+
+echo str_repeat("-", 45) . "\n";
+echo "Subtotal: $" . number_format($subtotal, 2) . "\n";
+
+if ($subtotal > $discountThreshold) {
+    $discount = $subtotal * 0.10;
+    $total = $subtotal - $discount;
+    echo "Discount (10%): -$" . number_format($discount, 2) . "\n";
+    echo "TOTAL: $" . number_format($total, 2) . "\n";
+} else {
+    echo "TOTAL: $" . number_format($subtotal, 2) . "\n";
+    echo "(Spend over $$discountThreshold for 10% off!)\n";
+}</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 3: Password Validator</h3>
+                    <p><strong>Objective:</strong> Use a <code>for</code> loop (and optionally <code>while</code>) to check password strength by iterating through each character.</p>
+
+                    <h4>Rules:</h4>
+                    <ol>
+                        <li>At least 8 characters long</li>
+                        <li>Contains at least one uppercase letter</li>
+                        <li>Contains at least one lowercase letter</li>
+                        <li>Contains at least one digit</li>
+                        <li>Contains at least one special character (!@#$%^&amp;*)</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use <code>ctype_upper()</code>, <code>ctype_lower()</code>, <code>ctype_digit()</code> to check individual characters. Use <code>strpos()</code> or <code>str_contains()</code> with a string of special characters.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$password = "MyP@ss1234";
+
+$hasUpper = false;
+$hasLower = false;
+$hasDigit = false;
+$hasSpecial = false;
+$specials = "!@#$%^&amp;*";
+$errors = [];
+
+// Check length first
+if (strlen($password) &lt; 8) {
+    $errors[] = "Must be at least 8 characters";
+}
+
+// Check each character
+for ($i = 0; $i &lt; strlen($password); $i++) {
+    $char = $password[$i];
+
+    if (ctype_upper($char)) {
+        $hasUpper = true;
+    } elseif (ctype_lower($char)) {
+        $hasLower = true;
+    } elseif (ctype_digit($char)) {
+        $hasDigit = true;
+    } elseif (str_contains($specials, $char)) {
+        $hasSpecial = true;
+    }
+}
+
+if (!$hasUpper)   $errors[] = "Missing uppercase letter";
+if (!$hasLower)   $errors[] = "Missing lowercase letter";
+if (!$hasDigit)   $errors[] = "Missing digit";
+if (!$hasSpecial) $errors[] = "Missing special character";
+
+if (empty($errors)) {
+    echo "✅ Password is strong!\n";
+} else {
+    echo "❌ Password is weak:\n";
+    foreach ($errors as $error) {
+        echo "  - $error\n";
+    }
+}
+// Output: ✅ Password is strong!</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> Which loop is best for iterating over an associative array?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="for loops use numeric indices — they aren't ideal for string keys.">
+                                A) for
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! foreach is purpose-built for arrays and automatically handles both keys and values. Use foreach ($array as $key => $value) for associative arrays.">
+                                B) foreach
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="while loops work but require manual index management — foreach is simpler.">
+                                C) while
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="do-while is for 'at least once' scenarios, not array iteration.">
+                                D) do-while
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What does <code>continue</code> do inside a loop?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="That's what break does — continue is less drastic.">
+                                A) Exits the loop entirely
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! continue skips the rest of the current iteration and jumps to the next one. The loop itself keeps running — only the current pass is cut short.">
+                                B) Skips the rest of the current iteration and moves to the next
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="continue doesn't restart — it advances to the next iteration.">
+                                C) Restarts the loop from the beginning
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What is the key difference between <code>while</code> and <code>do-while</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Both while and do-while can iterate an unknown number of times.">
+                                A) while can only run a fixed number of times
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! do-while checks the condition AFTER the body runs, so the body always executes at least once. while checks BEFORE, so the body might never run if the condition starts false.">
+                                B) do-while always runs the body at least once
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both loops have the same capabilities — the only difference is when the condition is checked.">
+                                C) do-while is faster than while
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> Why should you call <code>unset($value)</code> after a <code>foreach</code> loop that uses <code>&amp;$value</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP manages memory automatically. unset is about preventing a specific bug.">
+                                A) To free up memory
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! After a foreach with &$value, the variable still references the last array element. If you reuse that variable name later, you'll accidentally overwrite the last element. unset() breaks the reference.">
+                                B) To prevent accidentally modifying the last array element
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="unset is strongly recommended, but PHP won't throw an error without it — it will cause a silent bug.">
+                                C) PHP throws an error if you don't
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What does <code>break 2</code> do inside nested loops?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="break 2 doesn't skip iterations — it exits loops entirely.">
+                                A) Skips 2 iterations of the current loop
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="break (without a number) exits just the innermost loop. The number adds levels.">
+                                B) Exits only the innermost loop
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! break 2 exits two levels of nesting — the inner loop AND its parent loop. break 3 would exit three levels, and so on.">
+                                C) Exits both the inner and outer loop
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Summary -->
+            <section id="section10" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>for</strong> — Best for counted iterations; packs init, condition, and update in one line</li>
+                        <li><strong>while</strong> — Best when you don't know the iteration count; checks condition before each pass</li>
+                        <li><strong>do-while</strong> — Like while, but guarantees at least one execution; great for validation and retries</li>
+                        <li><strong>foreach</strong> — PHP's go-to for arrays; use <code>$key =&gt; $value</code> for associative arrays</li>
+                        <li><strong>break</strong> — Exits the loop entirely; use <code>break N</code> to exit N levels of nesting</li>
+                        <li><strong>continue</strong> — Skips the rest of the current iteration and moves to the next</li>
+                        <li><strong>References</strong> — Use <code>&amp;$value</code> in foreach to modify the original array; always <code>unset()</code> after</li>
+                        <li><strong>Performance</strong> — Watch nested loop depth; avoid function calls in loop conditions</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/control-structures.for.php" target="_blank" rel="noopener">PHP Manual: for</a></li>
+                    <li><a href="https://www.php.net/manual/en/control-structures.while.php" target="_blank" rel="noopener">PHP Manual: while</a></li>
+                    <li><a href="https://www.php.net/manual/en/control-structures.do.while.php" target="_blank" rel="noopener">PHP Manual: do-while</a></li>
+                    <li><a href="https://www.php.net/manual/en/control-structures.foreach.php" target="_blank" rel="noopener">PHP Manual: foreach</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Now that you can repeat code and iterate data, it's time to <em>organize</em> your code. In <strong>Lesson 7: Functions</strong>, you'll learn to bundle reusable logic into functions — with parameters, return values, type hints, and more.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've mastered PHP's loop toolkit! From <code>for</code> to <code>foreach</code>, you can now iterate, search, filter, and transform data like a pro. Module 2 is almost complete!</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_05.html" class="prev-lesson">← Previous: Control Flow</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_07.html" class="next-lesson">Next: Functions →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

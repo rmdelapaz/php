@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn OOP inheritance, method overriding, abstract classes, interfaces, traits, namespaces, and autoloading in PHP.">
+    <meta name="author" content="Ray De La Paz">
+    <title>OOP — Inheritance, Interfaces &amp; Traits - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 5: State &amp; OOP</a></li>
+            <li aria-current="page">Lesson 17: OOP — Inheritance, Interfaces &amp; Traits</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🧬 Lesson 17: OOP — Inheritance, Interfaces &amp; Traits</h1>
+                <p class="lead">In Lesson 16, you learned how to build classes and objects. But what happens when you need a class that's <em>almost like</em> an existing one, just with some differences? Or when unrelated classes need to share a common contract? Or when you want to mix reusable behavior into multiple classes? That's where <strong>inheritance</strong>, <strong>interfaces</strong>, and <strong>traits</strong> come in — the tools that let you build flexible, maintainable class hierarchies.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Extend classes with <code>extends</code> and override methods in child classes</li>
+                        <li>Call parent methods with <code>parent::</code></li>
+                        <li>Define abstract classes and methods as contracts for child classes</li>
+                        <li>Create and implement interfaces with <code>implements</code></li>
+                        <li>Use traits to share reusable behavior across unrelated classes</li>
+                        <li>Organize code with namespaces and understand basic autoloading</li>
+                        <li>Choose the right tool — inheritance vs. interfaces vs. traits — for each situation</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 50 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 16 (OOP — Classes &amp; Objects)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">Inheritance Basics</a></li>
+                        <li><a href="#section2" class="toc-link">Method Overriding &amp; parent::</a></li>
+                        <li><a href="#section3" class="toc-link">Abstract Classes &amp; Methods</a></li>
+                        <li><a href="#section4" class="toc-link">Interfaces</a></li>
+                        <li><a href="#section5" class="toc-link">Traits</a></li>
+                        <li><a href="#section6" class="toc-link">Namespaces</a></li>
+                        <li><a href="#section7" class="toc-link">Autoloading</a></li>
+                        <li><a href="#section8" class="toc-link">Choosing the Right Tool</a></li>
+                        <li><a href="#section9" class="toc-link">Putting It All Together</a></li>
+                        <li><a href="#section10" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section11" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Inheritance Basics -->
+            <section id="section1" class="lesson-section">
+                <h2>Inheritance Basics</h2>
+
+                <p><strong>Inheritance</strong> lets you create a new class based on an existing one. The new class (the <strong>child</strong> or <strong>subclass</strong>) inherits all the public and protected properties and methods of the existing class (the <strong>parent</strong> or <strong>superclass</strong>). The child can then add new behavior or modify what it inherited.</p>
+
+                <div class="card card-accent">
+                    <h4>📖 Key Terms</h4>
+                    <p><strong>Parent class (superclass):</strong> The class being extended — the base that provides shared behavior.</p>
+                    <p><strong>Child class (subclass):</strong> The class that extends the parent — it inherits everything and can add or change behavior.</p>
+                    <p><strong><code>extends</code>:</strong> The keyword that creates an inheritance relationship.</p>
+                </div>
+
+                <h3>Creating a Child Class</h3>
+                <pre><code class="language-php">&lt;?php
+// Parent class — shared behavior for all users
+class User {
+    public function __construct(
+        public string $name,
+        public string $email,
+        public string $role = "user",
+    ) {}
+
+    public function getDisplayName(): string {
+        return $this->name;
+    }
+
+    public function canView(): bool {
+        return true; // All users can view
+    }
+
+    public function canEdit(): bool {
+        return false; // Regular users cannot edit
+    }
+
+    public function describe(): string {
+        return "{$this->name} ({$this->role})";
+    }
+}
+
+// Child class — inherits everything from User, adds more
+class AdminUser extends User {
+    public function __construct(
+        string $name,
+        string $email,
+        public string $department = "General",
+    ) {
+        // Call the parent constructor
+        parent::__construct($name, $email, "admin");
+    }
+
+    // Override — admins CAN edit
+    public function canEdit(): bool {
+        return true;
+    }
+
+    // New method — only admins have this
+    public function deleteUser(User $user): string {
+        return "Admin {$this->name} deleted user {$user->name}";
+    }
+}
+
+// Usage
+$user = new User("Alice", "alice@example.com");
+$admin = new AdminUser("Bob", "bob@example.com", "Engineering");
+
+echo $user->describe();     // "Alice (user)"
+echo $admin->describe();    // "Bob (admin)" — inherited from User
+
+echo $user->canEdit();      // false
+echo $admin->canEdit();     // true — overridden in AdminUser
+
+echo $admin->deleteUser($user); // "Admin Bob deleted user Alice"
+// $user->deleteUser($admin);   // Error! deleteUser doesn't exist on User
+
+// Type checking
+var_dump($admin instanceof AdminUser); // true
+var_dump($admin instanceof User);      // true — AdminUser IS a User</code></pre>
+
+                <div class="mermaid">
+                    classDiagram
+                        class User {
+                            +string name
+                            +string email
+                            +string role
+                            +getDisplayName() string
+                            +canView() bool
+                            +canEdit() bool
+                            +describe() string
+                        }
+                        class AdminUser {
+                            +string department
+                            +canEdit() bool
+                            +deleteUser(User) string
+                        }
+                        User <|-- AdminUser : extends
+                        note for AdminUser "Inherits name, email, role,\ngetDisplayName(), canView(),\ndescribe() from User.\nOverrides canEdit().\nAdds department & deleteUser()."
+                </div>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Single Inheritance Only</h4>
+                    <p>PHP supports <strong>single inheritance</strong> — a class can only extend one parent. You cannot write <code>class AdminUser extends User, Manager</code>. This is by design to avoid the complexity of multiple inheritance. If you need to share behavior from multiple sources, use <strong>interfaces</strong> and <strong>traits</strong> (covered later in this lesson).</p>
+                </div>
+
+                <h3>What Gets Inherited?</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Member Type</th>
+                                <th>Inherited?</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>public</code> properties/methods</td>
+                                <td>✅ Yes</td>
+                                <td>Fully accessible in child class and from outside</td>
+                            </tr>
+                            <tr>
+                                <td><code>protected</code> properties/methods</td>
+                                <td>✅ Yes</td>
+                                <td>Accessible in child class, but not from outside</td>
+                            </tr>
+                            <tr>
+                                <td><code>private</code> properties/methods</td>
+                                <td>❌ No</td>
+                                <td>Only the defining class can access them — invisible to children</td>
+                            </tr>
+                            <tr>
+                                <td>Constants</td>
+                                <td>✅ Yes</td>
+                                <td>Can be overridden in child class</td>
+                            </tr>
+                            <tr>
+                                <td>Static members</td>
+                                <td>✅ Yes</td>
+                                <td>Shared via inheritance chain</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ The <code>protected</code> Sweet Spot</h4>
+                    <p>Now that you know about inheritance, <code>protected</code> makes more sense. Use it for properties or methods that child classes need to access but external code shouldn't. It's the "family only" visibility — not fully open (<code>public</code>), not locked away (<code>private</code>), but available within the class hierarchy.</p>
+                </div>
+            </section>
+
+            <!-- Section 2: Method Overriding & parent:: -->
+            <section id="section2" class="lesson-section">
+                <h2>Method Overriding &amp; parent::</h2>
+
+                <p>When a child class defines a method with the same name as a parent method, the child's version <strong>overrides</strong> the parent's. This is how you customize inherited behavior.</p>
+
+                <h3>Basic Overriding</h3>
+                <pre><code class="language-php">&lt;?php
+class Shape {
+    public function __construct(
+        public string $color = "black",
+    ) {}
+
+    public function describe(): string {
+        return "A {$this->color} shape";
+    }
+
+    public function area(): float {
+        return 0.0; // Default — subclasses should override
+    }
+}
+
+class Circle extends Shape {
+    public function __construct(
+        public float $radius,
+        string $color = "black",
+    ) {
+        parent::__construct($color);
+    }
+
+    // Override describe() with circle-specific info
+    public function describe(): string {
+        return "A {$this->color} circle with radius {$this->radius}";
+    }
+
+    // Override area() with actual calculation
+    public function area(): float {
+        return M_PI * $this->radius ** 2;
+    }
+}
+
+class Rectangle extends Shape {
+    public function __construct(
+        public float $width,
+        public float $height,
+        string $color = "black",
+    ) {
+        parent::__construct($color);
+    }
+
+    public function describe(): string {
+        return "A {$this->color} rectangle ({$this->width}×{$this->height})";
+    }
+
+    public function area(): float {
+        return $this->width * $this->height;
+    }
+}
+
+$circle = new Circle(5, "red");
+$rect   = new Rectangle(10, 4, "blue");
+
+echo $circle->describe(); // "A red circle with radius 5"
+echo $rect->describe();   // "A blue rectangle (10×4)"
+
+echo $circle->area();     // 78.5398...
+echo $rect->area();       // 40</code></pre>
+
+                <h3>Calling the Parent with <code>parent::</code></h3>
+                <p>Sometimes you want to <em>extend</em> the parent's behavior rather than completely replace it. Use <code>parent::methodName()</code> to call the parent's version from inside the override:</p>
+
+                <pre><code class="language-php">&lt;?php
+class Vehicle {
+    public function __construct(
+        public string $make,
+        public string $model,
+        public int $year,
+    ) {}
+
+    public function describe(): string {
+        return "{$this->year} {$this->make} {$this->model}";
+    }
+
+    public function start(): string {
+        return "Engine started.";
+    }
+}
+
+class ElectricVehicle extends Vehicle {
+    public function __construct(
+        string $make,
+        string $model,
+        int $year,
+        public int $batteryCapacity, // kWh
+    ) {
+        parent::__construct($make, $model, $year);
+    }
+
+    // Extend the parent's describe() — add battery info
+    public function describe(): string {
+        // Call parent version first, then append
+        return parent::describe() . " (Electric, {$this->batteryCapacity} kWh)";
+    }
+
+    // Completely replace start()
+    public function start(): string {
+        return "Electric motor engaged silently.";
+    }
+}
+
+$car = new Vehicle("Honda", "Civic", 2024);
+$ev  = new ElectricVehicle("Tesla", "Model 3", 2024, 75);
+
+echo $car->describe(); // "2024 Honda Civic"
+echo $ev->describe();  // "2024 Tesla Model 3 (Electric, 75 kWh)"
+
+echo $car->start();    // "Engine started."
+echo $ev->start();     // "Electric motor engaged silently."</code></pre>
+
+                <h3>Constructors and <code>parent::__construct()</code></h3>
+                <pre><code class="language-php">&lt;?php
+class Animal {
+    public function __construct(
+        public string $name,
+        public string $species,
+        protected int $age = 0,
+    ) {}
+}
+
+class Pet extends Animal {
+    public function __construct(
+        string $name,
+        string $species,
+        int $age,
+        public string $owner,
+        public bool $vaccinated = false,
+    ) {
+        // MUST call parent constructor to initialize inherited properties
+        parent::__construct($name, $species, $age);
+    }
+
+    public function describe(): string {
+        $status = $this->vaccinated ? "vaccinated" : "not vaccinated";
+        return "{$this->name} the {$this->species}, owned by {$this->owner} ($status)";
+    }
+}
+
+$pet = new Pet("Buddy", "Golden Retriever", 3, "Alice", true);
+echo $pet->describe(); // "Buddy the Golden Retriever, owned by Alice (vaccinated)"
+echo $pet->name;       // "Buddy" — inherited from Animal</code></pre>
+
+                <blockquote>
+                    <strong>⚠️ Important:</strong> If the parent class has a constructor, the child <em>should</em> call <code>parent::__construct()</code> to properly initialize inherited properties. PHP won't automatically call it for you (unlike some other languages). Forgetting this is a common source of bugs.
+                </blockquote>
+
+                <h3>The <code>final</code> Keyword</h3>
+                <p>Mark a class or method as <code>final</code> to prevent it from being overridden or extended:</p>
+
+                <pre><code class="language-php">&lt;?php
+class Payment {
+    // This method CANNOT be overridden — security-critical logic
+    final public function processPayment(float $amount): bool {
+        // Validate, charge, log — no subclass should change this
+        $this->validate($amount);
+        $result = $this->charge($amount);
+        $this->log($amount, $result);
+        return $result;
+    }
+
+    // These CAN be overridden for different payment types
+    protected function validate(float $amount): void {
+        if ($amount <= 0) throw new InvalidArgumentException("Invalid amount");
+    }
+
+    protected function charge(float $amount): bool {
+        return true; // Default implementation
+    }
+
+    protected function log(float $amount, bool $success): void {
+        echo ($success ? "Charged" : "Failed") . ": $$amount\n";
+    }
+}
+
+// You can extend Payment...
+class CreditCardPayment extends Payment {
+    protected function charge(float $amount): bool {
+        // Custom credit card charging logic
+        return true;
+    }
+
+    // But you CANNOT override processPayment():
+    // public function processPayment(float $amount): bool { ... }
+    // Error: Cannot override final method Payment::processPayment()
+}
+
+// A final class CANNOT be extended at all:
+final class SecurityToken {
+    public function __construct(
+        public readonly string $token,
+        public readonly int $expiresAt,
+    ) {}
+}
+// class CustomToken extends SecurityToken {} // Error! Cannot extend final class</code></pre>
+            </section>
+
+            <!-- Section 3: Abstract Classes -->
+            <section id="section3" class="lesson-section">
+                <h2>Abstract Classes &amp; Methods</h2>
+
+                <p>What if you want to create a base class that <em>requires</em> child classes to implement certain methods? That's an <strong>abstract class</strong>. It serves as a partial blueprint — it provides some shared behavior but leaves specific details for child classes to fill in.</p>
+
+                <h3>Defining Abstract Classes</h3>
+                <pre><code class="language-php">&lt;?php
+// Abstract class — cannot be instantiated directly
+abstract class Shape {
+    public function __construct(
+        public string $color = "black",
+    ) {}
+
+    // Abstract method — NO body, child MUST implement it
+    abstract public function area(): float;
+    abstract public function perimeter(): float;
+
+    // Concrete method — shared by all shapes
+    public function describe(): string {
+        $area = number_format($this->area(), 2);
+        $perimeter = number_format($this->perimeter(), 2);
+        return "A {$this->color} " . static::class
+             . " (area: $area, perimeter: $perimeter)";
+    }
+
+    // Compare shapes by area
+    public function isLargerThan(Shape $other): bool {
+        return $this->area() > $other->area();
+    }
+}
+
+// Concrete child — MUST implement area() and perimeter()
+class Circle extends Shape {
+    public function __construct(
+        public float $radius,
+        string $color = "black",
+    ) {
+        parent::__construct($color);
+    }
+
+    public function area(): float {
+        return M_PI * $this->radius ** 2;
+    }
+
+    public function perimeter(): float {
+        return 2 * M_PI * $this->radius;
+    }
+}
+
+class Rectangle extends Shape {
+    public function __construct(
+        public float $width,
+        public float $height,
+        string $color = "black",
+    ) {
+        parent::__construct($color);
+    }
+
+    public function area(): float {
+        return $this->width * $this->height;
+    }
+
+    public function perimeter(): float {
+        return 2 * ($this->width + $this->height);
+    }
+}
+
+class Triangle extends Shape {
+    public function __construct(
+        public float $base,
+        public float $height,
+        public float $sideA,
+        public float $sideB,
+        string $color = "black",
+    ) {
+        parent::__construct($color);
+    }
+
+    public function area(): float {
+        return 0.5 * $this->base * $this->height;
+    }
+
+    public function perimeter(): float {
+        return $this->base + $this->sideA + $this->sideB;
+    }
+}
+
+// $shape = new Shape();  // Error! Cannot instantiate abstract class
+
+$circle = new Circle(5, "red");
+$rect   = new Rectangle(10, 4, "blue");
+$tri    = new Triangle(6, 8, 10, 8, "green");
+
+echo $circle->describe();
+// "A red Circle (area: 78.54, perimeter: 31.42)"
+
+echo $rect->describe();
+// "A blue Rectangle (area: 40.00, perimeter: 28.00)"
+
+// Polymorphism — treat different shapes uniformly
+$shapes = [$circle, $rect, $tri];
+foreach ($shapes as $shape) {
+    echo $shape->describe() . "\n";
+}
+
+echo $circle->isLargerThan($rect) ? "Circle wins" : "Rectangle wins";
+// "Circle wins" (78.54 > 40.00)</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 Abstract vs. Concrete</h4>
+                    <p><strong>Abstract class:</strong> Has the <code>abstract</code> keyword. Cannot be instantiated with <code>new</code>. May contain abstract methods (no body) and concrete methods (with body). Forces child classes to implement the abstract methods.</p>
+                    <p><strong>Concrete class:</strong> A normal class without <code>abstract</code>. Can be instantiated. Must implement all inherited abstract methods.</p>
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use Abstract Classes</h4>
+                    <p>Use an abstract class when related classes share some implementation (code) but each has unique parts. The abstract class provides the shared code (like <code>describe()</code> and <code>isLargerThan()</code> above) while requiring each child to fill in the blanks (like <code>area()</code> and <code>perimeter()</code>).</p>
+                </div>
+            </section>
+
+            <!-- Section 4: Interfaces -->
+            <section id="section4" class="lesson-section">
+                <h2>Interfaces</h2>
+
+                <p>An <strong>interface</strong> defines a contract — a set of methods that a class <em>must</em> implement. Unlike abstract classes, interfaces contain <em>no implementation at all</em> (no method bodies, no properties). They say <strong>what</strong> a class can do without specifying <strong>how</strong>.</p>
+
+                <h3>Defining and Implementing Interfaces</h3>
+                <pre><code class="language-php">&lt;?php
+// Interface — defines WHAT methods must exist
+interface Printable {
+    public function toString(): string;
+    public function toHTML(): string;
+}
+
+interface Exportable {
+    public function toJSON(): string;
+    public function toCSV(): string;
+}
+
+// A class can implement MULTIPLE interfaces (unlike extends)
+class Invoice implements Printable, Exportable {
+    private array $items = [];
+
+    public function __construct(
+        public readonly string $invoiceNumber,
+        public readonly string $customer,
+        public readonly string $date,
+    ) {}
+
+    public function addItem(string $description, float $amount): void {
+        $this->items[] = ["description" => $description, "amount" => $amount];
+    }
+
+    public function getTotal(): float {
+        return array_sum(array_column($this->items, "amount"));
+    }
+
+    // --- Implement Printable ---
+    public function toString(): string {
+        $lines = ["Invoice #{$this->invoiceNumber}", "Customer: {$this->customer}", "Date: {$this->date}", ""];
+        foreach ($this->items as $item) {
+            $lines[] = sprintf("  %-30s $%8.2f", $item["description"], $item["amount"]);
+        }
+        $lines[] = str_repeat("-", 42);
+        $lines[] = sprintf("  %-30s $%8.2f", "TOTAL", $this->getTotal());
+        return implode("\n", $lines);
+    }
+
+    public function toHTML(): string {
+        $rows = "";
+        foreach ($this->items as $item) {
+            $rows .= "&lt;tr&gt;&lt;td&gt;{$item['description']}&lt;/td&gt;"
+                   . "&lt;td&gt;\${$item['amount']}&lt;/td&gt;&lt;/tr&gt;";
+        }
+        return "&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Item&lt;/th&gt;&lt;th&gt;Amount&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;"
+             . "&lt;tbody&gt;{$rows}&lt;/tbody&gt;&lt;/table&gt;";
+    }
+
+    // --- Implement Exportable ---
+    public function toJSON(): string {
+        return json_encode([
+            "invoiceNumber" => $this->invoiceNumber,
+            "customer"      => $this->customer,
+            "date"          => $this->date,
+            "items"         => $this->items,
+            "total"         => $this->getTotal(),
+        ], JSON_PRETTY_PRINT);
+    }
+
+    public function toCSV(): string {
+        $lines = ["Description,Amount"];
+        foreach ($this->items as $item) {
+            $lines[] = "\"{$item['description']}\",{$item['amount']}";
+        }
+        $lines[] = "\"TOTAL\",{$this->getTotal()}";
+        return implode("\n", $lines);
+    }
+}
+
+$invoice = new Invoice("INV-001", "Acme Corp", "2026-04-17");
+$invoice->addItem("Web Development", 2500.00);
+$invoice->addItem("Hosting (Annual)", 300.00);
+$invoice->addItem("SSL Certificate", 50.00);
+
+echo $invoice->toString();
+echo $invoice->toJSON();
+echo $invoice->toCSV();</code></pre>
+
+                <h3>Type Hints with Interfaces</h3>
+                <p>The real power of interfaces is using them as type hints. You can write functions that work with <em>any</em> class implementing the interface — without knowing or caring which specific class it is:</p>
+
+                <pre><code class="language-php">&lt;?php
+interface Loggable {
+    public function toLogString(): string;
+}
+
+class UserAction implements Loggable {
+    public function __construct(
+        public string $username,
+        public string $action,
+        public string $timestamp,
+    ) {}
+
+    public function toLogString(): string {
+        return "[{$this->timestamp}] {$this->username}: {$this->action}";
+    }
+}
+
+class SystemEvent implements Loggable {
+    public function __construct(
+        public string $level,
+        public string $message,
+        public string $timestamp,
+    ) {}
+
+    public function toLogString(): string {
+        return "[{$this->timestamp}] [{$this->level}] {$this->message}";
+    }
+}
+
+// This function works with ANY Loggable — doesn't matter which class
+function writeLog(Loggable $entry, string $file = "app.log"): void {
+    file_put_contents($file, $entry->toLogString() . "\n", FILE_APPEND);
+}
+
+// Both work — they both implement Loggable
+writeLog(new UserAction("alice", "logged in", "2026-04-17 10:30:00"));
+writeLog(new SystemEvent("WARNING", "Disk usage at 85%", "2026-04-17 10:31:00"));
+
+// Process a mixed collection
+function writeAllLogs(array $entries): void {
+    foreach ($entries as $entry) {
+        if ($entry instanceof Loggable) {
+            echo $entry->toLogString() . "\n";
+        }
+    }
+}</code></pre>
+
+                <h3>Interface Constants</h3>
+                <pre><code class="language-php">&lt;?php
+interface HttpStatusCodes {
+    const OK = 200;
+    const CREATED = 201;
+    const NOT_FOUND = 404;
+    const SERVER_ERROR = 500;
+}
+
+interface CacheDriver {
+    const DEFAULT_TTL = 3600; // 1 hour in seconds
+
+    public function get(string $key): mixed;
+    public function set(string $key, mixed $value, int $ttl = self::DEFAULT_TTL): void;
+    public function delete(string $key): void;
+    public function has(string $key): bool;
+}</code></pre>
+
+                <h3>Interfaces Can Extend Other Interfaces</h3>
+                <pre><code class="language-php">&lt;?php
+interface Readable {
+    public function read(): string;
+}
+
+interface Writable {
+    public function write(string $data): void;
+}
+
+// Combine multiple interfaces into one
+interface ReadWritable extends Readable, Writable {
+    public function seek(int $position): void;
+}</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 Abstract Class vs. Interface</h4>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>Abstract Class</th>
+                                    <th>Interface</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Method bodies</td>
+                                    <td>✅ Can have concrete methods</td>
+                                    <td>❌ Method signatures only</td>
+                                </tr>
+                                <tr>
+                                    <td>Properties</td>
+                                    <td>✅ Yes</td>
+                                    <td>❌ Only constants</td>
+                                </tr>
+                                <tr>
+                                    <td>Constructors</td>
+                                    <td>✅ Yes</td>
+                                    <td>❌ No</td>
+                                </tr>
+                                <tr>
+                                    <td>Multiple</td>
+                                    <td>❌ Extend only one</td>
+                                    <td>✅ Implement many</td>
+                                </tr>
+                                <tr>
+                                    <td>Purpose</td>
+                                    <td>Shared implementation + contract</td>
+                                    <td>Contract only (what, not how)</td>
+                                </tr>
+                                <tr>
+                                    <td>When to use</td>
+                                    <td>Related classes with shared code</td>
+                                    <td>Unrelated classes with shared capability</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 5: Traits -->
+            <section id="section5" class="lesson-section">
+                <h2>Traits</h2>
+
+                <p>PHP has single inheritance — a class can only extend one parent. But what if you have reusable behavior that doesn't fit into a single inheritance chain? <strong>Traits</strong> solve this problem. A trait is a collection of methods that can be "mixed in" to any class, regardless of its inheritance hierarchy.</p>
+
+                <h3>Basic Trait Usage</h3>
+                <pre><code class="language-php">&lt;?php
+// Define a trait — a reusable bundle of methods
+trait Timestampable {
+    public string $createdAt = "";
+    public string $updatedAt = "";
+
+    public function setCreatedAt(): void {
+        $this->createdAt = date("Y-m-d H:i:s");
+    }
+
+    public function setUpdatedAt(): void {
+        $this->updatedAt = date("Y-m-d H:i:s");
+    }
+
+    public function getTimestamps(): array {
+        return [
+            "created_at" => $this->createdAt,
+            "updated_at" => $this->updatedAt,
+        ];
+    }
+}
+
+trait SoftDeletable {
+    public ?string $deletedAt = null;
+
+    public function softDelete(): void {
+        $this->deletedAt = date("Y-m-d H:i:s");
+    }
+
+    public function restore(): void {
+        $this->deletedAt = null;
+    }
+
+    public function isDeleted(): bool {
+        return $this->deletedAt !== null;
+    }
+}
+
+// Use traits in any class with the "use" keyword
+class BlogPost {
+    use Timestampable, SoftDeletable;
+
+    public function __construct(
+        public string $title,
+        public string $content,
+    ) {
+        $this->setCreatedAt();
+    }
+}
+
+class Comment {
+    use Timestampable, SoftDeletable;
+
+    public function __construct(
+        public string $author,
+        public string $text,
+    ) {
+        $this->setCreatedAt();
+    }
+}
+
+// Both classes now have timestamp AND soft-delete behavior
+$post = new BlogPost("Learning PHP", "PHP is awesome...");
+echo $post->createdAt;      // "2026-04-17 14:30:00"
+
+$post->softDelete();
+echo $post->isDeleted();    // true
+$post->restore();
+echo $post->isDeleted();    // false
+
+$comment = new Comment("Alice", "Great post!");
+echo $comment->createdAt;   // same timestamp behavior</code></pre>
+
+                <h3>A Practical Logging Trait</h3>
+                <pre><code class="language-php">&lt;?php
+trait HasLogger {
+    private array $logs = [];
+
+    public function log(string $level, string $message): void {
+        $this->logs[] = [
+            "level"     => $level,
+            "message"   => $message,
+            "timestamp" => date("Y-m-d H:i:s"),
+            "class"     => static::class, // Which class logged this?
+        ];
+    }
+
+    public function info(string $message): void {
+        $this->log("INFO", $message);
+    }
+
+    public function warning(string $message): void {
+        $this->log("WARNING", $message);
+    }
+
+    public function error(string $message): void {
+        $this->log("ERROR", $message);
+    }
+
+    public function getLogs(): array {
+        return $this->logs;
+    }
+
+    public function getLogsByLevel(string $level): array {
+        return array_filter($this->logs, fn($log) => $log["level"] === $level);
+    }
+}
+
+class OrderProcessor {
+    use HasLogger;
+
+    public function process(int $orderId): bool {
+        $this->info("Processing order #$orderId");
+
+        // Simulate processing...
+        if ($orderId <= 0) {
+            $this->error("Invalid order ID: $orderId");
+            return false;
+        }
+
+        $this->info("Order #$orderId processed successfully");
+        return true;
+    }
+}
+
+$processor = new OrderProcessor();
+$processor->process(42);
+$processor->process(-1);
+
+foreach ($processor->getLogs() as $log) {
+    echo "[{$log['level']}] {$log['message']}\n";
+}
+// [INFO] Processing order #42
+// [INFO] Order #42 processed successfully
+// [INFO] Processing order #-1
+// [ERROR] Invalid order ID: -1</code></pre>
+
+                <h3>Resolving Trait Conflicts</h3>
+                <p>If two traits define a method with the same name, you must resolve the conflict explicitly:</p>
+
+                <pre><code class="language-php">&lt;?php
+trait Flyable {
+    public function move(): string {
+        return "Flying through the air";
+    }
+}
+
+trait Swimmable {
+    public function move(): string {
+        return "Swimming through water";
+    }
+}
+
+class Duck {
+    // Both traits have move() — we must resolve the conflict
+    use Flyable, Swimmable {
+        Flyable::move as fly;       // Rename Flyable's move to fly
+        Swimmable::move as swim;    // Rename Swimmable's move to swim
+        Flyable::move insteadof Swimmable; // Default move() uses Flyable
+    }
+}
+
+$duck = new Duck();
+echo $duck->move(); // "Flying through the air" (Flyable won via insteadof)
+echo $duck->fly();  // "Flying through the air" (alias)
+echo $duck->swim(); // "Swimming through water" (alias)</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Traits Are Not Interfaces</h4>
+                    <p>A trait provides <em>implementation</em> (actual code). An interface provides a <em>contract</em> (method signatures only). You can't use <code>instanceof</code> to check if a class uses a trait — for type checking, use interfaces. A common pattern is to pair an interface with a trait that implements it.</p>
+                </div>
+            </section>
+
+            <!-- Section 6: Namespaces -->
+            <section id="section6" class="lesson-section">
+                <h2>Namespaces</h2>
+
+                <p>As projects grow, you'll have many classes — and some will naturally have the same name (like <code>User</code> in your app and <code>User</code> in a third-party library). <strong>Namespaces</strong> organize classes into logical groups, preventing naming collisions — like folders organize files on disk.</p>
+
+                <h3>Declaring a Namespace</h3>
+                <pre><code class="language-php">&lt;?php
+// File: src/Models/User.php
+namespace App\Models;
+
+class User {
+    public function __construct(
+        public string $name,
+        public string $email,
+    ) {}
+}
+
+// File: src/Models/Product.php
+namespace App\Models;
+
+class Product {
+    public function __construct(
+        public string $name,
+        public float $price,
+    ) {}
+}
+
+// File: src/Services/AuthService.php
+namespace App\Services;
+
+class AuthService {
+    public function login(string $email, string $password): bool {
+        // Authentication logic...
+        return true;
+    }
+}</code></pre>
+
+                <h3>Using Namespaced Classes</h3>
+                <pre><code class="language-php">&lt;?php
+// File: src/index.php
+namespace App;
+
+// Option 1: Fully qualified name (verbose)
+$user = new \App\Models\User("Alice", "alice@example.com");
+
+// Option 2: Import with "use" (preferred)
+use App\Models\User;
+use App\Models\Product;
+use App\Services\AuthService;
+
+$user    = new User("Alice", "alice@example.com");
+$product = new Product("Widget", 12.99);
+$auth    = new AuthService();
+
+// Option 3: Alias to resolve naming conflicts
+use App\Models\User as AppUser;
+use ThirdParty\Auth\User as AuthUser;
+
+$appUser  = new AppUser("Alice", "alice@example.com");
+$authUser = new AuthUser("alice@example.com", "token123");
+
+// Group imports (PHP 7+)
+use App\Models\{User, Product};
+use App\Services\{AuthService, EmailService};</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Namespace Conventions</h4>
+                    <p>The standard convention (PSR-4) is to mirror your directory structure:</p>
+                    <pre><code>src/
+├── Models/
+│   ├── User.php          → namespace App\Models
+│   └── Product.php       → namespace App\Models
+├── Services/
+│   ├── AuthService.php   → namespace App\Services
+│   └── EmailService.php  → namespace App\Services
+└── Controllers/
+    └── HomeController.php → namespace App\Controllers</code></pre>
+                    <p>The top-level namespace (here <code>App</code>) maps to the <code>src/</code> directory. This makes autoloading work seamlessly.</p>
+                </div>
+            </section>
+
+            <!-- Section 7: Autoloading -->
+            <section id="section7" class="lesson-section">
+                <h2>Autoloading</h2>
+
+                <p>Without autoloading, you'd need <code>require</code> or <code>include</code> at the top of every file for every class you use. Autoloading tells PHP: "When you encounter a class you haven't loaded yet, use this function to find and load its file automatically."</p>
+
+                <h3>Manual Autoloading with <code>spl_autoload_register</code></h3>
+                <pre><code class="language-php">&lt;?php
+// File: autoload.php
+spl_autoload_register(function (string $className) {
+    // Convert namespace separators to directory separators
+    // App\Models\User → src/Models/User.php
+    $path = __DIR__ . "/src/" . str_replace("\\", "/", $className) . ".php";
+
+    // Remove the top-level "App/" if present
+    $path = str_replace("/App/", "/", $path);
+
+    if (file_exists($path)) {
+        require_once $path;
+    }
+});
+
+// Now classes load automatically when first used
+// No require statements needed!
+$user = new App\Models\User("Alice", "alice@example.com");
+$auth = new App\Services\AuthService();</code></pre>
+
+                <h3>Composer Autoloading (The Standard Way)</h3>
+                <p>In real projects, you'll use <strong>Composer</strong> (PHP's package manager) for autoloading. Composer handles the mapping automatically based on a <code>composer.json</code> configuration:</p>
+
+                <pre><code class="language-php">// composer.json
+{
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}
+
+// After running: composer dump-autoload
+// Just include this one file:
+require_once __DIR__ . "/vendor/autoload.php";
+
+// Everything loads automatically!
+use App\Models\User;
+use App\Models\Product;
+use App\Services\AuthService;
+
+$user = new User("Alice", "alice@example.com");</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 PSR-4 Autoloading</h4>
+                    <p><strong>PSR-4</strong> is the PHP community standard for autoloading. The rule is simple: the namespace maps directly to the directory structure. <code>App\Models\User</code> → <code>src/Models/User.php</code>. One class per file, filename matches class name. Every modern PHP framework and library follows this convention.</p>
+                </div>
+
+                <blockquote>
+                    <strong>💡 For Now:</strong> You don't need to set up Composer yet — that's covered in Lesson 24 (Deployment &amp; Next Steps). The key takeaway is understanding <em>what</em> autoloading does and <em>why</em> namespaces + PSR-4 naming conventions make it possible.
+                </blockquote>
+            </section>
+
+            <!-- Section 8: Choosing the Right Tool -->
+            <section id="section8" class="lesson-section">
+                <h2>Choosing the Right Tool</h2>
+
+                <p>With inheritance, abstract classes, interfaces, and traits in your toolbox, the question becomes: which one do you use when? Here's a decision guide.</p>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A[Need to share code between classes?] --> B{Are the classes related?}
+                        B -->|Yes, IS-A relationship| C{Need shared implementation?}
+                        C -->|Yes| D[Use Inheritance or Abstract Class]
+                        C -->|No, just a contract| E[Use Interface]
+                        B -->|No, unrelated classes| F{Need implementation or just contract?}
+                        F -->|Implementation code| G[Use Trait]
+                        F -->|Just method signatures| E
+                        D --> H{Base class should be instantiable?}
+                        H -->|Yes| I[Regular class + extends]
+                        H -->|No| J[Abstract class + extends]
+                </div>
+
+                <h3>Quick Reference</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Situation</th>
+                                <th>Use</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>"A Dog IS an Animal"</td>
+                                <td><code>extends</code></td>
+                                <td><code>class Dog extends Animal</code></td>
+                            </tr>
+                            <tr>
+                                <td>"All shapes must calculate area, but each differently"</td>
+                                <td>Abstract class</td>
+                                <td><code>abstract class Shape { abstract public function area(): float; }</code></td>
+                            </tr>
+                            <tr>
+                                <td>"Anything that can be serialized to JSON"</td>
+                                <td>Interface</td>
+                                <td><code>interface JsonSerializable { public function toJson(): string; }</code></td>
+                            </tr>
+                            <tr>
+                                <td>"Many classes need timestamp tracking"</td>
+                                <td>Trait</td>
+                                <td><code>trait Timestampable { ... }</code></td>
+                            </tr>
+                            <tr>
+                                <td>"Contract + default implementation"</td>
+                                <td>Interface + Trait</td>
+                                <td>Interface defines the contract, trait provides a default implementation</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Combining All Three</h3>
+                <p>In practice, you'll often combine these tools. Here's a common real-world pattern:</p>
+
+                <pre><code class="language-php">&lt;?php
+// Interface — defines the contract
+interface Renderable {
+    public function render(): string;
+}
+
+// Trait — provides reusable behavior
+trait HasAttributes {
+    private array $attributes = [];
+
+    public function setAttribute(string $key, string $value): self {
+        $this->attributes[$key] = $value;
+        return $this;
+    }
+
+    public function getAttribute(string $key): ?string {
+        return $this->attributes[$key] ?? null;
+    }
+
+    protected function renderAttributes(): string {
+        $parts = [];
+        foreach ($this->attributes as $key => $value) {
+            $parts[] = "$key=\"$value\"";
+        }
+        return $parts ? " " . implode(" ", $parts) : "";
+    }
+}
+
+// Abstract class — shared base for HTML elements
+abstract class HtmlElement implements Renderable {
+    use HasAttributes;
+
+    abstract protected function getTagName(): string;
+}
+
+// Concrete classes — specific elements
+class Paragraph extends HtmlElement {
+    public function __construct(private string $text) {}
+
+    protected function getTagName(): string {
+        return "p";
+    }
+
+    public function render(): string {
+        $tag = $this->getTagName();
+        $attrs = $this->renderAttributes();
+        return "&lt;{$tag}{$attrs}&gt;{$this->text}&lt;/{$tag}&gt;";
+    }
+}
+
+class Link extends HtmlElement {
+    public function __construct(
+        private string $text,
+        private string $href,
+    ) {
+        $this->setAttribute("href", $this->href);
+    }
+
+    protected function getTagName(): string {
+        return "a";
+    }
+
+    public function render(): string {
+        $tag = $this->getTagName();
+        $attrs = $this->renderAttributes();
+        return "&lt;{$tag}{$attrs}&gt;{$this->text}&lt;/{$tag}&gt;";
+    }
+}
+
+// Usage — works with the Renderable interface
+function renderAll(array $elements): string {
+    $html = "";
+    foreach ($elements as $el) {
+        if ($el instanceof Renderable) {
+            $html .= $el->render() . "\n";
+        }
+    }
+    return $html;
+}
+
+$elements = [
+    (new Paragraph("Hello, World!"))->setAttribute("class", "intro"),
+    (new Link("PHP Manual", "https://php.net"))->setAttribute("target", "_blank"),
+    (new Paragraph("Learning OOP is fun!"))->setAttribute("class", "content"),
+];
+
+echo renderAll($elements);</code></pre>
+
+                <div class="card card-output">
+                    <h4>Output:</h4>
+                    <pre><code>&lt;p class="intro"&gt;Hello, World!&lt;/p&gt;
+&lt;a href="https://php.net" target="_blank"&gt;PHP Manual&lt;/a&gt;
+&lt;p class="content"&gt;Learning OOP is fun!&lt;/p&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 9: Putting It All Together -->
+            <section id="section9" class="lesson-section">
+                <h2>Putting It All Together</h2>
+
+                <p>Let's build a notification system that demonstrates inheritance, interfaces, traits, and namespaces working together.</p>
+
+                <pre><code class="language-php">&lt;?php
+// === INTERFACE: Defines what all notifications can do ===
+interface Sendable {
+    public function send(): bool;
+    public function getRecipient(): string;
+    public function getContent(): string;
+}
+
+// === TRAIT: Reusable retry logic ===
+trait Retryable {
+    private int $maxRetries = 3;
+    private int $attempts = 0;
+
+    public function setMaxRetries(int $max): self {
+        $this->maxRetries = $max;
+        return $this;
+    }
+
+    protected function executeWithRetry(callable $operation): bool {
+        $this->attempts = 0;
+
+        while ($this->attempts < $this->maxRetries) {
+            $this->attempts++;
+            try {
+                if ($operation()) {
+                    return true;
+                }
+            } catch (\Exception $e) {
+                if ($this->attempts >= $this->maxRetries) {
+                    throw $e;
+                }
+                // Wait before retrying (exponential backoff)
+                usleep(100000 * $this->attempts); // 100ms × attempt
+            }
+        }
+        return false;
+    }
+
+    public function getAttempts(): int {
+        return $this->attempts;
+    }
+}
+
+// === TRAIT: Logging for notifications ===
+trait NotificationLogger {
+    private array $log = [];
+
+    protected function logSend(string $status, string $details = ""): void {
+        $this->log[] = [
+            "status"    => $status,
+            "details"   => $details,
+            "timestamp" => date("Y-m-d H:i:s"),
+            "type"      => static::class,
+        ];
+    }
+
+    public function getLog(): array {
+        return $this->log;
+    }
+}
+
+// === ABSTRACT BASE CLASS: Shared notification behavior ===
+abstract class Notification implements Sendable {
+    use Retryable, NotificationLogger;
+
+    public function __construct(
+        protected string $recipient,
+        protected string $subject,
+        protected string $message,
+    ) {}
+
+    public function getRecipient(): string {
+        return $this->recipient;
+    }
+
+    public function getContent(): string {
+        return "{$this->subject}: {$this->message}";
+    }
+
+    // Template method — defines the send workflow
+    public function send(): bool {
+        $this->logSend("attempting", "Sending to {$this->recipient}");
+
+        $success = $this->executeWithRetry(function () {
+            return $this->doSend(); // Each subclass implements the actual sending
+        });
+
+        $this->logSend(
+            $success ? "success" : "failed",
+            "After {$this->getAttempts()} attempt(s)"
+        );
+
+        return $success;
+    }
+
+    // Each notification type implements this differently
+    abstract protected function doSend(): bool;
+}
+
+// === CONCRETE CLASSES ===
+
+class EmailNotification extends Notification {
+    protected function doSend(): bool {
+        // In real code: use mail() or a library like PHPMailer
+        echo "📧 Email to {$this->recipient}: {$this->subject}\n";
+        return true; // Simulate success
+    }
+}
+
+class SMSNotification extends Notification {
+    protected function doSend(): bool {
+        // In real code: use Twilio or similar API
+        echo "📱 SMS to {$this->recipient}: {$this->message}\n";
+        return true;
+    }
+}
+
+class SlackNotification extends Notification {
+    public function __construct(
+        string $channel,
+        string $message,
+        private string $webhookUrl = "",
+    ) {
+        parent::__construct($channel, "Slack", $message);
+    }
+
+    protected function doSend(): bool {
+        echo "💬 Slack to #{$this->recipient}: {$this->message}\n";
+        return true;
+    }
+}
+
+// === USAGE ===
+
+// Create different notification types
+$notifications = [
+    new EmailNotification("alice@example.com", "Welcome!", "Thanks for joining."),
+    new SMSNotification("+1234567890", "Verification", "Your code is 123456"),
+    (new SlackNotification("general", "Deployment complete!"))->setMaxRetries(5),
+];
+
+// Send them all — polymorphism in action
+foreach ($notifications as $notification) {
+    $notification->send();
+}
+
+// Check logs
+foreach ($notifications as $notification) {
+    echo "\nLog for {$notification->getRecipient()}:\n";
+    foreach ($notification->getLog() as $entry) {
+        echo "  [{$entry['status']}] {$entry['details']}\n";
+    }
+}</code></pre>
+
+                <div class="mermaid">
+                    classDiagram
+                        class Sendable {
+                            &lt;&lt;interface&gt;&gt;
+                            +send() bool
+                            +getRecipient() string
+                            +getContent() string
+                        }
+                        class Retryable {
+                            &lt;&lt;trait&gt;&gt;
+                            -int maxRetries
+                            -int attempts
+                            +setMaxRetries(int) self
+                            #executeWithRetry(callable) bool
+                            +getAttempts() int
+                        }
+                        class NotificationLogger {
+                            &lt;&lt;trait&gt;&gt;
+                            -array log
+                            #logSend(status, details) void
+                            +getLog() array
+                        }
+                        class Notification {
+                            &lt;&lt;abstract&gt;&gt;
+                            #string recipient
+                            #string subject
+                            #string message
+                            +send() bool
+                            #doSend()* bool
+                        }
+                        class EmailNotification {
+                            #doSend() bool
+                        }
+                        class SMSNotification {
+                            #doSend() bool
+                        }
+                        class SlackNotification {
+                            -string webhookUrl
+                            #doSend() bool
+                        }
+                        Sendable <|.. Notification : implements
+                        Notification <|-- EmailNotification
+                        Notification <|-- SMSNotification
+                        Notification <|-- SlackNotification
+                        Retryable <.. Notification : uses
+                        NotificationLogger <.. Notification : uses
+                </div>
+            </section>
+
+            <!-- Section 10: Exercises -->
+            <section id="section10" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Vehicle Hierarchy</h3>
+                    <p><strong>Objective:</strong> Build a vehicle class hierarchy using inheritance and abstract methods.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create an abstract <code>Vehicle</code> class with: <code>make</code>, <code>model</code>, <code>year</code> (constructor promoted), an abstract <code>fuelType(): string</code> method, and a concrete <code>describe(): string</code> method</li>
+                        <li>Create <code>GasCar extends Vehicle</code> with <code>fuelType()</code> returning <code>"Gasoline"</code> and a <code>mpg</code> property</li>
+                        <li>Create <code>ElectricCar extends Vehicle</code> with <code>fuelType()</code> returning <code>"Electric"</code> and a <code>rangeKm</code> property</li>
+                        <li>Create <code>HybridCar extends GasCar</code> that overrides <code>fuelType()</code> to return <code>"Hybrid (Gas + Electric)"</code> and adds a <code>batteryKwh</code> property</li>
+                        <li>Write a function <code>showFleet(array $vehicles)</code> that prints each vehicle's description and fuel type</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p><code>HybridCar</code> extends <code>GasCar</code> (which extends <code>Vehicle</code>), so it inherits both <code>mpg</code> and all of <code>Vehicle</code>'s members. Use <code>parent::__construct()</code> at each level to pass values up the chain.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+abstract class Vehicle {
+    public function __construct(
+        public readonly string $make,
+        public readonly string $model,
+        public readonly int $year,
+    ) {}
+
+    abstract public function fuelType(): string;
+
+    public function describe(): string {
+        return "{$this->year} {$this->make} {$this->model}";
+    }
+}
+
+class GasCar extends Vehicle {
+    public function __construct(
+        string $make,
+        string $model,
+        int $year,
+        public float $mpg,
+    ) {
+        parent::__construct($make, $model, $year);
+    }
+
+    public function fuelType(): string {
+        return "Gasoline";
+    }
+}
+
+class ElectricCar extends Vehicle {
+    public function __construct(
+        string $make,
+        string $model,
+        int $year,
+        public int $rangeKm,
+    ) {
+        parent::__construct($make, $model, $year);
+    }
+
+    public function fuelType(): string {
+        return "Electric";
+    }
+}
+
+class HybridCar extends GasCar {
+    public function __construct(
+        string $make,
+        string $model,
+        int $year,
+        float $mpg,
+        public float $batteryKwh,
+    ) {
+        parent::__construct($make, $model, $year, $mpg);
+    }
+
+    public function fuelType(): string {
+        return "Hybrid (Gas + Electric)";
+    }
+}
+
+function showFleet(array $vehicles): void {
+    foreach ($vehicles as $v) {
+        echo $v->describe() . " — Fuel: " . $v->fuelType() . "\n";
+    }
+}
+
+$fleet = [
+    new GasCar("Honda", "Civic", 2024, 36.0),
+    new ElectricCar("Tesla", "Model 3", 2024, 560),
+    new HybridCar("Toyota", "Prius", 2024, 57.0, 1.3),
+];
+
+showFleet($fleet);
+// 2024 Honda Civic — Fuel: Gasoline
+// 2024 Tesla Model 3 — Fuel: Electric
+// 2024 Toyota Prius — Fuel: Hybrid (Gas + Electric)
+
+var_dump($fleet[2] instanceof GasCar);   // true
+var_dump($fleet[2] instanceof Vehicle);  // true</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Interface + Trait Combo</h3>
+                    <p><strong>Objective:</strong> Build a storage system using interfaces and traits.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create an interface <code>Storable</code> with methods: <code>save(): bool</code>, <code>toArray(): array</code>, <code>static fromArray(array $data): static</code></li>
+                        <li>Create a trait <code>HasId</code> that provides: a <code>readonly string $id</code> property, and a static <code>generateId(): string</code> method (use <code>uniqid()</code>)</li>
+                        <li>Create a <code>Note</code> class that uses <code>HasId</code> and implements <code>Storable</code> with properties: <code>title</code>, <code>content</code>, <code>createdAt</code></li>
+                        <li>Implement <code>save()</code> to write to a JSON file (use the id as filename)</li>
+                        <li>Implement <code>toArray()</code> and <code>fromArray()</code> for serialization</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>In <code>fromArray()</code>, create a new instance with the data from the array. Since it's a static method, use <code>new static(...)</code> or <code>new self(...)</code>. For <code>save()</code>, use <code>file_put_contents()</code> with <code>json_encode($this->toArray())</code>.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+interface Storable {
+    public function save(): bool;
+    public function toArray(): array;
+    public static function fromArray(array $data): static;
+}
+
+trait HasId {
+    public readonly string $id;
+
+    public static function generateId(): string {
+        return uniqid("", true);
+    }
+
+    protected function initId(string $id = ""): void {
+        $this->id = $id ?: self::generateId();
+    }
+}
+
+class Note implements Storable {
+    use HasId;
+
+    public readonly string $createdAt;
+
+    public function __construct(
+        public string $title,
+        public string $content,
+        string $id = "",
+        string $createdAt = "",
+    ) {
+        $this->initId($id);
+        $this->createdAt = $createdAt ?: date("Y-m-d H:i:s");
+    }
+
+    public function save(): bool {
+        $dir = "data/notes";
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        $json = json_encode($this->toArray(), JSON_PRETTY_PRINT);
+        return file_put_contents("$dir/{$this->id}.json", $json) !== false;
+    }
+
+    public function toArray(): array {
+        return [
+            "id"        => $this->id,
+            "title"     => $this->title,
+            "content"   => $this->content,
+            "createdAt" => $this->createdAt,
+        ];
+    }
+
+    public static function fromArray(array $data): static {
+        return new static(
+            title: $data["title"],
+            content: $data["content"],
+            id: $data["id"] ?? "",
+            createdAt: $data["createdAt"] ?? "",
+        );
+    }
+}
+
+// Create and save a note
+$note = new Note("PHP OOP", "Interfaces and traits are powerful!");
+$note->save();
+echo "Saved note: {$note->id}\n";
+
+// Reconstruct from array
+$data = $note->toArray();
+$restored = Note::fromArray($data);
+echo "Restored: {$restored->title} (id: {$restored->id})\n";</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What keyword creates an inheritance relationship between two classes?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="'implements' is used for interfaces, not class inheritance.">
+                                A) <code>implements</code>
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The 'extends' keyword creates a parent-child inheritance relationship. class Dog extends Animal means Dog inherits all public and protected members from Animal.">
+                                B) <code>extends</code>
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="'use' is for traits inside a class body, not inheritance.">
+                                C) <code>use</code>
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> How do you call the parent class's constructor from a child class?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="$this->__construct() would call the CURRENT class's constructor, not the parent's.">
+                                A) <code>$this->__construct()</code>
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! parent::__construct() calls the parent class's constructor. You can pass arguments to it just like any method call. This is how you initialize inherited properties from the child's constructor.">
+                                B) <code>parent::__construct()</code>
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="super is used in languages like JavaScript and Java, not PHP. PHP uses parent:: instead.">
+                                C) <code>super()</code>
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What is the key difference between an abstract class and an interface?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Abstract classes can contain both abstract methods (no body) AND concrete methods (with implementation). Interfaces can only contain method signatures and constants — no implementation. Additionally, a class can implement multiple interfaces but extend only one class.">
+                                A) Abstract classes can have concrete method implementations; interfaces cannot
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both abstract classes and interfaces can have method signatures. The difference is that abstract classes can ALSO have method implementations.">
+                                B) Only interfaces can define method signatures
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Actually, interfaces CAN define constants. The key difference is about whether method bodies (implementations) are allowed.">
+                                C) Abstract classes cannot have constants
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What problem do traits solve?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="That's what interfaces solve. Traits provide actual implementation code, not just contracts.">
+                                A) They allow a class to implement multiple contracts
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Since PHP only supports single inheritance, traits let you share reusable implementation code across multiple unrelated classes. A trait is like copy-pasting a set of methods into a class — without requiring an inheritance relationship.">
+                                B) They allow sharing reusable method implementations across unrelated classes without multiple inheritance
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Namespaces handle naming collisions. Traits are about sharing behavior/implementation across classes.">
+                                C) They prevent naming collisions between classes
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What does the <code>final</code> keyword do on a method?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="'final' on a method doesn't affect the class — you can still extend the class. It only prevents overriding that specific method.">
+                                A) It makes the class non-extendable
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="That's what 'static' does. 'final' is about preventing overrides in child classes.">
+                                B) It makes the method callable without an instance
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! A 'final' method cannot be overridden by any child class. This is useful for security-critical or core logic methods where you want to guarantee the behavior stays the same regardless of subclassing.">
+                                C) It prevents child classes from overriding that method
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 11: Summary -->
+            <section id="section11" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Inheritance (<code>extends</code>):</strong> Create child classes that inherit properties and methods from a parent. PHP supports single inheritance only.</li>
+                        <li><strong>Method overriding:</strong> Child classes can replace inherited methods with their own versions. Use <code>parent::method()</code> to call the parent's version.</li>
+                        <li><strong><code>final</code>:</strong> Prevents a method from being overridden or a class from being extended.</li>
+                        <li><strong>Abstract classes:</strong> Cannot be instantiated directly. Can contain abstract methods (no body — children must implement) and concrete methods (with body — shared code).</li>
+                        <li><strong>Interfaces:</strong> Pure contracts — method signatures only, no implementation. A class can implement multiple interfaces.</li>
+                        <li><strong>Traits:</strong> Reusable bundles of methods that can be mixed into any class with <code>use</code>. Solve the lack of multiple inheritance.</li>
+                        <li><strong>Namespaces:</strong> Organize classes into logical groups (like <code>App\Models</code>) to prevent naming collisions.</li>
+                        <li><strong>Autoloading:</strong> Automatically loads class files based on namespace-to-directory mapping (PSR-4). Composer handles this in real projects.</li>
+                        <li><strong>Choosing the right tool:</strong> Use inheritance for IS-A relationships, interfaces for shared contracts, traits for shared implementation across unrelated classes.</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/language.oop5.inheritance.php" target="_blank" rel="noopener">PHP Manual: Inheritance</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.oop5.abstract.php" target="_blank" rel="noopener">PHP Manual: Abstract Classes</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.oop5.interfaces.php" target="_blank" rel="noopener">PHP Manual: Interfaces</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.oop5.traits.php" target="_blank" rel="noopener">PHP Manual: Traits</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.namespaces.php" target="_blank" rel="noopener">PHP Manual: Namespaces</a></li>
+                    <li><a href="https://www.php-fig.org/psr/psr-4/" target="_blank" rel="noopener">PSR-4: Autoloading Standard</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>With OOP under your belt, you're ready for <strong>Lesson 18: Error Handling</strong>. You'll learn to use <code>try/catch/finally</code>, create custom exception classes, and build robust error-handling strategies — the final piece before we connect PHP to MySQL with PDO.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've mastered the pillars of object-oriented PHP! With classes, inheritance, interfaces, and traits, you can build flexible, maintainable code architectures that scale with your projects.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_16.html" class="prev-lesson">← Previous: OOP — Classes &amp; Objects</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_18.html" class="next-lesson">Next: Error Handling →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

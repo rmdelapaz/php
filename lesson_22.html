@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn to handle file uploads with $_FILES and move_uploaded_file, validate file types and sizes, support multiple uploads, and send email with PHP's mail() function.">
+    <meta name="author" content="Ray De La Paz">
+    <title>File Uploads &amp; Email - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 7: Real-World Skills</a></li>
+            <li aria-current="page">Lesson 22: File Uploads &amp; Email</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>📎 Lesson 22: File Uploads &amp; Email</h1>
+                <p class="lead">Most web applications need to handle files from users — profile pictures, documents, attachments — and communicate via email: confirmation messages, password resets, contact forms. In this lesson, you'll learn to accept file uploads securely with PHP's <code>$_FILES</code> superglobal, validate them thoroughly, move them to permanent storage, and send email using the built-in <code>mail()</code> function.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Build an HTML form that supports file uploads with <code>enctype="multipart/form-data"</code></li>
+                        <li>Read and interpret the <code>$_FILES</code> superglobal array</li>
+                        <li>Validate uploads by file type (MIME), extension, and size</li>
+                        <li>Move uploaded files safely with <code>move_uploaded_file()</code></li>
+                        <li>Handle multiple file uploads in a single form</li>
+                        <li>Send email with PHP's <code>mail()</code> function</li>
+                        <li>Build a contact form that processes input, validates it, and sends an email</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 45 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lessons 11–12 (forms, validation), Lesson 14 (superglobals)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">How File Uploads Work</a></li>
+                        <li><a href="#section2" class="toc-link">The $_FILES Superglobal</a></li>
+                        <li><a href="#section3" class="toc-link">Validating Uploads</a></li>
+                        <li><a href="#section4" class="toc-link">Moving Files to Permanent Storage</a></li>
+                        <li><a href="#section5" class="toc-link">Multiple File Uploads</a></li>
+                        <li><a href="#section6" class="toc-link">Complete Upload Example</a></li>
+                        <li><a href="#section7" class="toc-link">Sending Email with mail()</a></li>
+                        <li><a href="#section8" class="toc-link">Building a Contact Form</a></li>
+                        <li><a href="#section9" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section10" class="toc-link">Best Practices</a></li>
+                        <li><a href="#section11" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: How File Uploads Work -->
+            <section id="section1" class="lesson-section">
+                <h2>How File Uploads Work</h2>
+
+                <p>When a user selects a file and submits a form, the browser packages the file data and sends it to the server as part of the HTTP request. PHP receives the file, stores it in a <strong>temporary directory</strong>, and populates the <code>$_FILES</code> superglobal with information about it. Your job is to validate the file and move it from the temporary location to a permanent one.</p>
+
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant U as User (Browser)
+                        participant S as Server (PHP)
+                        participant T as Temp Directory
+                        participant D as Uploads Directory
+
+                        U->>S: POST form with file (multipart/form-data)
+                        S->>T: PHP saves file to temp location
+                        S->>S: Populate $_FILES with file info
+                        S->>S: Validate type, size, errors
+                        alt Valid file
+                            S->>D: move_uploaded_file() to permanent path
+                            S->>U: Success response
+                        else Invalid file
+                            S->>T: Temp file auto-deleted
+                            S->>U: Error response
+                        end
+                </div>
+
+                <p>There are two essential requirements for a file upload form:</p>
+
+                <ol>
+                    <li>The form method must be <code>POST</code> (files can't be sent via GET)</li>
+                    <li>The form must include <code>enctype="multipart/form-data"</code> — this tells the browser to encode the file data properly instead of treating it as a URL-encoded string</li>
+                </ol>
+
+                <pre><code class="language-php">&lt;!-- The simplest possible file upload form --&gt;
+&lt;form method="POST" action="upload.php" enctype="multipart/form-data"&gt;
+    &lt;label for="avatar"&gt;Choose a profile picture:&lt;/label&gt;
+    &lt;input type="file" id="avatar" name="avatar"&gt;
+    &lt;button type="submit"&gt;Upload&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Forget enctype? Files Won't Upload</h4>
+                    <p>Without <code>enctype="multipart/form-data"</code>, the browser sends only the <em>filename</em> as a plain text string, not the file contents. <code>$_FILES</code> will be empty and you'll spend an hour debugging. This is the #1 file upload mistake.</p>
+                </div>
+            </section>
+
+            <!-- Section 2: $_FILES -->
+            <section id="section2" class="lesson-section">
+                <h2>The $_FILES Superglobal</h2>
+
+                <p>When PHP receives an uploaded file, it creates an entry in <code>$_FILES</code> keyed by the <code>name</code> attribute of the input. Each entry is an associative array with five elements:</p>
+
+                <pre><code class="language-php">&lt;?php
+// After submitting a form with &lt;input type="file" name="avatar"&gt;
+// $_FILES["avatar"] contains:
+
+[
+    "name"     => "photo.jpg",        // Original filename from the user's computer
+    "type"     => "image/jpeg",       // MIME type reported by the browser
+    "tmp_name" => "/tmp/phpA1B2C3",   // Temporary path on the server
+    "error"    => 0,                  // Error code (0 = success)
+    "size"     => 245678,             // File size in bytes
+]</code></pre>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Key</th>
+                                <th>Description</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>name</code></td>
+                                <td>The original filename on the user's machine</td>
+                                <td><code>"vacation_photo.jpg"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>type</code></td>
+                                <td>The MIME type reported by the browser (not trustworthy!)</td>
+                                <td><code>"image/jpeg"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>tmp_name</code></td>
+                                <td>The temporary path where PHP stored the file</td>
+                                <td><code>"/tmp/phpA1B2C3"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>error</code></td>
+                                <td>An error code — 0 means no error</td>
+                                <td><code>UPLOAD_ERR_OK</code> (0)</td>
+                            </tr>
+                            <tr>
+                                <td><code>size</code></td>
+                                <td>File size in bytes</td>
+                                <td><code>245678</code> (≈240 KB)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Upload Error Codes</h3>
+
+                <p>Always check the <code>error</code> field before processing a file. PHP defines these constants:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Constant</th>
+                                <th>Value</th>
+                                <th>Meaning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>UPLOAD_ERR_OK</code></td>
+                                <td>0</td>
+                                <td>Upload successful — no error</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_INI_SIZE</code></td>
+                                <td>1</td>
+                                <td>File exceeds <code>upload_max_filesize</code> in php.ini</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_FORM_SIZE</code></td>
+                                <td>2</td>
+                                <td>File exceeds <code>MAX_FILE_SIZE</code> set in the HTML form</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_PARTIAL</code></td>
+                                <td>3</td>
+                                <td>File was only partially uploaded (connection interrupted)</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_NO_FILE</code></td>
+                                <td>4</td>
+                                <td>No file was selected (form submitted empty)</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_NO_TMP_DIR</code></td>
+                                <td>6</td>
+                                <td>Server has no temp directory configured</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_CANT_WRITE</code></td>
+                                <td>7</td>
+                                <td>Failed to write file to disk (permissions issue)</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_EXTENSION</code></td>
+                                <td>8</td>
+                                <td>A PHP extension stopped the upload</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+// Handy function to convert error codes to readable messages
+function uploadErrorMessage(int $code): string {
+    return match ($code) {
+        UPLOAD_ERR_OK         => "No error.",
+        UPLOAD_ERR_INI_SIZE   => "File exceeds the server's maximum upload size.",
+        UPLOAD_ERR_FORM_SIZE  => "File exceeds the form's maximum upload size.",
+        UPLOAD_ERR_PARTIAL    => "File was only partially uploaded.",
+        UPLOAD_ERR_NO_FILE    => "No file was uploaded.",
+        UPLOAD_ERR_NO_TMP_DIR => "Server error: missing temp directory.",
+        UPLOAD_ERR_CANT_WRITE => "Server error: failed to write to disk.",
+        UPLOAD_ERR_EXTENSION  => "Upload blocked by a PHP extension.",
+        default               => "Unknown upload error.",
+    };
+}</code></pre>
+            </section>
+
+            <!-- Section 3: Validating Uploads -->
+            <section id="section3" class="lesson-section">
+                <h2>Validating Uploads</h2>
+
+                <p>Never trust an uploaded file blindly. Users (and attackers) can upload anything — a disguised PHP script pretending to be an image, an oversized file, or a file with a malicious name. You need to validate at least three things:</p>
+
+                <ol>
+                    <li><strong>Error code</strong> — Was the upload itself successful?</li>
+                    <li><strong>File type</strong> — Is it an allowed MIME type? (Verify on the server, not just the browser's claim)</li>
+                    <li><strong>File size</strong> — Is it within your allowed limit?</li>
+                </ol>
+
+                <h3>Checking the MIME Type Properly</h3>
+
+                <p>The <code>$_FILES["avatar"]["type"]</code> value comes from the <em>browser</em> and can be faked. Instead, use <code>finfo_file()</code> (the Fileinfo extension) to inspect the file's actual contents:</p>
+
+                <pre><code class="language-php">&lt;?php
+// ❌ Don't trust the browser-reported type
+$browserType = $_FILES["avatar"]["type"]; // Could be faked!
+
+// ✅ Use finfo to check the actual file content
+$finfo = new finfo(FILEINFO_MIME_TYPE);
+$realType = $finfo->file($_FILES["avatar"]["tmp_name"]);
+
+echo $realType; // e.g., "image/jpeg" — based on file contents, not extension</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 How finfo Works</h4>
+                    <p><code>finfo</code> reads the file's <strong>magic bytes</strong> — the first few bytes of a file that identify its format. A JPEG file always starts with <code>FF D8 FF</code>, a PNG with <code>89 50 4E 47</code>, a PDF with <code>%PDF</code>. This is much more reliable than checking the file extension, which is just part of the filename and means nothing to the file system.</p>
+                </div>
+
+                <h3>Complete Validation Function</h3>
+
+                <pre><code class="language-php">&lt;?php
+/**
+ * Validate an uploaded file.
+ *
+ * @param array  $file         The $_FILES entry (e.g., $_FILES["avatar"])
+ * @param array  $allowedTypes Permitted MIME types
+ * @param int    $maxSize      Maximum file size in bytes
+ * @return string|null         Error message, or null if valid
+ */
+function validateUpload(array $file, array $allowedTypes, int $maxSize): ?string {
+    // 1. Check the upload error code
+    if ($file["error"] !== UPLOAD_ERR_OK) {
+        return uploadErrorMessage($file["error"]);
+    }
+
+    // 2. Verify the file was actually uploaded (security check)
+    if (!is_uploaded_file($file["tmp_name"])) {
+        return "Invalid upload — file did not come from a form submission.";
+    }
+
+    // 3. Check the real MIME type using file contents
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = $finfo->file($file["tmp_name"]);
+
+    if (!in_array($mimeType, $allowedTypes, true)) {
+        return "File type '$mimeType' is not allowed. Accepted: "
+             . implode(", ", $allowedTypes);
+    }
+
+    // 4. Check file size
+    if ($file["size"] > $maxSize) {
+        $maxMB = round($maxSize / 1048576, 1); // bytes → MB
+        return "File is too large. Maximum size: {$maxMB} MB.";
+    }
+
+    return null; // All checks passed
+}</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Why is_uploaded_file() Matters</h4>
+                    <p><code>is_uploaded_file()</code> verifies that the file at <code>tmp_name</code> was genuinely uploaded via HTTP POST. Without it, an attacker who can manipulate <code>$_FILES</code> values could trick your script into moving arbitrary files (like <code>/etc/passwd</code>) to your uploads directory. Always check before calling <code>move_uploaded_file()</code>.</p>
+                </div>
+            </section>
+
+            <!-- Section 4: Moving Files -->
+            <section id="section4" class="lesson-section">
+                <h2>Moving Files to Permanent Storage</h2>
+
+                <p>Uploaded files land in PHP's temp directory (usually <code>/tmp</code>). They're automatically deleted when the script ends, so you need to move them to a permanent location before that happens.</p>
+
+                <h3>move_uploaded_file()</h3>
+
+                <pre><code class="language-php">&lt;?php
+// move_uploaded_file(string $from, string $to): bool
+// - Only works on files uploaded via HTTP POST
+// - Returns true on success, false on failure
+
+$tmpPath = $_FILES["avatar"]["tmp_name"];
+$destination = __DIR__ . "/uploads/avatar_12345.jpg";
+
+if (move_uploaded_file($tmpPath, $destination)) {
+    echo "File saved successfully!";
+} else {
+    echo "Failed to save the file.";
+}</code></pre>
+
+                <h3>Generating Safe Filenames</h3>
+
+                <p>Never use the original filename directly — it could contain path traversal characters (<code>../../etc/passwd</code>), spaces, special characters, or collide with existing files. Generate a unique filename instead:</p>
+
+                <pre><code class="language-php">&lt;?php
+/**
+ * Generate a safe, unique filename for an uploaded file.
+ *
+ * @param string $originalName The original filename (e.g., "My Photo!.jpg")
+ * @param string $uploadDir    The target directory
+ * @return string              Safe filename (e.g., "662f1a3b_my-photo.jpg")
+ */
+function safeFilename(string $originalName, string $uploadDir): string {
+    // Extract and sanitize the extension
+    $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    $ext = preg_replace("/[^a-z0-9]/", "", $ext); // Only alphanumeric
+
+    // Create a clean base name
+    $base = pathinfo($originalName, PATHINFO_FILENAME);
+    $base = strtolower(trim($base));
+    $base = preg_replace("/[^a-z0-9\-]/", "-", $base); // Replace special chars
+    $base = preg_replace("/-+/", "-", $base);           // Collapse multiple dashes
+    $base = substr($base, 0, 50);                       // Limit length
+
+    // Add a unique prefix to prevent collisions
+    $prefix = substr(bin2hex(random_bytes(4)), 0, 8);
+
+    $filename = "{$prefix}_{$base}.{$ext}";
+
+    return $uploadDir . DIRECTORY_SEPARATOR . $filename;
+}
+
+// Usage:
+$safePath = safeFilename(
+    $_FILES["avatar"]["name"],   // "My Vacation Photo!!.JPG"
+    __DIR__ . "/uploads"         // "/var/www/html/uploads"
+);
+// Result: "/var/www/html/uploads/a3f7b21c_my-vacation-photo.jpg"</code></pre>
+
+                <h3>Creating the Upload Directory</h3>
+
+                <pre><code class="language-php">&lt;?php
+$uploadDir = __DIR__ . "/uploads";
+
+// Create the directory if it doesn't exist
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0755, true); // 0755 = owner rwx, group rx, others rx
+}
+
+// IMPORTANT: Prevent direct access to uploaded files via .htaccess
+// Create an .htaccess file in the uploads directory:
+//
+// # uploads/.htaccess
+// # Deny execution of PHP files in this directory
+// php_flag engine off
+//
+// Or use Apache configuration to deny script execution in the uploads folder.</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ The Upload Directory Checklist</h4>
+                    <ul>
+                        <li><strong>Exists:</strong> Create it with <code>mkdir()</code> if needed</li>
+                        <li><strong>Writable:</strong> The web server user (www-data) must have write permission</li>
+                        <li><strong>No PHP execution:</strong> Use <code>.htaccess</code> to block PHP execution inside the uploads folder</li>
+                        <li><strong>Outside document root (ideal):</strong> In production, store uploads outside the web-accessible directory and serve them through a PHP script</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 5: Multiple Uploads -->
+            <section id="section5" class="lesson-section">
+                <h2>Multiple File Uploads</h2>
+
+                <p>To accept multiple files, add the <code>multiple</code> attribute and use array notation (<code>[]</code>) in the input name:</p>
+
+                <pre><code class="language-php">&lt;form method="POST" action="upload.php" enctype="multipart/form-data"&gt;
+    &lt;label for="photos"&gt;Select photos (up to 5):&lt;/label&gt;
+    &lt;input type="file" id="photos" name="photos[]" multiple accept="image/*"&gt;
+    &lt;button type="submit"&gt;Upload All&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                <p>When multiple files are uploaded, <code>$_FILES</code> structures the data differently — each property becomes an array:</p>
+
+                <pre><code class="language-php">&lt;?php
+// $_FILES["photos"] for 3 uploaded files looks like this:
+[
+    "name"     => ["beach.jpg", "sunset.png", "mountain.jpg"],
+    "type"     => ["image/jpeg", "image/png", "image/jpeg"],
+    "tmp_name" => ["/tmp/phpABC", "/tmp/phpDEF", "/tmp/phpGHI"],
+    "error"    => [0, 0, 0],
+    "size"     => [125000, 340000, 210000],
+]</code></pre>
+
+                <p>This structure is awkward to work with — the data for file #2 is spread across five separate arrays. Here's a helper function that reorganizes it into a more natural format:</p>
+
+                <pre><code class="language-php">&lt;?php
+/**
+ * Reorganize $_FILES for multiple uploads into a cleaner structure.
+ *
+ * Converts the default PHP structure into an array of individual file arrays,
+ * each with "name", "type", "tmp_name", "error", and "size" keys.
+ */
+function reorganizeFiles(array $filesArray): array {
+    $result = [];
+    $fileCount = count($filesArray["name"]);
+
+    for ($i = 0; $i < $fileCount; $i++) {
+        // Skip empty slots (user selected fewer files than max)
+        if ($filesArray["error"][$i] === UPLOAD_ERR_NO_FILE) {
+            continue;
+        }
+
+        $result[] = [
+            "name"     => $filesArray["name"][$i],
+            "type"     => $filesArray["type"][$i],
+            "tmp_name" => $filesArray["tmp_name"][$i],
+            "error"    => $filesArray["error"][$i],
+            "size"     => $filesArray["size"][$i],
+        ];
+    }
+
+    return $result;
+}
+
+// Usage:
+$photos = reorganizeFiles($_FILES["photos"]);
+
+foreach ($photos as $index => $photo) {
+    echo "File $index: {$photo['name']} ({$photo['size']} bytes)\n";
+    // Now you can pass each $photo to validateUpload() individually
+}</code></pre>
+            </section>
+
+            <!-- Section 6: Complete Upload Example -->
+            <section id="section6" class="lesson-section">
+                <h2>Complete Upload Example</h2>
+
+                <p>Let's put everything together into a working image upload page. This handles single or multiple images, validates each one, moves them to the uploads directory, and displays feedback.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: image_upload.php
+
+$uploadDir = __DIR__ . "/uploads";
+$allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+$maxSize = 5 * 1024 * 1024; // 5 MB
+$maxFiles = 5;
+
+$results = [];  // Track success/error for each file
+$errors  = [];
+
+// Create upload directory if needed
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0755, true);
+}
+
+// ---- Handle form submission ----
+if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_FILES["images"])) {
+    $files = reorganizeFiles($_FILES["images"]);
+
+    // Check total file count
+    if (count($files) > $maxFiles) {
+        $errors[] = "You can upload a maximum of $maxFiles files at once.";
+    } else {
+        foreach ($files as $i => $file) {
+            // Validate each file
+            $error = validateUpload($file, $allowedTypes, $maxSize);
+
+            if ($error) {
+                $results[] = [
+                    "name"    => $file["name"],
+                    "status"  => "error",
+                    "message" => $error,
+                ];
+                continue;
+            }
+
+            // Generate safe filename and move
+            $destination = safeFilename($file["name"], $uploadDir);
+
+            if (move_uploaded_file($file["tmp_name"], $destination)) {
+                $results[] = [
+                    "name"    => $file["name"],
+                    "status"  => "success",
+                    "message" => "Saved as " . basename($destination),
+                    "path"    => "uploads/" . basename($destination),
+                ];
+            } else {
+                $results[] = [
+                    "name"    => $file["name"],
+                    "status"  => "error",
+                    "message" => "Failed to save file to disk.",
+                ];
+            }
+        }
+    }
+}
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Image Upload&lt;/title&gt;
+    &lt;style&gt;
+        body { font-family: sans-serif; max-width: 700px; margin: 2rem auto; }
+        .success { color: #166534; background: #dcfce7; padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0; }
+        .error { color: #991b1b; background: #fee2e2; padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0; }
+        .preview { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+        .preview img { max-width: 150px; border-radius: 8px; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Image Upload&lt;/h1&gt;
+
+    &lt;form method="POST" enctype="multipart/form-data"&gt;
+        &lt;p&gt;
+            &lt;label for="images"&gt;Select images (max 5, up to 5 MB each):&lt;/label&gt;&lt;br&gt;
+            &lt;input type="file" id="images" name="images[]" multiple accept="image/*"&gt;
+        &lt;/p&gt;
+        &lt;button type="submit"&gt;Upload&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;?php if ($errors): ?&gt;
+        &lt;?php foreach ($errors as $err): ?&gt;
+            &lt;div class="error"&gt;&lt;?= htmlspecialchars($err) ?&gt;&lt;/div&gt;
+        &lt;?php endforeach; ?&gt;
+    &lt;?php endif; ?&gt;
+
+    &lt;?php if ($results): ?&gt;
+        &lt;h2&gt;Results&lt;/h2&gt;
+        &lt;?php foreach ($results as $r): ?&gt;
+            &lt;div class="&lt;?= $r['status'] ?&gt;"&gt;
+                &lt;strong&gt;&lt;?= htmlspecialchars($r['name']) ?&gt;:&lt;/strong&gt;
+                &lt;?= htmlspecialchars($r['message']) ?&gt;
+            &lt;/div&gt;
+        &lt;?php endforeach; ?&gt;
+
+        &lt;!-- Preview successfully uploaded images --&gt;
+        &lt;div class="preview"&gt;
+            &lt;?php foreach ($results as $r): ?&gt;
+                &lt;?php if ($r["status"] === "success" && isset($r["path"])): ?&gt;
+                    &lt;img src="&lt;?= htmlspecialchars($r['path']) ?&gt;"
+                         alt="&lt;?= htmlspecialchars($r['name']) ?&gt;"&gt;
+                &lt;?php endif; ?&gt;
+            &lt;?php endforeach; ?&gt;
+        &lt;/div&gt;
+    &lt;?php endif; ?&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <blockquote>
+                    <strong>💡 Note:</strong> This example assumes the <code>uploadErrorMessage()</code>, <code>validateUpload()</code>, <code>reorganizeFiles()</code>, and <code>safeFilename()</code> functions from earlier sections are defined at the top of the file (or in an included helper file).
+                </blockquote>
+            </section>
+
+            <!-- Section 7: Email with mail() -->
+            <section id="section7" class="lesson-section">
+                <h2>Sending Email with mail()</h2>
+
+                <p>PHP includes a built-in <code>mail()</code> function that sends email through the server's mail system. It's simple and great for learning, though production applications typically use a library like PHPMailer or a service like SendGrid for better deliverability and features.</p>
+
+                <h3>The mail() Function</h3>
+
+                <pre><code class="language-php">&lt;?php
+// mail(to, subject, message, headers): bool
+
+$to      = "admin@example.com";
+$subject = "Test Email from PHP";
+$message = "Hello!\n\nThis is a test email sent from PHP's mail() function.\n\nBest regards,\nYour App";
+$headers = "From: noreply@example.com\r\n"
+         . "Reply-To: user@example.com\r\n"
+         . "Content-Type: text/plain; charset=UTF-8\r\n"
+         . "X-Mailer: PHP/" . phpversion();
+
+$sent = mail($to, $subject, $message, $headers);
+
+if ($sent) {
+    echo "Email sent successfully!";
+} else {
+    echo "Failed to send email.";
+}</code></pre>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Description</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>$to</code></td>
+                                <td>Recipient email address</td>
+                                <td><code>"admin@example.com"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>$subject</code></td>
+                                <td>Email subject line</td>
+                                <td><code>"New Contact Form Message"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>$message</code></td>
+                                <td>Email body (plain text or HTML)</td>
+                                <td><code>"Hello, this is..."</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>$headers</code></td>
+                                <td>Additional headers (From, Reply-To, Content-Type, etc.)</td>
+                                <td><code>"From: noreply@example.com"</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Sending HTML Email</h3>
+
+                <pre><code class="language-php">&lt;?php
+$to      = "admin@example.com";
+$subject = "Welcome to Our App!";
+
+// HTML email body
+$message = '
+&lt;html&gt;
+&lt;body style="font-family: Arial, sans-serif; color: #333;"&gt;
+    &lt;h2 style="color: #3b82f6;"&gt;Welcome!&lt;/h2&gt;
+    &lt;p&gt;Thank you for signing up. Here are your next steps:&lt;/p&gt;
+    &lt;ol&gt;
+        &lt;li&gt;Complete your profile&lt;/li&gt;
+        &lt;li&gt;Explore the dashboard&lt;/li&gt;
+        &lt;li&gt;Create your first project&lt;/li&gt;
+    &lt;/ol&gt;
+    &lt;p&gt;&lt;a href="https://example.com/dashboard" style="color: #3b82f6;"&gt;Go to Dashboard&lt;/a&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;';
+
+// Headers — MUST set Content-Type to text/html
+$headers  = "From: noreply@example.com\r\n";
+$headers .= "MIME-Version: 1.0\r\n";
+$headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
+mail($to, $subject, $message, $headers);</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ mail() Limitations</h4>
+                    <ul>
+                        <li><strong>Requires a mail server:</strong> <code>mail()</code> uses the server's local mail transfer agent (like Sendmail or Postfix). Many local dev environments and shared hosts don't have one configured properly.</li>
+                        <li><strong>No SMTP authentication:</strong> <code>mail()</code> doesn't support connecting to Gmail, Outlook, or other SMTP servers directly.</li>
+                        <li><strong>Deliverability issues:</strong> Emails sent via <code>mail()</code> often land in spam because the server IP may not have proper SPF/DKIM records.</li>
+                        <li><strong>No attachments (natively):</strong> Sending attachments requires manually building MIME boundaries — much harder than using a library.</li>
+                    </ul>
+                    <p>For production apps, use <strong>PHPMailer</strong> (installed via Composer) or a transactional email service like <strong>SendGrid</strong>, <strong>Mailgun</strong>, or <strong>Amazon SES</strong>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>📖 Testing Email Locally</h4>
+                    <p>You don't need a real mail server for development. Tools like <strong>Mailpit</strong> or <strong>MailHog</strong> run a local fake SMTP server that catches all outgoing email and displays it in a web interface. Install Mailpit, configure <code>php.ini</code> to route <code>sendmail_path</code> through it, and every <code>mail()</code> call will show up in your browser at <code>http://localhost:8025</code>.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Contact Form -->
+            <section id="section8" class="lesson-section">
+                <h2>Building a Contact Form</h2>
+
+                <p>Let's combine form handling, validation, and email into a practical contact form. This is something almost every website needs.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: contact.php
+
+$errors  = [];
+$success = false;
+$old = [
+    "name"    => "",
+    "email"   => "",
+    "subject" => "",
+    "message" => "",
+];
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // 1. Collect and trim input
+    $old["name"]    = trim($_POST["name"] ?? "");
+    $old["email"]   = trim($_POST["email"] ?? "");
+    $old["subject"] = trim($_POST["subject"] ?? "");
+    $old["message"] = trim($_POST["message"] ?? "");
+
+    // 2. Validate
+    if ($old["name"] === "") {
+        $errors["name"] = "Name is required.";
+    } elseif (mb_strlen($old["name"]) > 100) {
+        $errors["name"] = "Name must be 100 characters or fewer.";
+    }
+
+    if ($old["email"] === "") {
+        $errors["email"] = "Email is required.";
+    } elseif (!filter_var($old["email"], FILTER_VALIDATE_EMAIL)) {
+        $errors["email"] = "Please enter a valid email address.";
+    }
+
+    if ($old["subject"] === "") {
+        $errors["subject"] = "Subject is required.";
+    }
+
+    if ($old["message"] === "") {
+        $errors["message"] = "Message is required.";
+    } elseif (mb_strlen($old["message"]) > 5000) {
+        $errors["message"] = "Message must be 5,000 characters or fewer.";
+    }
+
+    // 3. If valid → send email
+    if (empty($errors)) {
+        $to = "admin@example.com"; // Change to your email
+
+        $emailSubject = "Contact Form: " . $old["subject"];
+
+        $emailBody  = "You received a new contact form submission:\n\n";
+        $emailBody .= "Name:    {$old['name']}\n";
+        $emailBody .= "Email:   {$old['email']}\n";
+        $emailBody .= "Subject: {$old['subject']}\n\n";
+        $emailBody .= "Message:\n{$old['message']}\n";
+
+        $headers = "From: noreply@example.com\r\n"
+                 . "Reply-To: {$old['email']}\r\n"
+                 . "Content-Type: text/plain; charset=UTF-8\r\n";
+
+        // Send the email
+        $sent = mail($to, $emailSubject, $emailBody, $headers);
+
+        if ($sent) {
+            $success = true;
+            // Clear form after successful send
+            $old = ["name" => "", "email" => "", "subject" => "", "message" => ""];
+        } else {
+            $errors["general"] = "Failed to send email. Please try again later.";
+        }
+    }
+}
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Contact Us&lt;/title&gt;
+    &lt;style&gt;
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-weight: bold; margin-bottom: 0.25rem; }
+        input, textarea, select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+        textarea { min-height: 150px; }
+        .error { color: #dc2626; font-size: 0.85rem; }
+        .success-msg { background: #dcfce7; color: #166534; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
+        .error-msg { background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
+        button { background: #3b82f6; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+        button:hover { background: #2563eb; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Contact Us&lt;/h1&gt;
+
+    &lt;?php if ($success): ?&gt;
+        &lt;div class="success-msg"&gt;
+            Thank you! Your message has been sent. We'll get back to you soon.
+        &lt;/div&gt;
+    &lt;?php endif; ?&gt;
+
+    &lt;?php if (isset($errors["general"])): ?&gt;
+        &lt;div class="error-msg"&gt;&lt;?= htmlspecialchars($errors["general"]) ?&gt;&lt;/div&gt;
+    &lt;?php endif; ?&gt;
+
+    &lt;form method="POST" action="contact.php"&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="name"&gt;Name *&lt;/label&gt;
+            &lt;input type="text" id="name" name="name"
+                   value="&lt;?= htmlspecialchars($old['name']) ?&gt;" required&gt;
+            &lt;?php if (isset($errors["name"])): ?&gt;
+                &lt;p class="error"&gt;&lt;?= htmlspecialchars($errors["name"]) ?&gt;&lt;/p&gt;
+            &lt;?php endif; ?&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="email"&gt;Email *&lt;/label&gt;
+            &lt;input type="email" id="email" name="email"
+                   value="&lt;?= htmlspecialchars($old['email']) ?&gt;" required&gt;
+            &lt;?php if (isset($errors["email"])): ?&gt;
+                &lt;p class="error"&gt;&lt;?= htmlspecialchars($errors["email"]) ?&gt;&lt;/p&gt;
+            &lt;?php endif; ?&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="subject"&gt;Subject *&lt;/label&gt;
+            &lt;input type="text" id="subject" name="subject"
+                   value="&lt;?= htmlspecialchars($old['subject']) ?&gt;" required&gt;
+            &lt;?php if (isset($errors["subject"])): ?&gt;
+                &lt;p class="error"&gt;&lt;?= htmlspecialchars($errors["subject"]) ?&gt;&lt;/p&gt;
+            &lt;?php endif; ?&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="message"&gt;Message *&lt;/label&gt;
+            &lt;textarea id="message" name="message" required&gt;&lt;?= htmlspecialchars($old['message']) ?&gt;&lt;/textarea&gt;
+            &lt;?php if (isset($errors["message"])): ?&gt;
+                &lt;p class="error"&gt;&lt;?= htmlspecialchars($errors["message"]) ?&gt;&lt;/p&gt;
+            &lt;?php endif; ?&gt;
+        &lt;/div&gt;
+
+        &lt;button type="submit"&gt;Send Message&lt;/button&gt;
+    &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Security in the Contact Form</h4>
+                    <ul>
+                        <li><strong>Email validation:</strong> <code>filter_var($email, FILTER_VALIDATE_EMAIL)</code> rejects malformed addresses</li>
+                        <li><strong>Output escaping:</strong> All form values are escaped with <code>htmlspecialchars()</code> before rendering</li>
+                        <li><strong>Header injection prevention:</strong> The <code>Reply-To</code> header uses the validated email, but the <code>From</code> header is hardcoded — this prevents an attacker from injecting additional headers (like BCC) through the email field</li>
+                        <li><strong>Length limits:</strong> Prevents abuse by limiting input lengths</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 9: Exercises -->
+            <section id="section9" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Profile Picture Upload</h3>
+                    <p><strong>Objective:</strong> Build a page where users can upload a profile picture with full validation.</p>
+
+                    <h4>Requirements:</h4>
+                    <ol>
+                        <li>Accept only JPEG and PNG files</li>
+                        <li>Maximum file size: 2 MB</li>
+                        <li>Generate a unique filename using <code>safeFilename()</code></li>
+                        <li>Display the uploaded image after a successful upload</li>
+                        <li>Show clear error messages for invalid files</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Start with the single-file upload pattern. Set <code>$allowedTypes = ["image/jpeg", "image/png"]</code> and <code>$maxSize = 2 * 1024 * 1024</code>. After a successful move, store the path and display it with an <code>&lt;img&gt;</code> tag.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$uploadDir    = __DIR__ . "/uploads";
+$allowedTypes = ["image/jpeg", "image/png"];
+$maxSize      = 2 * 1024 * 1024; // 2 MB
+$uploadedPath = null;
+$error        = null;
+
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0755, true);
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_FILES["avatar"])) {
+    $file = $_FILES["avatar"];
+
+    $error = validateUpload($file, $allowedTypes, $maxSize);
+
+    if (!$error) {
+        $dest = safeFilename($file["name"], $uploadDir);
+        if (move_uploaded_file($file["tmp_name"], $dest)) {
+            $uploadedPath = "uploads/" . basename($dest);
+        } else {
+            $error = "Failed to save file.";
+        }
+    }
+}
+?&gt;
+&lt;!-- Form + display logic similar to the complete example --&gt;
+&lt;form method="POST" enctype="multipart/form-data"&gt;
+    &lt;input type="file" name="avatar" accept="image/jpeg,image/png"&gt;
+    &lt;button type="submit"&gt;Upload&lt;/button&gt;
+&lt;/form&gt;
+&lt;?php if ($error): ?&gt;
+    &lt;p style="color:red"&gt;&lt;?= htmlspecialchars($error) ?&gt;&lt;/p&gt;
+&lt;?php elseif ($uploadedPath): ?&gt;
+    &lt;p style="color:green"&gt;Upload successful!&lt;/p&gt;
+    &lt;img src="&lt;?= htmlspecialchars($uploadedPath) ?&gt;" style="max-width:200px"&gt;
+&lt;?php endif; ?&gt;</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Add Attachments to the Contact Form</h3>
+                    <p><strong>Objective:</strong> Extend the contact form from Section 8 to accept an optional file attachment (PDF or image, max 3 MB).</p>
+
+                    <h4>Requirements:</h4>
+                    <ol>
+                        <li>Add a file input to the contact form (don't forget <code>enctype</code>!)</li>
+                        <li>Validate the attachment if one is provided (type + size)</li>
+                        <li>Save the attachment to an uploads directory</li>
+                        <li>Include the attachment path in the email body so the admin knows where to find it</li>
+                        <li>The attachment should be optional — the form should still work without one</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Check if a file was actually uploaded by testing <code>$_FILES["attachment"]["error"] !== UPLOAD_ERR_NO_FILE</code>. Only run validation if a file was provided. Add the saved filename to the <code>$emailBody</code> string.</p>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 3: CSV File Importer</h3>
+                    <p><strong>Objective:</strong> Build a page that accepts a CSV file upload, parses it, and displays the data in an HTML table.</p>
+
+                    <h4>Requirements:</h4>
+                    <ol>
+                        <li>Accept only <code>.csv</code> files (MIME type <code>text/csv</code> or <code>text/plain</code>)</li>
+                        <li>Read the file with <code>fgetcsv()</code> after moving it to the uploads directory</li>
+                        <li>Use the first row as table headers</li>
+                        <li>Display the data in a styled HTML table</li>
+                        <li>Show the total number of rows imported</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>After moving the file, open it with <code>fopen()</code> and loop with <code>fgetcsv()</code>. The first <code>fgetcsv()</code> call gives you the header row — use those values as <code>&lt;th&gt;</code> elements. Each subsequent call gives you a data row.</p>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What happens if you forget <code>enctype="multipart/form-data"</code> on your upload form?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="The form will submit, but it won't contain what you expect. The browser sends the filename as a text string instead of the file contents.">
+                                A) The form won't submit at all
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Without multipart/form-data, the browser uses the default URL-encoded format, which can only send text. It sends just the filename as a plain string. PHP's $_FILES array will be empty because no file data was actually transmitted. This is the most common file upload mistake.">
+                                B) The browser sends only the filename as text, and $_FILES is empty
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP won't throw an error — it just silently receives no file data. That's what makes this bug so tricky to diagnose.">
+                                C) PHP throws a fatal error
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> Why should you use <code>finfo</code> instead of <code>$_FILES["file"]["type"]</code> to check the MIME type?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Both return MIME type strings. The difference is in how they determine the type.">
+                                A) finfo returns the file extension, which is more useful
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The 'type' value in $_FILES comes from the browser's Content-Type header, which users or attackers can easily modify. finfo reads the file's actual content (magic bytes) to determine what it really is. A malicious .php file renamed to .jpg would still report as application/x-php under finfo, but the browser might claim it's image/jpeg.">
+                                B) $_FILES["file"]["type"] comes from the browser and can be faked; finfo checks the actual file contents
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both are available in standard PHP installations. The reason to prefer finfo is about accuracy, not availability.">
+                                C) finfo is a newer, faster function that replaced the old one
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What does <code>is_uploaded_file()</code> protect against?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! is_uploaded_file() verifies that the file at the given path was genuinely uploaded via HTTP POST during the current request. Without it, if an attacker could manipulate the tmp_name value in $_FILES, they could trick your script into moving system files (like /etc/passwd) to a web-accessible directory. move_uploaded_file() includes this check internally, but it's good practice to verify separately during validation.">
+                                A) Attackers manipulating tmp_name to access arbitrary files on the server
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="File size limits are enforced by php.ini's upload_max_filesize and your own validation code, not by is_uploaded_file().">
+                                B) Files that are too large for the server to handle
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Virus scanning requires dedicated antivirus software. is_uploaded_file() only verifies the file's origin (was it uploaded via POST?), not its contents.">
+                                C) Files that contain viruses or malware
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> Why should you avoid using the original filename when saving uploaded files?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP can handle long filenames. The real danger is in what the filename contains, not its length.">
+                                A) Original filenames are always too long for the server
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Original filenames can contain: path traversal sequences (../../etc/passwd), special characters that break URLs or file systems, names identical to existing files (causing overwrites), or even executable extensions (.php, .phtml) that the web server might execute. Generating a unique, sanitized filename eliminates all these risks.">
+                                B) They may contain path traversal characters, collide with existing files, or include dangerous extensions
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The original filename doesn't affect file size. Size depends on the file contents, which don't change based on what you name the file.">
+                                C) Original filenames make the files larger on disk
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What is a key limitation of PHP's built-in <code>mail()</code> function?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="mail() can send HTML email — you just set the Content-Type header to text/html. The limitation is in another area.">
+                                A) It can only send plain text, not HTML
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="mail() can technically send to multiple recipients. Its limitations are around configuration and deliverability.">
+                                B) It can only send to one recipient at a time
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! mail() relies on the server's local mail transfer agent (like Sendmail or Postfix) and doesn't support SMTP authentication. This means it can't connect to Gmail, Outlook, or other SMTP services directly. Emails sent via mail() often land in spam because the sending server typically lacks proper SPF, DKIM, and DMARC records. For production, use PHPMailer (a library) or a transactional email service.">
+                                C) It requires a local mail server and doesn't support SMTP authentication, so emails often go to spam
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Best Practices -->
+            <section id="section10" class="lesson-section">
+                <h2>Best Practices</h2>
+
+                <h3>✅ File Upload Do's</h3>
+                <ul>
+                    <li><strong>Always validate on the server</strong> — HTML <code>accept</code> attributes are hints, not security. Validate MIME type with <code>finfo</code>, check size, and verify with <code>is_uploaded_file()</code>.</li>
+                    <li><strong>Generate unique filenames</strong> — Never use the original filename. Prefix with a random string and sanitize the extension.</li>
+                    <li><strong>Block PHP execution in upload directories</strong> — Use <code>.htaccess</code> to disable the PHP engine, or better yet, store uploads outside the document root.</li>
+                    <li><strong>Set php.ini limits</strong> — Configure <code>upload_max_filesize</code> and <code>post_max_size</code> to match your application's needs. <code>post_max_size</code> must be larger than <code>upload_max_filesize</code>.</li>
+                    <li><strong>Clean up failed uploads</strong> — PHP deletes temp files automatically, but if you move a file and validation fails later, delete the moved file with <code>unlink()</code>.</li>
+                </ul>
+
+                <h3>❌ File Upload Don'ts</h3>
+                <ul>
+                    <li><strong>Don't trust <code>$_FILES["type"]</code></strong> — It comes from the browser and can be spoofed. Always use <code>finfo</code>.</li>
+                    <li><strong>Don't save files with their original names</strong> — Path traversal, collisions, and dangerous extensions are real risks.</li>
+                    <li><strong>Don't allow PHP file uploads</strong> — Even with <code>.htaccess</code>, if your allowlist includes <code>.php</code>, <code>.phtml</code>, or <code>.phar</code>, you have a remote code execution vulnerability.</li>
+                    <li><strong>Don't rely on file extensions alone</strong> — A file named <code>evil.jpg</code> could contain PHP code. Check the MIME type of the <em>contents</em>.</li>
+                </ul>
+
+                <h3>✅ Email Do's</h3>
+                <ul>
+                    <li><strong>Validate all email inputs</strong> — Use <code>filter_var()</code> with <code>FILTER_VALIDATE_EMAIL</code> before including user input in email headers.</li>
+                    <li><strong>Hardcode the From address</strong> — Don't let users set the From header (this enables spam relay). Use Reply-To for their address.</li>
+                    <li><strong>Use a library for production</strong> — PHPMailer supports SMTP authentication, attachments, HTML templates, and proper error handling.</li>
+                </ul>
+
+                <h3>❌ Email Don'ts</h3>
+                <ul>
+                    <li><strong>Don't put user input directly in email headers</strong> — An attacker can inject newlines followed by <code>BCC: victim@example.com</code> to turn your contact form into a spam relay. Always sanitize header values.</li>
+                    <li><strong>Don't use <code>mail()</code> for production email</strong> — Deliverability will be poor without proper SMTP configuration, SPF records, and DKIM signatures.</li>
+                    <li><strong>Don't send sensitive data in email</strong> — Email is not encrypted in transit (usually). Never send passwords, tokens, or personal data in plain email.</li>
+                </ul>
+
+                <h3>PHP.ini Upload Settings</h3>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Directive</th>
+                                <th>Default</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>file_uploads</code></td>
+                                <td><code>On</code></td>
+                                <td>Enable/disable file uploads</td>
+                            </tr>
+                            <tr>
+                                <td><code>upload_max_filesize</code></td>
+                                <td><code>2M</code></td>
+                                <td>Max size of a single uploaded file</td>
+                            </tr>
+                            <tr>
+                                <td><code>post_max_size</code></td>
+                                <td><code>8M</code></td>
+                                <td>Max size of entire POST body (must be ≥ upload_max_filesize)</td>
+                            </tr>
+                            <tr>
+                                <td><code>max_file_uploads</code></td>
+                                <td><code>20</code></td>
+                                <td>Max number of files per request</td>
+                            </tr>
+                            <tr>
+                                <td><code>upload_tmp_dir</code></td>
+                                <td>(system default)</td>
+                                <td>Temp directory for uploads</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+// Check current upload settings
+echo "Max upload size: " . ini_get("upload_max_filesize") . "\n";
+echo "Max POST size: " . ini_get("post_max_size") . "\n";
+echo "Max files per request: " . ini_get("max_file_uploads") . "\n";
+echo "Temp directory: " . (ini_get("upload_tmp_dir") ?: sys_get_temp_dir()) . "\n";</code></pre>
+            </section>
+
+            <!-- Section 11: Summary -->
+            <section id="section11" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>enctype="multipart/form-data"</strong> is required on any form that uploads files — without it, <code>$_FILES</code> will be empty.</li>
+                        <li><strong>$_FILES</strong> provides five pieces of info per upload: <code>name</code>, <code>type</code>, <code>tmp_name</code>, <code>error</code>, and <code>size</code>. Always check <code>error</code> first.</li>
+                        <li><strong>Validate with finfo, not $_FILES["type"]</strong> — the browser-reported MIME type can be spoofed. <code>finfo</code> reads actual file contents.</li>
+                        <li><strong>Generate safe filenames</strong> — Never use the original filename. Sanitize, add a random prefix, and limit length.</li>
+                        <li><strong>move_uploaded_file()</strong> is the only safe way to move an uploaded file — it verifies the file was genuinely uploaded via POST.</li>
+                        <li><strong>Multiple uploads</strong> use array notation (<code>name="files[]"</code>) and require reorganization of the <code>$_FILES</code> structure.</li>
+                        <li><strong>mail()</strong> sends email through the local mail server — simple for learning, but use PHPMailer or a service for production.</li>
+                        <li><strong>Hardcode the From header</strong> — Put user email in Reply-To only, never in From (prevents header injection / spam relay).</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/features.file-upload.php" target="_blank" rel="noopener">PHP Manual: Handling File Uploads</a></li>
+                    <li><a href="https://www.php.net/manual/en/reserved.variables.files.php" target="_blank" rel="noopener">PHP Manual: $_FILES</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.move-uploaded-file.php" target="_blank" rel="noopener">PHP Manual: move_uploaded_file()</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.mail.php" target="_blank" rel="noopener">PHP Manual: mail()</a></li>
+                    <li><a href="https://www.php.net/manual/en/class.finfo.php" target="_blank" rel="noopener">PHP Manual: finfo class</a></li>
+                    <li><a href="https://github.com/PHPMailer/PHPMailer" target="_blank" rel="noopener">PHPMailer on GitHub</a></li>
+                    <li><a href="https://github.com/axllent/mailpit" target="_blank" rel="noopener">Mailpit — Local Email Testing</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>You now know how to accept files and send email — two essential features of any web application. But accepting user input always comes with risk. In <strong>Lesson 23: Security Fundamentals</strong>, we'll take a deep dive into the major web vulnerabilities: SQL injection, Cross-Site Scripting (XSS), and Cross-Site Request Forgery (CSRF). You'll learn how prepared statements, output escaping, and CSRF tokens protect your applications — and you'll see exactly what happens when they're missing.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've completed Lesson 22! You can now handle file uploads securely and send email from PHP. These skills connect directly to real-world features like profile pictures, document management, and contact forms.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_21.html" class="prev-lesson">← Previous: Building a CRUD App</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_23.html" class="next-lesson">Next: Security Fundamentals →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

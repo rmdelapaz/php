@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Master PHP strings and string functions: strlen, strpos, substr, str_replace, strtolower/upper, trim, explode/implode, sprintf, heredoc, nowdoc, and regex basics.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Strings &amp; String Functions - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 3: Data Structures</a></li>
+            <li aria-current="page">Lesson 10: Strings &amp; String Functions</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🔤 Lesson 10: Strings &amp; String Functions</h1>
+                <p class="lead">Strings are everywhere in web development — URLs, form data, HTML output, database queries, file paths, emails. PHP has one of the richest string function libraries of any language, and mastering it will make you dramatically more productive.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Measure, search, and extract substrings with <code>strlen</code>, <code>strpos</code>, and <code>substr</code></li>
+                        <li>Replace and transform text with <code>str_replace</code>, case functions, and <code>trim</code></li>
+                        <li>Convert between strings and arrays with <code>explode</code> and <code>implode</code></li>
+                        <li>Format output with <code>sprintf</code> and <code>number_format</code></li>
+                        <li>Write multiline strings with heredoc and nowdoc syntax</li>
+                        <li>Use basic regular expressions with <code>preg_match</code> and <code>preg_replace</code></li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 45 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 8 (arrays), Lesson 9 (array functions)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">String Basics Review</a></li>
+                        <li><a href="#section2" class="toc-link">Measuring &amp; Searching</a></li>
+                        <li><a href="#section3" class="toc-link">Extracting Substrings</a></li>
+                        <li><a href="#section4" class="toc-link">Replacing &amp; Transforming</a></li>
+                        <li><a href="#section5" class="toc-link">Splitting &amp; Joining</a></li>
+                        <li><a href="#section6" class="toc-link">Formatting Output</a></li>
+                        <li><a href="#section7" class="toc-link">Heredoc &amp; Nowdoc</a></li>
+                        <li><a href="#section8" class="toc-link">Regular Expressions Basics</a></li>
+                        <li><a href="#section9" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section10" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Basics Review -->
+            <section id="section1" class="lesson-section">
+                <h2>String Basics Review</h2>
+
+                <p>A quick refresher on what we covered in Lesson 3 about strings, plus a few new details.</p>
+
+                <h3>Single vs. Double Quotes</h3>
+                <pre><code class="language-php">&lt;?php
+$name = "Alice";
+
+// Double quotes — variables ARE interpolated
+echo "Hello, $name!\n";        // Hello, Alice!
+echo "Tab:\there\n";            // Tab:    here  (escape sequences work)
+
+// Single quotes — variables are NOT interpolated
+echo 'Hello, $name!\n';        // Hello, $name!\n  (literal text)
+echo 'Only two escapes: \' and \\';  // Apostrophe and backslash
+
+// Complex interpolation with curly braces
+$user = ["name" => "Alice", "role" => "admin"];
+echo "Welcome, {$user['name']}! Role: {$user['role']}\n";
+echo "She has {$count} item" . ($count !== 1 ? "s" : "") . "\n";</code></pre>
+
+                <h3>String Concatenation</h3>
+                <pre><code class="language-php">&lt;?php
+// Dot operator (.) joins strings
+$first = "Hello";
+$second = "World";
+$greeting = $first . ", " . $second . "!";
+echo $greeting; // "Hello, World!"
+
+// Concatenation assignment (.=)
+$message = "Step 1: Open the file. ";
+$message .= "Step 2: Read the data. ";
+$message .= "Step 3: Process results.";
+echo $message;</code></pre>
+
+                <h3>Escape Sequences (Double Quotes Only)</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sequence</th>
+                                <th>Meaning</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>\n</code></td>
+                                <td>Newline</td>
+                                <td><code>"Line 1\nLine 2"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>\t</code></td>
+                                <td>Tab</td>
+                                <td><code>"Col1\tCol2"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>\\</code></td>
+                                <td>Literal backslash</td>
+                                <td><code>"C:\\path\\file"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>\$</code></td>
+                                <td>Literal dollar sign</td>
+                                <td><code>"Price: \$9.99"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>\"</code></td>
+                                <td>Literal double quote</td>
+                                <td><code>"She said \"hi\""</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Strings Are Byte Sequences</h3>
+                <p>In PHP, each character in a string is one byte. This works fine for ASCII text but can cause issues with multibyte characters (like emoji or accented letters). For multibyte-safe operations, use the <code>mb_*</code> functions:</p>
+                <pre><code class="language-php">&lt;?php
+$text = "Café";
+echo strlen($text);      // 5 (the é is 2 bytes in UTF-8!)
+echo mb_strlen($text);   // 4 (correct character count)
+
+$emoji = "Hello 🌍";
+echo strlen($emoji);     // 10 (🌍 is 4 bytes)
+echo mb_strlen($emoji);  // 7  (correct character count)</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Rule of Thumb</h4>
+                    <p>If your application handles user input (which could contain emoji, accented characters, or non-Latin scripts), prefer <code>mb_strlen()</code>, <code>mb_substr()</code>, <code>mb_strpos()</code>, etc. For purely ASCII data (like processing CSV files with English data), the standard functions are fine and slightly faster.</p>
+                </div>
+            </section>
+
+            <!-- Section 2: Measuring & Searching -->
+            <section id="section2" class="lesson-section">
+                <h2>Measuring &amp; Searching</h2>
+
+                <h3>strlen() — String Length</h3>
+                <pre><code class="language-php">&lt;?php
+echo strlen("Hello");        // 5
+echo strlen("");              // 0
+echo strlen("Hello World");  // 11 (space counts!)
+echo strlen("   ");          // 3 (spaces are characters)
+
+// Common use: validation
+$password = "abc123";
+if (strlen($password) < 8) {
+    echo "Password must be at least 8 characters!\n";
+}</code></pre>
+
+                <h3>strpos() — Find Position of Substring</h3>
+                <pre><code class="language-php">&lt;?php
+$text = "The quick brown fox jumps over the lazy dog";
+
+// Find first occurrence
+echo strpos($text, "fox");     // 16
+echo strpos($text, "the");     // 31 (case-sensitive! "the" ≠ "The")
+echo strpos($text, "cat");     // false (not found)
+
+// Start searching from a position
+echo strpos($text, "the", 10); // 31 (start search from index 10)
+
+// Case-insensitive search
+echo stripos($text, "the");    // 0 (finds "The" at position 0)</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ strpos Returns 0 or false — Use Strict Comparison!</h4>
+                    <p>This is one of PHP's most common gotchas. <code>strpos()</code> returns <code>0</code> when the substring is at the beginning, and <code>0</code> is falsy. Always use <code>===</code>:</p>
+                    <pre><code class="language-php">$text = "Hello World";
+
+// BAD — 0 is falsy, so this incorrectly says "not found"!
+if (strpos($text, "Hello") == false) {
+    echo "Not found!"; // WRONG — this prints!
+}
+
+// GOOD — strict comparison
+if (strpos($text, "Hello") === false) {
+    echo "Not found!";
+} else {
+    echo "Found!"; // Correct!
+}
+
+// BEST (PHP 8+) — use str_contains instead
+if (str_contains($text, "Hello")) {
+    echo "Found!"; // Clean and clear
+}</code></pre>
+                </div>
+
+                <h3>PHP 8 String Search Functions</h3>
+                <p>PHP 8 introduced three cleaner alternatives to <code>strpos()</code> for common checks:</p>
+                <pre><code class="language-php">&lt;?php
+$url = "https://www.example.com/products/widget";
+
+// str_contains — does the string contain a substring?
+echo str_contains($url, "example");    // true
+echo str_contains($url, "Example");    // false (case-sensitive)
+
+// str_starts_with — does it start with...?
+echo str_starts_with($url, "https");   // true
+echo str_starts_with($url, "http://"); // false
+
+// str_ends_with — does it end with...?
+echo str_ends_with($url, "widget");    // true
+echo str_ends_with($url, ".html");     // false
+
+// Practical examples
+$filename = "report_2026.pdf";
+if (str_ends_with($filename, ".pdf")) {
+    echo "It's a PDF!\n";
+}
+
+$email = "alice@example.com";
+if (str_contains($email, "@")) {
+    echo "Looks like an email\n";
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Prefer PHP 8 Functions</h4>
+                    <p>Use <code>str_contains()</code>, <code>str_starts_with()</code>, and <code>str_ends_with()</code> whenever possible. They're clearer than <code>strpos() !== false</code> and avoid the zero-vs-false trap entirely.</p>
+                </div>
+
+                <h3>strrpos() — Find Last Occurrence</h3>
+                <pre><code class="language-php">&lt;?php
+$path = "/home/user/documents/report.pdf";
+
+// Find last occurrence of "/"
+$lastSlash = strrpos($path, "/");
+echo $lastSlash; // 20
+
+// Useful for extracting filenames
+$filename = substr($path, $lastSlash + 1);
+echo $filename; // "report.pdf"
+
+// Find last occurrence of "." for file extension
+$lastDot = strrpos($path, ".");
+$extension = substr($path, $lastDot + 1);
+echo $extension; // "pdf"</code></pre>
+
+                <h3>substr_count() — Count Occurrences</h3>
+                <pre><code class="language-php">&lt;?php
+$text = "she sells seashells by the seashore";
+
+echo substr_count($text, "sea");  // 2 ("seashells" and "seashore")
+echo substr_count($text, "she");  // 3 ("she", "seashells", "seashore")
+echo substr_count($text, "the");  // 1</code></pre>
+            </section>
+
+            <!-- Section 3: Extracting Substrings -->
+            <section id="section3" class="lesson-section">
+                <h2>Extracting Substrings</h2>
+
+                <h3>substr() — Extract a Portion</h3>
+                <pre><code class="language-php">&lt;?php
+$text = "Hello, World!";
+
+// From position 7 to end
+echo substr($text, 7);        // "World!"
+
+// From position 7, take 5 characters
+echo substr($text, 7, 5);     // "World"
+
+// From position 0, take 5 characters
+echo substr($text, 0, 5);     // "Hello"
+
+// Negative offset — count from end
+echo substr($text, -6);       // "orld!"
+echo substr($text, -6, 4);    // "orld"
+
+// Negative length — stop N characters before end
+echo substr($text, 0, -1);    // "Hello, World"  (removes last char)
+echo substr($text, 7, -1);    // "World"         (from 7, stop before last)</code></pre>
+
+                <h3>Practical Extraction Patterns</h3>
+                <pre><code class="language-php">&lt;?php
+// Extract file extension
+$file = "vacation_photo.jpg";
+$ext = substr($file, strrpos($file, ".") + 1);
+echo $ext; // "jpg"
+
+// Or use pathinfo (the better way for file paths)
+$info = pathinfo($file);
+echo $info["extension"]; // "jpg"
+echo $info["filename"];  // "vacation_photo"
+
+// Truncate long text with ellipsis
+function truncate(string $text, int $maxLength = 50): string {
+    if (strlen($text) <= $maxLength) {
+        return $text;
+    }
+    return substr($text, 0, $maxLength - 3) . "...";
+}
+
+echo truncate("This is a very long sentence that goes on and on", 30);
+// "This is a very long senten..."
+
+// Extract domain from email
+$email = "alice@example.com";
+$domain = substr($email, strpos($email, "@") + 1);
+echo $domain; // "example.com"</code></pre>
+
+                <h3>substr_replace() — Replace a Portion</h3>
+                <pre><code class="language-php">&lt;?php
+$phone = "2025551234";
+
+// Insert dashes to format phone number
+$formatted = substr_replace($phone, "-", 3, 0);  // Insert after 3
+$formatted = substr_replace($formatted, "-", 7, 0); // Insert after 7
+echo $formatted; // "202-555-1234"
+
+// Mask a credit card number
+$cc = "4532015112830366";
+$masked = substr_replace($cc, str_repeat("*", 12), 0, 12);
+echo $masked; // "************0366"
+
+// Or show first and last 4
+$masked = substr($cc, 0, 4) . str_repeat("*", 8) . substr($cc, -4);
+echo $masked; // "4532********0366"</code></pre>
+            </section>
+
+            <!-- Section 4: Replacing & Transforming -->
+            <section id="section4" class="lesson-section">
+                <h2>Replacing &amp; Transforming</h2>
+
+                <h3>str_replace() — Find and Replace</h3>
+                <pre><code class="language-php">&lt;?php
+$text = "I love cats. Cats are amazing. My cat is fluffy.";
+
+// Simple replacement (case-sensitive)
+echo str_replace("cat", "dog", $text);
+// "I love dogs. Cats are amazing. My dog is fluffy."
+// Notice: "Cats" wasn't replaced (capital C)
+
+// Case-insensitive replacement
+echo str_ireplace("cat", "dog", $text);
+// "I love dogs. dogs are amazing. My dog is fluffy."
+
+// Replace multiple values at once
+$clean = str_replace(
+    ["&lt;br&gt;", "&lt;br/&gt;", "&lt;br /&gt;"],
+    "\n",
+    "Line 1&lt;br&gt;Line 2&lt;br/&gt;Line 3&lt;br /&gt;Line 4"
+);
+// "Line 1\nLine 2\nLine 3\nLine 4"
+
+// Map replacements (parallel arrays)
+$template = "Dear {NAME}, your order #{ORDER} ships on {DATE}.";
+$message = str_replace(
+    ["{NAME}", "{ORDER}", "{DATE}"],
+    ["Alice", "1042", "April 20, 2026"],
+    $template
+);
+echo $message;
+// "Dear Alice, your order #1042 ships on April 20, 2026."
+
+// Count replacements made
+$result = str_replace("the", "THE", $text, $count);
+echo "Made $count replacements"; // Made 0 replacements (no "the" in original)</code></pre>
+
+                <h3>Case Conversion</h3>
+                <pre><code class="language-php">&lt;?php
+$text = "Hello World";
+
+echo strtolower($text);   // "hello world"
+echo strtoupper($text);   // "HELLO WORLD"
+echo ucfirst("hello");    // "Hello"     (capitalize first letter)
+echo lcfirst("Hello");    // "hello"     (lowercase first letter)
+echo ucwords("hello world from php");  // "Hello World From Php"
+
+// ucwords with custom delimiters
+echo ucwords("hello-world_from-php", "-_");
+// "Hello-World_From-Php"
+
+// Convert to title case (handle common words)
+function title_case(string $text): string {
+    $small = ["a", "an", "the", "and", "but", "or", "for", "in", "on", "at", "to", "of"];
+    $words = explode(" ", strtolower($text));
+    foreach ($words as $i => &$word) {
+        if ($i === 0 || !in_array($word, $small)) {
+            $word = ucfirst($word);
+        }
+    }
+    return implode(" ", $words);
+}
+
+echo title_case("the lord of the rings"); // "The Lord of the Rings"</code></pre>
+
+                <h3>Trimming Whitespace</h3>
+                <pre><code class="language-php">&lt;?php
+$input = "   Hello, World!   ";
+
+echo trim($input);   // "Hello, World!"  (both sides)
+echo ltrim($input);  // "Hello, World!   " (left only)
+echo rtrim($input);  // "   Hello, World!" (right only)
+
+// Trim specific characters
+echo trim("***Hello***", "*");     // "Hello"
+echo trim("...Hello...", ".");     // "Hello"
+echo ltrim("/path/to/file", "/");  // "path/to/file"
+echo rtrim("Hello!!!", "!");       // "Hello"
+
+// Common use: clean form input
+$email = trim($_POST["email"] ?? "");
+$name  = trim($_POST["name"] ?? "");</code></pre>
+
+                <h3>Padding Strings</h3>
+                <pre><code class="language-php">&lt;?php
+// str_pad — pad to a minimum length
+echo str_pad("42", 5, "0", STR_PAD_LEFT);   // "00042"
+echo str_pad("Hi", 10, ".");                  // "Hi........"
+echo str_pad("Hi", 10, "-", STR_PAD_BOTH);   // "----Hi----"
+
+// Practical: format an invoice line
+function format_line(string $item, float $price): string {
+    $left = str_pad($item, 30, ".");
+    $right = str_pad(number_format($price, 2), 10, " ", STR_PAD_LEFT);
+    return $left . $right;
+}
+
+echo format_line("Widget (x3)", 38.97) . "\n";
+echo format_line("Gadget (x1)", 49.99) . "\n";
+// Widget (x3)....................     38.97
+// Gadget (x1)....................     49.99</code></pre>
+
+                <h3>Repeating Strings</h3>
+                <pre><code class="language-php">&lt;?php
+echo str_repeat("=", 40) . "\n";  // ========================================
+echo str_repeat("- ", 20) . "\n";  // - - - - - - - - - - - - - - - - - - - - 
+echo str_repeat("Ha", 3);          // HaHaHa
+
+// Practical: create a visual bar chart
+function bar(string $label, int $value, int $max = 50): string {
+    $width = (int)($value / $max * 30);
+    return sprintf("%-10s |%s| %d", $label, str_repeat("█", $width), $value);
+}
+
+echo bar("PHP", 45) . "\n";
+echo bar("Python", 38) . "\n";
+echo bar("JS", 50) . "\n";</code></pre>
+            </section>
+
+            <!-- Section 5: Splitting & Joining -->
+            <section id="section5" class="lesson-section">
+                <h2>Splitting &amp; Joining</h2>
+
+                <h3>explode() — String → Array</h3>
+                <pre><code class="language-php">&lt;?php
+// Basic split
+$csv = "Alice,Bob,Carol,Dave";
+$names = explode(",", $csv);
+// ["Alice", "Bob", "Carol", "Dave"]
+
+// Split by any delimiter
+$path = "/home/user/documents/file.txt";
+$parts = explode("/", $path);
+// ["", "home", "user", "documents", "file.txt"]
+
+// Limit the number of splits
+$log = "2026-04-17 14:30:00 ERROR Something went wrong badly";
+$parts = explode(" ", $log, 3); // Split into at most 3 pieces
+// ["2026-04-17", "14:30:00", "ERROR Something went wrong badly"]
+
+// Split and destructure
+[$date, $time, $message] = explode(" ", $log, 3);
+echo "Date: $date, Time: $time, Message: $message\n";
+
+// Parse key=value pairs
+$queryString = "name=Alice&age=30&city=Portland";
+$pairs = explode("&", $queryString);
+$params = [];
+foreach ($pairs as $pair) {
+    [$key, $value] = explode("=", $pair);
+    $params[$key] = $value;
+}
+// ["name" => "Alice", "age" => "30", "city" => "Portland"]</code></pre>
+
+                <h3>implode() — Array → String</h3>
+                <pre><code class="language-php">&lt;?php
+$words = ["Hello", "World", "from", "PHP"];
+echo implode(" ", $words);   // "Hello World from PHP"
+echo implode(", ", $words);  // "Hello, World, from, PHP"
+echo implode("", $words);    // "HelloWorldfromPHP"
+
+// Build a CSV line
+$row = ["Widget", "12.99", "50", "Tools"];
+echo implode(",", $row); // "Widget,12.99,50,Tools"
+
+// Build an HTML list
+$items = ["Home", "About", "Contact"];
+$html = "&lt;li&gt;" . implode("&lt;/li&gt;&lt;li&gt;", $items) . "&lt;/li&gt;";
+// "&lt;li&gt;Home&lt;/li&gt;&lt;li&gt;About&lt;/li&gt;&lt;li&gt;Contact&lt;/li&gt;"
+
+// Build a SQL IN clause
+$ids = [1, 5, 12, 23];
+$in = implode(",", $ids);
+$sql = "SELECT * FROM users WHERE id IN ($in)";
+// ⚠️ For real queries, use prepared statements! This is just to show implode.</code></pre>
+
+                <h3>str_split() — Split into Characters or Chunks</h3>
+                <pre><code class="language-php">&lt;?php
+// Split into individual characters
+$chars = str_split("Hello");
+// ["H", "e", "l", "l", "o"]
+
+// Split into chunks of N characters
+$chunks = str_split("ABCDEFGHIJ", 3);
+// ["ABC", "DEF", "GHI", "J"]
+
+// Practical: format a serial number
+$serial = "A1B2C3D4E5";
+echo implode("-", str_split($serial, 4));
+// "A1B2-C3D4-E5"</code></pre>
+
+                <h3>wordwrap() — Wrap Long Text</h3>
+                <pre><code class="language-php">&lt;?php
+$text = "PHP is a popular general-purpose scripting language that powers everything from blogs to enterprise applications.";
+
+// Wrap at 40 characters
+echo wordwrap($text, 40, "\n");
+/* Output:
+PHP is a popular general-purpose
+scripting language that powers
+everything from blogs to enterprise
+applications.
+*/
+
+// Force-cut long words
+$long = "Supercalifragilisticexpialidocious is a very long word.";
+echo wordwrap($long, 15, "\n", true);</code></pre>
+            </section>
+
+            <!-- Section 6: Formatting Output -->
+            <section id="section6" class="lesson-section">
+                <h2>Formatting Output</h2>
+
+                <h3>sprintf() — Formatted Strings</h3>
+                <p><code>sprintf()</code> lets you build strings with precise control over how values are formatted. It uses format specifiers as placeholders:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Specifier</th>
+                                <th>Type</th>
+                                <th>Example</th>
+                                <th>Output</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>%s</code></td>
+                                <td>String</td>
+                                <td><code>sprintf("Hi, %s", "Alice")</code></td>
+                                <td><code>Hi, Alice</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%d</code></td>
+                                <td>Integer</td>
+                                <td><code>sprintf("Count: %d", 42)</code></td>
+                                <td><code>Count: 42</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%f</code></td>
+                                <td>Float</td>
+                                <td><code>sprintf("Pi: %f", 3.14159)</code></td>
+                                <td><code>Pi: 3.141590</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%.2f</code></td>
+                                <td>Float (2 decimals)</td>
+                                <td><code>sprintf("$%.2f", 9.5)</code></td>
+                                <td><code>$9.50</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%05d</code></td>
+                                <td>Zero-padded int</td>
+                                <td><code>sprintf("%05d", 42)</code></td>
+                                <td><code>00042</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%-20s</code></td>
+                                <td>Left-aligned string</td>
+                                <td><code>sprintf("%-20s|", "hi")</code></td>
+                                <td><code>hi                  |</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%10s</code></td>
+                                <td>Right-aligned string</td>
+                                <td><code>sprintf("%10s|", "hi")</code></td>
+                                <td><code>        hi|</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%%</code></td>
+                                <td>Literal %</td>
+                                <td><code>sprintf("%d%%", 85)</code></td>
+                                <td><code>85%</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+// Basic formatting
+echo sprintf("Hello, %s! You are %d years old.\n", "Alice", 30);
+// "Hello, Alice! You are 30 years old."
+
+// Price formatting
+echo sprintf("Price: $%8.2f\n", 1234.5);
+// "Price: $ 1234.50"
+
+// Table-style output
+$products = [
+    ["Widget", 12.99, 150],
+    ["Gadget", 49.99, 30],
+    ["Doohickey", 8.50, 200],
+];
+
+echo sprintf("%-15s %10s %8s\n", "Product", "Price", "Stock");
+echo str_repeat("-", 35) . "\n";
+foreach ($products as [$name, $price, $stock]) {
+    echo sprintf("%-15s %10.2f %8d\n", $name, $price, $stock);
+}
+/* Output:
+Product              Price    Stock
+-----------------------------------
+Widget               12.99      150
+Gadget               49.99       30
+Doohickey             8.50      200
+*/
+
+// printf — same as sprintf but prints directly
+printf("Order #%05d: $%.2f\n", 42, 99.50);
+// "Order #00042: $99.50"</code></pre>
+
+                <h3>number_format() — Format Numbers for Display</h3>
+                <pre><code class="language-php">&lt;?php
+echo number_format(1234567.891);        // "1,234,568"       (rounded, no decimals)
+echo number_format(1234567.891, 2);     // "1,234,567.89"    (2 decimal places)
+echo number_format(1234567.891, 2, ".", ","); // "1,234,567.89" (explicit separators)
+echo number_format(1234567.891, 2, ",", "."); // "1.234.567,89" (European format)
+echo number_format(0.5, 2);            // "0.50"
+
+// Practical use
+$price = 49999.99;
+echo "Total: $" . number_format($price, 2); // "Total: $49,999.99"</code></pre>
+            </section>
+
+            <!-- Section 7: Heredoc & Nowdoc -->
+            <section id="section7" class="lesson-section">
+                <h2>Heredoc &amp; Nowdoc</h2>
+
+                <p>When you need multiline strings — especially for HTML templates, SQL queries, or email bodies — heredoc and nowdoc syntax keeps your code clean.</p>
+
+                <h3>Heredoc (Like Double Quotes)</h3>
+                <p>Variables are interpolated, escape sequences work:</p>
+                <pre><code class="language-php">&lt;?php
+$name = "Alice";
+$role = "Admin";
+
+$html = &lt;&lt;&lt;HTML
+&lt;div class="user-card"&gt;
+    &lt;h2&gt;{$name}&lt;/h2&gt;
+    &lt;p&gt;Role: {$role}&lt;/p&gt;
+    &lt;p&gt;Welcome to the dashboard!&lt;/p&gt;
+&lt;/div&gt;
+HTML;
+
+echo $html;</code></pre>
+
+                <h3>Nowdoc (Like Single Quotes)</h3>
+                <p>No interpolation — everything is literal text. Note the single quotes around the identifier:</p>
+                <pre><code class="language-php">&lt;?php
+$code = &lt;&lt;&lt;'CODE'
+&lt;?php
+$name = "World";
+echo "Hello, $name!";
+// This $name won't be interpolated
+?&gt;
+CODE;
+
+echo $code;
+// Outputs the PHP code literally, with $name as text</code></pre>
+
+                <h3>Practical Use Cases</h3>
+                <pre><code class="language-php">&lt;?php
+// Email template with heredoc
+$to = "alice@example.com";
+$orderNum = 1042;
+$total = 89.97;
+
+$body = &lt;&lt;&lt;EMAIL
+Hi {$to},
+
+Your order #{$orderNum} has been confirmed!
+
+Order Total: \${$total}
+Estimated Delivery: 3-5 business days
+
+Thank you for your purchase!
+
+Best regards,
+The Store Team
+EMAIL;
+
+// SQL query with heredoc (for readability — still use prepared statements!)
+$table = "products";
+$sql = &lt;&lt;&lt;SQL
+SELECT
+    p.name,
+    p.price,
+    c.name AS category
+FROM {$table} p
+JOIN categories c ON p.category_id = c.id
+WHERE p.price > 10
+ORDER BY p.price DESC
+LIMIT 20
+SQL;</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use Heredoc/Nowdoc</h4>
+                    <p><strong>Heredoc</strong> is great for HTML templates and email bodies where you need variable interpolation. <strong>Nowdoc</strong> is ideal for code examples, raw text, or anything where you want zero interpolation. Both are cleaner than concatenating lots of strings with dots.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Regular Expressions -->
+            <section id="section8" class="lesson-section">
+                <h2>Regular Expressions Basics</h2>
+
+                <p>Regular expressions (regex) are patterns that describe text. They're powerful for validation, searching, and complex replacements. PHP uses PCRE (Perl Compatible Regular Expressions).</p>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>Regular Expression:</strong> A pattern string that describes a set of matching strings. In PHP, regex patterns are delimited by forward slashes: <code>/pattern/flags</code>.</p>
+                </div>
+
+                <h3>Essential Pattern Characters</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pattern</th>
+                                <th>Meaning</th>
+                                <th>Example</th>
+                                <th>Matches</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>.</code></td>
+                                <td>Any character (except newline)</td>
+                                <td><code>/h.t/</code></td>
+                                <td>hat, hit, hot, h9t</td>
+                            </tr>
+                            <tr>
+                                <td><code>\d</code></td>
+                                <td>Any digit (0-9)</td>
+                                <td><code>/\d{3}/</code></td>
+                                <td>123, 456, 007</td>
+                            </tr>
+                            <tr>
+                                <td><code>\w</code></td>
+                                <td>Word character (letter, digit, _)</td>
+                                <td><code>/\w+/</code></td>
+                                <td>hello, user_1</td>
+                            </tr>
+                            <tr>
+                                <td><code>\s</code></td>
+                                <td>Whitespace</td>
+                                <td><code>/\s+/</code></td>
+                                <td>spaces, tabs, newlines</td>
+                            </tr>
+                            <tr>
+                                <td><code>^</code></td>
+                                <td>Start of string</td>
+                                <td><code>/^Hello/</code></td>
+                                <td>"Hello World"</td>
+                            </tr>
+                            <tr>
+                                <td><code>$</code></td>
+                                <td>End of string</td>
+                                <td><code>/\.php$/</code></td>
+                                <td>"index.php"</td>
+                            </tr>
+                            <tr>
+                                <td><code>+</code></td>
+                                <td>One or more</td>
+                                <td><code>/\d+/</code></td>
+                                <td>1, 42, 9999</td>
+                            </tr>
+                            <tr>
+                                <td><code>*</code></td>
+                                <td>Zero or more</td>
+                                <td><code>/go*d/</code></td>
+                                <td>gd, god, good, goood</td>
+                            </tr>
+                            <tr>
+                                <td><code>?</code></td>
+                                <td>Zero or one</td>
+                                <td><code>/colou?r/</code></td>
+                                <td>color, colour</td>
+                            </tr>
+                            <tr>
+                                <td><code>{n}</code></td>
+                                <td>Exactly n times</td>
+                                <td><code>/\d{4}/</code></td>
+                                <td>2026, 1234</td>
+                            </tr>
+                            <tr>
+                                <td><code>{n,m}</code></td>
+                                <td>Between n and m times</td>
+                                <td><code>/\d{2,4}/</code></td>
+                                <td>42, 123, 2026</td>
+                            </tr>
+                            <tr>
+                                <td><code>[abc]</code></td>
+                                <td>Character class</td>
+                                <td><code>/[aeiou]/</code></td>
+                                <td>Any vowel</td>
+                            </tr>
+                            <tr>
+                                <td><code>[^abc]</code></td>
+                                <td>Not these characters</td>
+                                <td><code>/[^0-9]/</code></td>
+                                <td>Any non-digit</td>
+                            </tr>
+                            <tr>
+                                <td><code>(group)</code></td>
+                                <td>Capture group</td>
+                                <td><code>/(\d+)-(\d+)/</code></td>
+                                <td>Captures "123" and "456" from "123-456"</td>
+                            </tr>
+                            <tr>
+                                <td><code>|</code></td>
+                                <td>OR</td>
+                                <td><code>/cat|dog/</code></td>
+                                <td>cat or dog</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>preg_match() — Test for a Match</h3>
+                <pre><code class="language-php">&lt;?php
+// Returns 1 if pattern matches, 0 if not
+$email = "alice@example.com";
+if (preg_match('/^[\w.+-]+@[\w-]+\.[\w.]+$/', $email)) {
+    echo "Valid email format!\n";
+}
+
+// Capture groups
+$date = "2026-04-17";
+if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $matches)) {
+    echo "Full match: {$matches[0]}\n"; // "2026-04-17"
+    echo "Year: {$matches[1]}\n";       // "2026"
+    echo "Month: {$matches[2]}\n";      // "04"
+    echo "Day: {$matches[3]}\n";        // "17"
+}
+
+// Named capture groups
+$url = "https://example.com:8080/path";
+$pattern = '/^(?P&lt;scheme&gt;https?):\/\/(?P&lt;host&gt;[\w.]+)(:(?P&lt;port&gt;\d+))?/';
+if (preg_match($pattern, $url, $matches)) {
+    echo "Scheme: {$matches['scheme']}\n"; // "https"
+    echo "Host: {$matches['host']}\n";     // "example.com"
+    echo "Port: {$matches['port']}\n";     // "8080"
+}</code></pre>
+
+                <h3>preg_match_all() — Find All Matches</h3>
+                <pre><code class="language-php">&lt;?php
+$text = "Call 555-1234 or 555-5678. Fax: 555-9999.";
+
+// Find all phone numbers
+$count = preg_match_all('/\d{3}-\d{4}/', $text, $matches);
+echo "Found $count numbers:\n";
+print_r($matches[0]); // ["555-1234", "555-5678", "555-9999"]
+
+// Extract all hashtags
+$post = "Loving the #sunset today! #photography #nature #beautiful";
+preg_match_all('/#(\w+)/', $post, $matches);
+print_r($matches[1]); // ["sunset", "photography", "nature", "beautiful"]</code></pre>
+
+                <h3>preg_replace() — Search and Replace with Regex</h3>
+                <pre><code class="language-php">&lt;?php
+// Remove extra whitespace
+$messy = "Hello    World   from     PHP";
+$clean = preg_replace('/\s+/', ' ', $messy);
+echo $clean; // "Hello World from PHP"
+
+// Remove non-alphanumeric characters
+$input = "Hello, World! @#$ 123";
+$clean = preg_replace('/[^a-zA-Z0-9\s]/', '', $input);
+echo $clean; // "Hello World  123"
+
+// Format a phone number
+$phone = "2025551234";
+$formatted = preg_replace('/(\d{3})(\d{3})(\d{4})/', '($1) $2-$3', $phone);
+echo $formatted; // "(202) 555-1234"
+
+// Censor bad words
+$text = "This is damn annoying and hell of a mess";
+$censored = preg_replace('/\b(damn|hell)\b/i', '****', $text);
+echo $censored; // "This is **** annoying and **** of a mess"
+
+// Convert snake_case to camelCase
+$snake = "get_user_by_id";
+$camel = preg_replace_callback('/_([a-z])/', fn($m) => strtoupper($m[1]), $snake);
+echo $camel; // "getUserById"</code></pre>
+
+                <h3>preg_split() — Split with Regex</h3>
+                <pre><code class="language-php">&lt;?php
+// Split on any whitespace (spaces, tabs, multiple spaces)
+$text = "Hello   World\tfrom  PHP";
+$words = preg_split('/\s+/', $text);
+// ["Hello", "World", "from", "PHP"]
+
+// Split on multiple delimiters
+$data = "one,two;three|four.five";
+$parts = preg_split('/[,;|.]/', $data);
+// ["one", "two", "three", "four", "five"]</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Regex Performance</h4>
+                    <p>Regular expressions are powerful but slower than dedicated string functions. If a simple <code>str_contains()</code>, <code>str_replace()</code>, or <code>explode()</code> can do the job, prefer those. Use regex when you need pattern matching that simple functions can't handle — like validating formats, capturing groups, or matching variable text.</p>
+                </div>
+
+                <h3>Common Regex Patterns</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pattern</th>
+                                <th>Validates</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>/^\d{5}(-\d{4})?$/</code></td>
+                                <td>US ZIP code (12345 or 12345-6789)</td>
+                            </tr>
+                            <tr>
+                                <td><code>/^\d{3}-\d{3}-\d{4}$/</code></td>
+                                <td>US phone (555-555-1234)</td>
+                            </tr>
+                            <tr>
+                                <td><code>/^#?[0-9a-fA-F]{6}$/</code></td>
+                                <td>Hex color (#FF00AA or FF00AA)</td>
+                            </tr>
+                            <tr>
+                                <td><code>/^https?:\/\/.+/</code></td>
+                                <td>URL starts with http(s)://</td>
+                            </tr>
+                            <tr>
+                                <td><code>/^\d{4}-\d{2}-\d{2}$/</code></td>
+                                <td>Date format (YYYY-MM-DD)</td>
+                            </tr>
+                            <tr>
+                                <td><code>/^[a-zA-Z0-9_]{3,20}$/</code></td>
+                                <td>Username (3-20 alphanumeric + underscore)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <blockquote>
+                    <strong>💡 Tip:</strong> For email validation, prefer <code>filter_var($email, FILTER_VALIDATE_EMAIL)</code> over regex — it handles the full RFC spec. We'll cover this in Lesson 12 (Input Validation).
+                </blockquote>
+            </section>
+
+            <!-- Section 9: Exercises -->
+            <section id="section9" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Text Analyzer</h3>
+                    <p><strong>Objective:</strong> Build a function that analyzes a block of text and returns statistics.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Write <code>analyze_text(string $text): array</code> that returns:
+                            <ul>
+                                <li><code>char_count</code> — total characters</li>
+                                <li><code>word_count</code> — total words</li>
+                                <li><code>sentence_count</code> — total sentences (count <code>.</code>, <code>!</code>, <code>?</code>)</li>
+                                <li><code>avg_word_length</code> — average word length</li>
+                                <li><code>longest_word</code> — the longest word</li>
+                                <li><code>unique_words</code> — count of unique words (case-insensitive)</li>
+                            </ul>
+                        </li>
+                        <li>Test it with a paragraph of text</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use <code>preg_split('/\s+/', $text)</code> to split into words. Use <code>preg_match_all('/[.!?]/', $text)</code> to count sentences. Use <code>array_map</code> with <code>strlen</code> to get word lengths.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+function analyze_text(string $text): array {
+    // Clean and split into words
+    $text = trim($text);
+    $words = preg_split('/\s+/', $text);
+    $wordCount = count($words);
+
+    // Sentence count
+    $sentenceCount = preg_match_all('/[.!?]+/', $text);
+
+    // Word lengths
+    $cleanWords = array_map(fn($w) => preg_replace('/[^a-zA-Z]/', '', $w), $words);
+    $cleanWords = array_filter($cleanWords, fn($w) => strlen($w) > 0);
+    $lengths = array_map('strlen', $cleanWords);
+    $avgLength = count($lengths) > 0 ? array_sum($lengths) / count($lengths) : 0;
+
+    // Longest word
+    $longest = array_reduce($cleanWords,
+        fn($carry, $w) => strlen($w) > strlen($carry) ? $w : $carry, "");
+
+    // Unique words (case-insensitive)
+    $lowerWords = array_map('strtolower', $cleanWords);
+    $uniqueCount = count(array_unique($lowerWords));
+
+    return [
+        "char_count"      => strlen($text),
+        "word_count"       => $wordCount,
+        "sentence_count"   => $sentenceCount,
+        "avg_word_length"  => round($avgLength, 1),
+        "longest_word"     => $longest,
+        "unique_words"     => $uniqueCount,
+    ];
+}
+
+// Test it
+$sample = "PHP is a popular scripting language. It powers millions of websites! 
+Do you know PHP? PHP is great for web development. Learning PHP is fun and rewarding.";
+
+$stats = analyze_text($sample);
+echo "📊 Text Analysis\n";
+echo str_repeat("=", 30) . "\n";
+foreach ($stats as $key => $value) {
+    echo sprintf("  %-18s %s\n", str_replace("_", " ", ucfirst($key)) . ":", $value);
+}</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Template Engine</h3>
+                    <p><strong>Objective:</strong> Build a simple template engine that replaces placeholders with values.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Write <code>render_template(string $template, array $data): string</code></li>
+                        <li>Replace <code>{{key}}</code> placeholders with values from the <code>$data</code> array</li>
+                        <li>Handle missing keys gracefully (replace with <code>[MISSING: key]</code>)</li>
+                        <li>Support a <code>{{key|upper}}</code> filter for uppercase and <code>{{key|lower}}</code> for lowercase</li>
+                        <li>Test with an email template</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use <code>preg_replace_callback</code> with the pattern <code>/\{\{(\w+)(?:\|(\w+))?\}\}/</code> to match placeholders. The first capture group is the key name, the optional second is the filter.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+function render_template(string $template, array $data): string {
+    return preg_replace_callback(
+        '/\{\{(\w+)(?:\|(\w+))?\}\}/',
+        function($matches) use ($data) {
+            $key = $matches[1];
+            $filter = $matches[2] ?? null;
+
+            // Get value or show missing
+            if (!array_key_exists($key, $data)) {
+                return "[MISSING: $key]";
+            }
+
+            $value = (string) $data[$key];
+
+            // Apply filter
+            return match ($filter) {
+                'upper' => strtoupper($value),
+                'lower' => strtolower($value),
+                'ucfirst' => ucfirst($value),
+                'trim' => trim($value),
+                null => $value,
+                default => $value,
+            };
+        },
+        $template
+    );
+}
+
+// Test it
+$template = &lt;&lt;&lt;TPL
+Dear {{name|ucfirst}},
+
+Thank you for your order #{{order_id}}!
+
+Items: {{items}}
+Total: \${{total}}
+Status: {{status|upper}}
+
+Shipping to: {{address}}
+Expected delivery: {{delivery_date}}
+
+Best regards,
+{{company|upper}} Team
+TPL;
+
+$data = [
+    "name"          => "alice",
+    "order_id"      => "1042",
+    "items"         => "Widget x3, Gadget x1",
+    "total"         => "88.96",
+    "status"        => "confirmed",
+    "address"       => "123 Main St, Portland, OR",
+    "company"       => "Acme Widgets",
+];
+
+echo render_template($template, $data);</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 3: URL Slug Generator</h3>
+                    <p><strong>Objective:</strong> Build a function that converts titles into URL-friendly slugs.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Write <code>slugify(string $text): string</code></li>
+                        <li>Convert to lowercase</li>
+                        <li>Replace spaces and special characters with hyphens</li>
+                        <li>Remove consecutive hyphens</li>
+                        <li>Trim hyphens from start and end</li>
+                    </ol>
+
+                    <h4>Examples:</h4>
+                    <pre><code class="language-php">slugify("Hello World!")          → "hello-world"
+slugify("PHP 8.3: What's New?")  → "php-8-3-whats-new"
+slugify("  Extra   Spaces  ")    → "extra-spaces"
+slugify("CamelCase & snake_case") → "camelcase-snake-case"</code></pre>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+function slugify(string $text): string {
+    $text = strtolower(trim($text));              // Lowercase & trim
+    $text = preg_replace('/[^a-z0-9\s-]/', '', $text); // Remove special chars
+    $text = preg_replace('/[\s_]+/', '-', $text);       // Spaces/underscores → hyphens
+    $text = preg_replace('/-+/', '-', $text);           // Collapse multiple hyphens
+    $text = trim($text, '-');                            // Trim leading/trailing hyphens
+    return $text;
+}
+
+// Test
+$titles = [
+    "Hello World!",
+    "PHP 8.3: What's New?",
+    "  Extra   Spaces  ",
+    "CamelCase & snake_case",
+    "10 Tips for Better Code!!!",
+    "---Leading & Trailing---",
+];
+
+foreach ($titles as $title) {
+    echo sprintf("  %-35s → %s\n", "\"$title\"", slugify($title));
+}</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> Why should you use <code>===</code> when checking the result of <code>strpos()</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="strpos can return an integer 0, which is a valid result meaning 'found at position 0'.">
+                                A) Because strpos returns a string, not an integer
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! strpos() returns 0 when the substring is at the beginning of the string, and false when not found. Since 0 == false is true (loose comparison), you'd incorrectly think the substring wasn't found. Use === false for an accurate check.">
+                                B) Because strpos returns 0 for position zero, and 0 == false is true with loose comparison
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="strpos works fine with all string types. The issue is about the return value.">
+                                C) Because strpos doesn't work with special characters
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What does <code>sprintf("$%.2f", 9.5)</code> output?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="The %.2f format specifier always shows exactly 2 decimal places.">
+                                A) $9.5
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The %.2f specifier formats the float with exactly 2 decimal places, padding with a trailing zero if needed.">
+                                B) $9.50
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="sprintf doesn't add thousand separators. That's what number_format is for.">
+                                C) $9,50
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What's the difference between heredoc and nowdoc?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Both heredoc and nowdoc support multiline strings. The difference is about variable handling.">
+                                A) Heredoc is single-line, nowdoc is multiline
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Heredoc works like double quotes — variables are interpolated and escape sequences are processed. Nowdoc works like single quotes — everything is literal text. Nowdoc uses single quotes around the identifier: <<<'TAG'">
+                                B) Heredoc interpolates variables (like double quotes); nowdoc is literal (like single quotes)
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both are available in modern PHP. The difference is functional, not about version support.">
+                                C) Nowdoc is deprecated in PHP 8
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What does the regex <code>/^\d{3}-\d{4}$/</code> match?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="This pattern requires exactly 3 digits, a hyphen, then exactly 4 digits. A date format is different.">
+                                A) A date like 2026-04-17
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! ^ anchors to the start, \d{3} matches exactly 3 digits, - matches a literal hyphen, \d{4} matches exactly 4 digits, and $ anchors to the end. So it matches strings like '555-1234'.">
+                                B) A 7-digit phone number like 555-1234
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="\\d only matches digits (0-9), not letters. This pattern is purely numeric.">
+                                C) Any string with a hyphen in the middle
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> When should you use <code>mb_strlen()</code> instead of <code>strlen()</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="strlen works on all strings. The issue is about accuracy with certain characters.">
+                                A) Only when working with encrypted strings
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! strlen() counts bytes, not characters. A UTF-8 character like 'é' is 2 bytes, and emoji are 4 bytes. mb_strlen() counts actual characters, which is what you usually want when handling user input.">
+                                B) When the string might contain multibyte characters like emoji, accented letters, or non-Latin scripts
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="mb_strlen is about character encoding accuracy, not performance. In fact, it's slightly slower.">
+                                C) When you need faster performance for long strings
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Summary -->
+            <section id="section10" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Measuring</strong> — <code>strlen()</code> / <code>mb_strlen()</code> for length; <code>substr_count()</code> for occurrences</li>
+                        <li><strong>Searching</strong> — <code>strpos()</code> (use <code>=== false</code>!), <code>stripos()</code>, or PHP 8's <code>str_contains()</code>, <code>str_starts_with()</code>, <code>str_ends_with()</code></li>
+                        <li><strong>Extracting</strong> — <code>substr($str, $start, $length)</code>; negative offsets count from end</li>
+                        <li><strong>Replacing</strong> — <code>str_replace()</code> / <code>str_ireplace()</code> for simple replacements; supports arrays for multiple replacements</li>
+                        <li><strong>Case</strong> — <code>strtolower()</code>, <code>strtoupper()</code>, <code>ucfirst()</code>, <code>ucwords()</code></li>
+                        <li><strong>Trimming</strong> — <code>trim()</code>, <code>ltrim()</code>, <code>rtrim()</code>; can trim custom characters</li>
+                        <li><strong>Splitting/Joining</strong> — <code>explode()</code> splits string → array; <code>implode()</code> joins array → string; <code>str_split()</code> for chunks</li>
+                        <li><strong>Formatting</strong> — <code>sprintf()</code> for precise formatting; <code>number_format()</code> for display numbers</li>
+                        <li><strong>Heredoc/Nowdoc</strong> — Multiline strings; heredoc interpolates, nowdoc is literal</li>
+                        <li><strong>Regex</strong> — <code>preg_match()</code> to test, <code>preg_match_all()</code> to find all, <code>preg_replace()</code> to replace, <code>preg_split()</code> to split</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/ref.strings.php" target="_blank" rel="noopener">PHP Manual: String Functions</a></li>
+                    <li><a href="https://www.php.net/manual/en/ref.mbstring.php" target="_blank" rel="noopener">PHP Manual: Multibyte String Functions</a></li>
+                    <li><a href="https://www.php.net/manual/en/reference.pcre.pattern.syntax.php" target="_blank" rel="noopener">PHP Manual: PCRE Pattern Syntax</a></li>
+                    <li><a href="https://regex101.com/" target="_blank" rel="noopener">regex101.com — Interactive Regex Tester</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.sprintf.php" target="_blank" rel="noopener">PHP Manual: sprintf()</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>With arrays and strings mastered, you're ready to start building real web applications. In <strong>Lesson 11: Working with Forms</strong>, you'll learn how to receive user input through HTML forms, handle <code>$_GET</code> and <code>$_POST</code> data, process multi-value inputs, and create sticky forms.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Module 3 Complete!</h3>
+                    <p>You've finished the Data Structures module! You now have a solid command of PHP's two most important data types — arrays and strings. Time to put them to work with real web forms!</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_09.html" class="prev-lesson">← Previous: Array Functions</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_11.html" class="next-lesson">Next: Working with Forms →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

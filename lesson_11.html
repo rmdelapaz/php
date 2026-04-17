@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn how to handle HTML forms in PHP using $_GET and $_POST superglobals, process form data, work with multi-value inputs, and build sticky forms.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Working with Forms - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 4: Web Fundamentals</a></li>
+            <li aria-current="page">Lesson 11: Working with Forms</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>📋 Lesson 11: Working with Forms ($_GET &amp; $_POST)</h1>
+                <p class="lead">Forms are the primary way users interact with web applications — logging in, searching, registering, submitting orders. In this lesson, you'll learn how PHP receives and processes form data, the difference between GET and POST requests, and how to build forms that remember what the user typed.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Build HTML forms that submit data to PHP scripts</li>
+                        <li>Retrieve form data using the <code>$_GET</code> and <code>$_POST</code> superglobals</li>
+                        <li>Explain when to use GET vs. POST and the implications of each</li>
+                        <li>Process various input types including text, checkboxes, radio buttons, selects, and textareas</li>
+                        <li>Handle multi-value inputs (checkboxes and multi-selects)</li>
+                        <li>Build sticky forms that preserve user input after submission</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 50 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lessons 1–10 (core PHP), basic HTML knowledge</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">How Forms Work with PHP</a></li>
+                        <li><a href="#section2" class="toc-link">GET vs. POST</a></li>
+                        <li><a href="#section3" class="toc-link">$_GET — Query String Data</a></li>
+                        <li><a href="#section4" class="toc-link">$_POST — Form Body Data</a></li>
+                        <li><a href="#section5" class="toc-link">Processing Different Input Types</a></li>
+                        <li><a href="#section6" class="toc-link">Multi-Value Inputs</a></li>
+                        <li><a href="#section7" class="toc-link">Sticky Forms</a></li>
+                        <li><a href="#section8" class="toc-link">Self-Processing Forms</a></li>
+                        <li><a href="#section9" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section10" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: How Forms Work -->
+            <section id="section1" class="lesson-section">
+                <h2>How Forms Work with PHP</h2>
+
+                <p>Until now, all the data in our PHP scripts has been hardcoded. Real web applications need to receive input from users — and HTML forms are the standard way to do that. Here's the basic flow:</p>
+
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant U as User (Browser)
+                        participant S as Server (PHP)
+                        U->>S: 1. Requests page with form
+                        S->>U: 2. Sends HTML form
+                        U->>U: 3. User fills out form
+                        U->>S: 4. Submits form (GET or POST)
+                        S->>S: 5. PHP reads $_GET or $_POST
+                        S->>S: 6. Processes data
+                        S->>U: 7. Sends response (result page)
+                </div>
+
+                <h3>The Basics: An HTML Form That Talks to PHP</h3>
+                <p>Here's the simplest possible form-to-PHP example. Two files working together:</p>
+
+                <p><strong>File: <code>greet_form.html</code></strong> — the form page:</p>
+                <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;Greeting Form&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Enter Your Name&lt;/h1&gt;
+    &lt;form action="greet.php" method="post"&gt;
+        &lt;label for="name"&gt;Name:&lt;/label&gt;
+        &lt;input type="text" id="name" name="name"&gt;
+        &lt;button type="submit"&gt;Greet Me&lt;/button&gt;
+    &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <p><strong>File: <code>greet.php</code></strong> — the processing script:</p>
+                <pre><code class="language-php">&lt;?php
+// Read the "name" field from the submitted form
+$name = $_POST["name"];
+echo "&lt;h1&gt;Hello, $name!&lt;/h1&gt;";
+echo "&lt;p&gt;Welcome to our site.&lt;/p&gt;";</code></pre>
+
+                <h3>Key Form Attributes</h3>
+                <p>Every HTML form has two essential attributes that control where and how data is sent:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Attribute</th>
+                                <th>Purpose</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>action</code></td>
+                                <td>The URL of the PHP script that will process the form</td>
+                                <td><code>action="process.php"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>method</code></td>
+                                <td>How data is sent: <code>get</code> or <code>post</code></td>
+                                <td><code>method="post"</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-warning">
+                    <h4>⚠️ The <code>name</code> Attribute Is Required!</h4>
+                    <p>Every input that should send data to PHP <strong>must</strong> have a <code>name</code> attribute. The <code>id</code> attribute is for CSS/JavaScript; PHP only sees <code>name</code>. If an input has no <code>name</code>, its value won't appear in <code>$_GET</code> or <code>$_POST</code>.</p>
+                    <pre><code class="language-html">&lt;!-- ✅ PHP receives this — has name="email" --&gt;
+&lt;input type="email" name="email" id="email"&gt;
+
+&lt;!-- ❌ PHP does NOT receive this — no name attribute --&gt;
+&lt;input type="email" id="email"&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 2: GET vs POST -->
+            <section id="section2" class="lesson-section">
+                <h2>GET vs. POST</h2>
+
+                <p>The two HTTP methods you'll use for forms — GET and POST — behave very differently. Choosing the right one matters for security, usability, and correctness.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>GET</th>
+                                <th>POST</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Data location</strong></td>
+                                <td>URL query string (<code>?name=value</code>)</td>
+                                <td>Request body (hidden from URL)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Visible in URL?</strong></td>
+                                <td>Yes — visible in address bar, browser history, server logs</td>
+                                <td>No — not visible in the URL</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bookmarkable?</strong></td>
+                                <td>Yes — the full URL with data can be saved/shared</td>
+                                <td>No — bookmarking only saves the URL, not the data</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Data size limit</strong></td>
+                                <td>~2,000 characters (browser-dependent)</td>
+                                <td>No practical limit (configurable on server)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Caching</strong></td>
+                                <td>Can be cached by browser</td>
+                                <td>Never cached</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Back button</strong></td>
+                                <td>Safe — re-displays the page</td>
+                                <td>Browser may warn "resubmit form data"</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PHP superglobal</strong></td>
+                                <td><code>$_GET</code></td>
+                                <td><code>$_POST</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Best for</strong></td>
+                                <td>Search, filtering, non-sensitive queries</td>
+                                <td>Login, registration, data changes, sensitive data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>📖 Rule of Thumb</h4>
+                    <p><strong>GET</strong> is for <em>reading</em> or <em>looking up</em> data — search queries, filters, page navigation. The user should be able to bookmark the result.</p>
+                    <p><strong>POST</strong> is for <em>writing</em> or <em>changing</em> data — creating accounts, submitting orders, updating profiles, anything with passwords or personal info.</p>
+                </div>
+
+                <h3>GET in the URL</h3>
+                <p>When a form uses <code>method="get"</code>, the browser appends the data to the URL as a query string:</p>
+                <pre><code class="language-text">https://example.com/search.php?q=php+tutorials&amp;category=web&amp;page=1
+                                               └─────────── query string ───────────┘</code></pre>
+                <p>Each field becomes a <code>key=value</code> pair, separated by <code>&amp;</code>. Spaces become <code>+</code> (or <code>%20</code>), and special characters are URL-encoded.</p>
+
+                <h3>POST in the Body</h3>
+                <p>When a form uses <code>method="post"</code>, the same data is sent in the HTTP request body — invisible to the user and not stored in browser history:</p>
+                <pre><code class="language-text">POST /register.php HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
+
+username=alice&amp;email=alice%40example.com&amp;password=secret123</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ POST Is Not Encryption!</h4>
+                    <p>POST hides data from the URL bar, but the data is <strong>not encrypted</strong>. Anyone monitoring the network can read it. For truly secure transmission, you need <strong>HTTPS</strong> (which we cover in Lesson 23). POST just prevents the data from showing up in browser history and server access logs.</p>
+                </div>
+            </section>
+
+            <!-- Section 3: $_GET -->
+            <section id="section3" class="lesson-section">
+                <h2>$_GET — Query String Data</h2>
+
+                <p><code>$_GET</code> is a superglobal associative array that PHP automatically fills with data from the URL's query string. You don't need to parse the URL yourself — PHP does it for you.</p>
+
+                <h3>A Search Form Example</h3>
+                <p><strong>File: <code>search_form.html</code></strong></p>
+                <pre><code class="language-html">&lt;form action="search.php" method="get"&gt;
+    &lt;label for="q"&gt;Search:&lt;/label&gt;
+    &lt;input type="text" id="q" name="q" placeholder="Enter search term..."&gt;
+
+    &lt;label for="category"&gt;Category:&lt;/label&gt;
+    &lt;select id="category" name="category"&gt;
+        &lt;option value="all"&gt;All&lt;/option&gt;
+        &lt;option value="tutorials"&gt;Tutorials&lt;/option&gt;
+        &lt;option value="articles"&gt;Articles&lt;/option&gt;
+        &lt;option value="videos"&gt;Videos&lt;/option&gt;
+    &lt;/select&gt;
+
+    &lt;button type="submit"&gt;Search&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                <p><strong>File: <code>search.php</code></strong></p>
+                <pre><code class="language-php">&lt;?php
+// When the user submits: search.php?q=php+forms&amp;category=tutorials
+
+// Read individual values from $_GET
+$query    = $_GET["q"] ?? "";         // "php forms"
+$category = $_GET["category"] ?? "all"; // "tutorials"
+
+echo "&lt;h1&gt;Search Results&lt;/h1&gt;";
+echo "&lt;p&gt;Searching for: &lt;strong&gt;" . htmlspecialchars($query) . "&lt;/strong&gt;&lt;/p&gt;";
+echo "&lt;p&gt;Category: &lt;strong&gt;" . htmlspecialchars($category) . "&lt;/strong&gt;&lt;/p&gt;";
+
+// Check if any search was actually submitted
+if ($query === "") {
+    echo "&lt;p&gt;Please enter a search term.&lt;/p&gt;";
+} else {
+    // In a real app, you'd query a database here
+    echo "&lt;p&gt;Showing results for &lt;em&gt;" . htmlspecialchars($query) . "&lt;/em&gt;...&lt;/p&gt;";
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Always Use <code>htmlspecialchars()</code> for Output!</h4>
+                    <p>Notice we wrap user input in <code>htmlspecialchars()</code> before echoing it. This prevents <strong>Cross-Site Scripting (XSS)</strong> attacks where malicious users inject HTML or JavaScript through form inputs. We'll cover this in depth in Lesson 23, but start the habit now:</p>
+                    <pre><code class="language-php">// BAD — vulnerable to XSS!
+echo "Hello, " . $_GET["name"];
+
+// GOOD — safe output
+echo "Hello, " . htmlspecialchars($_GET["name"] ?? "");</code></pre>
+                </div>
+
+                <h3>Checking if Data Exists</h3>
+                <p>Users might visit your page directly (without submitting a form), so always check if the expected data exists:</p>
+                <pre><code class="language-php">&lt;?php
+// Method 1: Null coalescing operator (preferred)
+$query = $_GET["q"] ?? "";
+
+// Method 2: isset()
+if (isset($_GET["q"])) {
+    $query = $_GET["q"];
+} else {
+    $query = "";
+}
+
+// Method 3: empty() — checks both existence AND emptiness
+if (!empty($_GET["q"])) {
+    // Process the search
+    echo "Searching for: " . htmlspecialchars($_GET["q"]);
+} else {
+    echo "No search term provided.";
+}
+
+// Method 4: array_key_exists() — for when "" (empty string) is valid
+if (array_key_exists("q", $_GET)) {
+    // Key exists, even if the value is ""
+}</code></pre>
+
+                <h3>$_GET with Pagination Links</h3>
+                <p><code>$_GET</code> isn't only for forms — any URL with a query string populates it. This is how pagination, filters, and sorting work:</p>
+                <pre><code class="language-php">&lt;?php
+// URL: products.php?page=3&amp;sort=price&amp;order=asc
+$page  = (int) ($_GET["page"] ?? 1);
+$sort  = $_GET["sort"] ?? "name";
+$order = $_GET["order"] ?? "asc";
+
+// Validate the values
+$validSorts  = ["name", "price", "date"];
+$validOrders = ["asc", "desc"];
+
+if (!in_array($sort, $validSorts)) {
+    $sort = "name";
+}
+if (!in_array($order, $validOrders)) {
+    $order = "asc";
+}
+
+echo "&lt;p&gt;Page $page, sorted by $sort ($order)&lt;/p&gt;";
+
+// Build pagination links
+$prevPage = max(1, $page - 1);
+$nextPage = $page + 1;
+
+echo "&lt;a href=\"products.php?page=$prevPage&amp;sort=$sort&amp;order=$order\"&gt;Previous&lt;/a&gt; | ";
+echo "&lt;a href=\"products.php?page=$nextPage&amp;sort=$sort&amp;order=$order\"&gt;Next&lt;/a&gt;";</code></pre>
+            </section>
+
+            <!-- Section 4: $_POST -->
+            <section id="section4" class="lesson-section">
+                <h2>$_POST — Form Body Data</h2>
+
+                <p><code>$_POST</code> works exactly like <code>$_GET</code>, but it reads data sent in the request body instead of the URL. Use it for forms with <code>method="post"</code>.</p>
+
+                <h3>A Registration Form Example</h3>
+                <p><strong>File: <code>register_form.html</code></strong></p>
+                <pre><code class="language-html">&lt;form action="register.php" method="post"&gt;
+    &lt;label for="username"&gt;Username:&lt;/label&gt;
+    &lt;input type="text" id="username" name="username" required&gt;
+
+    &lt;label for="email"&gt;Email:&lt;/label&gt;
+    &lt;input type="email" id="email" name="email" required&gt;
+
+    &lt;label for="password"&gt;Password:&lt;/label&gt;
+    &lt;input type="password" id="password" name="password" required&gt;
+
+    &lt;label for="confirm"&gt;Confirm Password:&lt;/label&gt;
+    &lt;input type="password" id="confirm" name="confirm" required&gt;
+
+    &lt;button type="submit"&gt;Register&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                <p><strong>File: <code>register.php</code></strong></p>
+                <pre><code class="language-php">&lt;?php
+// Read POST data
+$username = trim($_POST["username"] ?? "");
+$email    = trim($_POST["email"] ?? "");
+$password = $_POST["password"] ?? "";
+$confirm  = $_POST["confirm"] ?? "";
+
+// Basic validation
+$errors = [];
+
+if ($username === "") {
+    $errors[] = "Username is required.";
+}
+if ($email === "") {
+    $errors[] = "Email is required.";
+}
+if (strlen($password) &lt; 8) {
+    $errors[] = "Password must be at least 8 characters.";
+}
+if ($password !== $confirm) {
+    $errors[] = "Passwords do not match.";
+}
+
+// Display results
+if (count($errors) &gt; 0) {
+    echo "&lt;h2&gt;Registration Failed&lt;/h2&gt;";
+    echo "&lt;ul&gt;";
+    foreach ($errors as $error) {
+        echo "&lt;li&gt;" . htmlspecialchars($error) . "&lt;/li&gt;";
+    }
+    echo "&lt;/ul&gt;";
+    echo "&lt;p&gt;&lt;a href='register_form.html'&gt;Go back and try again&lt;/a&gt;&lt;/p&gt;";
+} else {
+    echo "&lt;h2&gt;Registration Successful!&lt;/h2&gt;";
+    echo "&lt;p&gt;Welcome, " . htmlspecialchars($username) . "!&lt;/p&gt;";
+    // In a real app: hash password, save to database, start session
+}</code></pre>
+
+                <h3>Detecting Form Submission</h3>
+                <p>Sometimes you need to know whether the user actually submitted a form, or just arrived at the page. A common technique is to check the request method:</p>
+                <pre><code class="language-php">&lt;?php
+// Method 1: Check $_SERVER["REQUEST_METHOD"]
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Form was submitted
+    $name = trim($_POST["name"] ?? "");
+    // ... process form
+} else {
+    // Page loaded normally (GET request) — show the form
+}
+
+// Method 2: Check for a specific form field
+if (isset($_POST["username"])) {
+    // The registration form was submitted
+}
+
+// Method 3: Use a hidden field as a "form ID"
+// In the HTML: &lt;input type="hidden" name="form_action" value="register"&gt;
+if (($_POST["form_action"] ?? "") === "register") {
+    // The registration form was submitted
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Prefer <code>$_SERVER["REQUEST_METHOD"]</code></h4>
+                    <p>Checking the request method is the most reliable approach. It works even if the form has no fields filled in, and it clearly communicates intent in your code.</p>
+                </div>
+            </section>
+
+            <!-- Section 5: Input Types -->
+            <section id="section5" class="lesson-section">
+                <h2>Processing Different Input Types</h2>
+
+                <p>HTML offers many input types. Here's how each one sends data to PHP:</p>
+
+                <h3>Text, Email, Password, Number</h3>
+                <p>These all arrive as strings in <code>$_POST</code> or <code>$_GET</code>:</p>
+                <pre><code class="language-php">&lt;?php
+// HTML:
+// &lt;input type="text" name="city" value="Portland"&gt;
+// &lt;input type="email" name="email" value="a@b.com"&gt;
+// &lt;input type="number" name="age" value="30"&gt;
+// &lt;input type="password" name="pass" value="secret"&gt;
+
+$city  = $_POST["city"] ?? "";     // "Portland" (string)
+$email = $_POST["email"] ?? "";    // "a@b.com" (string)
+$age   = (int) ($_POST["age"] ?? 0); // 30 (cast to int!)
+$pass  = $_POST["pass"] ?? "";     // "secret" (string)</code></pre>
+
+                <blockquote>
+                    <strong>⚠️ Important:</strong> Even <code>type="number"</code> sends a <strong>string</strong> to PHP. Always cast with <code>(int)</code> or <code>(float)</code> if you need a numeric type.
+                </blockquote>
+
+                <h3>Textarea</h3>
+                <pre><code class="language-html">&lt;label for="bio"&gt;Bio:&lt;/label&gt;
+&lt;textarea id="bio" name="bio" rows="5" cols="40"&gt;&lt;/textarea&gt;</code></pre>
+                <pre><code class="language-php">&lt;?php
+$bio = trim($_POST["bio"] ?? "");
+// Contains the full text, including newlines (\n)
+
+// To display in HTML, convert newlines to &lt;br&gt; tags
+echo nl2br(htmlspecialchars($bio));</code></pre>
+
+                <h3>Radio Buttons</h3>
+                <p>Radio buttons in a group share the same <code>name</code>. Only the selected one's <code>value</code> is sent:</p>
+                <pre><code class="language-html">&lt;p&gt;Preferred contact method:&lt;/p&gt;
+&lt;label&gt;&lt;input type="radio" name="contact" value="email"&gt; Email&lt;/label&gt;
+&lt;label&gt;&lt;input type="radio" name="contact" value="phone"&gt; Phone&lt;/label&gt;
+&lt;label&gt;&lt;input type="radio" name="contact" value="text"&gt; Text&lt;/label&gt;</code></pre>
+                <pre><code class="language-php">&lt;?php
+$contact = $_POST["contact"] ?? "";
+// "email", "phone", or "text" — whichever was selected
+// "" if nothing was selected (no default checked)
+
+// Validate against known values
+$validMethods = ["email", "phone", "text"];
+if (!in_array($contact, $validMethods)) {
+    $contact = "email"; // Default fallback
+}</code></pre>
+
+                <h3>Single Checkbox</h3>
+                <p>A single checkbox is either sent or not. If checked, PHP receives its <code>value</code>. If unchecked, the key doesn't exist at all:</p>
+                <pre><code class="language-html">&lt;label&gt;
+    &lt;input type="checkbox" name="agree" value="yes"&gt;
+    I agree to the terms and conditions
+&lt;/label&gt;</code></pre>
+                <pre><code class="language-php">&lt;?php
+// If checked:  $_POST["agree"] === "yes"
+// If unchecked: "agree" key does NOT exist in $_POST
+
+$agreed = isset($_POST["agree"]); // true or false
+// OR
+$agreed = ($_POST["agree"] ?? "") === "yes";</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Unchecked Checkboxes Send Nothing</h4>
+                    <p>This is a common source of bugs. An unchecked checkbox doesn't send <code>value="no"</code> — it sends <strong>nothing at all</strong>. The key won't exist in <code>$_POST</code>. Always use <code>isset()</code> or null coalescing to handle this.</p>
+                </div>
+
+                <h3>Select (Dropdown)</h3>
+                <pre><code class="language-html">&lt;label for="country"&gt;Country:&lt;/label&gt;
+&lt;select id="country" name="country"&gt;
+    &lt;option value=""&gt;-- Select --&lt;/option&gt;
+    &lt;option value="us"&gt;United States&lt;/option&gt;
+    &lt;option value="ca"&gt;Canada&lt;/option&gt;
+    &lt;option value="uk"&gt;United Kingdom&lt;/option&gt;
+    &lt;option value="ph"&gt;Philippines&lt;/option&gt;
+&lt;/select&gt;</code></pre>
+                <pre><code class="language-php">&lt;?php
+$country = $_POST["country"] ?? "";
+// "us", "ca", "uk", "ph", or "" (if "-- Select --" was left)
+
+if ($country === "") {
+    echo "Please select a country.";
+}</code></pre>
+
+                <h3>Hidden Inputs</h3>
+                <p>Hidden inputs pass data that the user doesn't see but PHP needs:</p>
+                <pre><code class="language-html">&lt;!-- Pass a product ID with the form --&gt;
+&lt;input type="hidden" name="product_id" value="42"&gt;
+
+&lt;!-- Pass the page they came from --&gt;
+&lt;input type="hidden" name="redirect_to" value="/dashboard"&gt;</code></pre>
+                <pre><code class="language-php">&lt;?php
+$productId  = (int) ($_POST["product_id"] ?? 0);
+$redirectTo = $_POST["redirect_to"] ?? "/";
+
+// ⚠️ Hidden fields can be edited by users (via browser dev tools)!
+// Always validate hidden field values server-side.</code></pre>
+            </section>
+
+            <!-- Section 6: Multi-Value Inputs -->
+            <section id="section6" class="lesson-section">
+                <h2>Multi-Value Inputs</h2>
+
+                <p>Some form controls let users select multiple values. To receive these as an array in PHP, you need to add <code>[]</code> to the <code>name</code> attribute.</p>
+
+                <h3>Checkbox Groups</h3>
+                <pre><code class="language-html">&lt;p&gt;Select your favorite languages:&lt;/p&gt;
+&lt;label&gt;&lt;input type="checkbox" name="languages[]" value="php"&gt; PHP&lt;/label&gt;
+&lt;label&gt;&lt;input type="checkbox" name="languages[]" value="js"&gt; JavaScript&lt;/label&gt;
+&lt;label&gt;&lt;input type="checkbox" name="languages[]" value="python"&gt; Python&lt;/label&gt;
+&lt;label&gt;&lt;input type="checkbox" name="languages[]" value="csharp"&gt; C#&lt;/label&gt;
+&lt;label&gt;&lt;input type="checkbox" name="languages[]" value="rust"&gt; Rust&lt;/label&gt;</code></pre>
+                <pre><code class="language-php">&lt;?php
+// The [] in name="languages[]" tells PHP to expect an array
+$languages = $_POST["languages"] ?? [];
+
+// If user checked PHP, JavaScript, and Rust:
+// $languages = ["php", "js", "rust"]
+
+// If nothing was checked:
+// "languages" key won't exist in $_POST, so we default to []
+
+echo "You selected " . count($languages) . " language(s):\n";
+foreach ($languages as $lang) {
+    echo "  - " . htmlspecialchars($lang) . "\n";
+}
+
+// Validate each value
+$validLanguages = ["php", "js", "python", "csharp", "rust"];
+$languages = array_filter($languages, fn($l) => in_array($l, $validLanguages));</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Don't Forget the <code>[]</code> Brackets!</h4>
+                    <p>Without <code>[]</code> in the name, PHP only receives the <strong>last</strong> checked value. With <code>name="languages"</code> (no brackets), checking PHP, JS, and Rust would only give you <code>"rust"</code>.</p>
+                    <pre><code class="language-html">&lt;!-- BAD — only sends last checked value --&gt;
+&lt;input type="checkbox" name="languages" value="php"&gt;
+&lt;input type="checkbox" name="languages" value="js"&gt;
+
+&lt;!-- GOOD — sends all checked values as an array --&gt;
+&lt;input type="checkbox" name="languages[]" value="php"&gt;
+&lt;input type="checkbox" name="languages[]" value="js"&gt;</code></pre>
+                </div>
+
+                <h3>Multi-Select Dropdown</h3>
+                <pre><code class="language-html">&lt;label for="skills"&gt;Skills (hold Ctrl/Cmd to select multiple):&lt;/label&gt;
+&lt;select id="skills" name="skills[]" multiple size="5"&gt;
+    &lt;option value="html"&gt;HTML/CSS&lt;/option&gt;
+    &lt;option value="js"&gt;JavaScript&lt;/option&gt;
+    &lt;option value="php"&gt;PHP&lt;/option&gt;
+    &lt;option value="mysql"&gt;MySQL&lt;/option&gt;
+    &lt;option value="react"&gt;React&lt;/option&gt;
+    &lt;option value="node"&gt;Node.js&lt;/option&gt;
+&lt;/select&gt;</code></pre>
+                <pre><code class="language-php">&lt;?php
+$skills = $_POST["skills"] ?? [];
+// Same as checkboxes — an array of selected values
+echo "Selected skills: " . implode(", ", array_map("htmlspecialchars", $skills));</code></pre>
+
+                <h3>Putting It All Together</h3>
+                <p>Here's a complete example showing multiple input types in one form:</p>
+                <pre><code class="language-php">&lt;?php
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $name      = trim($_POST["name"] ?? "");
+    $email     = trim($_POST["email"] ?? "");
+    $age       = (int) ($_POST["age"] ?? 0);
+    $gender    = $_POST["gender"] ?? "";
+    $languages = $_POST["languages"] ?? [];
+    $bio       = trim($_POST["bio"] ?? "");
+    $newsletter = isset($_POST["newsletter"]);
+
+    echo "&lt;h2&gt;Profile Summary&lt;/h2&gt;";
+    echo "&lt;p&gt;&lt;strong&gt;Name:&lt;/strong&gt; " . htmlspecialchars($name) . "&lt;/p&gt;";
+    echo "&lt;p&gt;&lt;strong&gt;Email:&lt;/strong&gt; " . htmlspecialchars($email) . "&lt;/p&gt;";
+    echo "&lt;p&gt;&lt;strong&gt;Age:&lt;/strong&gt; $age&lt;/p&gt;";
+    echo "&lt;p&gt;&lt;strong&gt;Gender:&lt;/strong&gt; " . htmlspecialchars($gender) . "&lt;/p&gt;";
+    echo "&lt;p&gt;&lt;strong&gt;Languages:&lt;/strong&gt; " . implode(", ", array_map("htmlspecialchars", $languages)) . "&lt;/p&gt;";
+    echo "&lt;p&gt;&lt;strong&gt;Bio:&lt;/strong&gt; " . nl2br(htmlspecialchars($bio)) . "&lt;/p&gt;";
+    echo "&lt;p&gt;&lt;strong&gt;Newsletter:&lt;/strong&gt; " . ($newsletter ? "Yes" : "No") . "&lt;/p&gt;";
+}</code></pre>
+            </section>
+
+            <!-- Section 7: Sticky Forms -->
+            <section id="section7" class="lesson-section">
+                <h2>Sticky Forms</h2>
+
+                <p>Imagine filling out a long registration form, making one mistake, and having every field reset to blank. Frustrating! <strong>Sticky forms</strong> preserve the user's input so they only need to fix what was wrong.</p>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>Sticky Form:</strong> A form that remembers and redisplays the values the user previously entered after a submission that resulted in errors or needed corrections.</p>
+                </div>
+
+                <h3>Making Text Inputs Sticky</h3>
+                <p>Set the <code>value</code> attribute to the previously submitted value:</p>
+                <pre><code class="language-php">&lt;?php
+$name  = "";
+$email = "";
+$errors = [];
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $name  = trim($_POST["name"] ?? "");
+    $email = trim($_POST["email"] ?? "");
+
+    if ($name === "") {
+        $errors[] = "Name is required.";
+    }
+    if ($email === "" || !str_contains($email, "@")) {
+        $errors[] = "Valid email is required.";
+    }
+
+    if (empty($errors)) {
+        // Success! Process the data and redirect
+        echo "&lt;p&gt;Thank you, " . htmlspecialchars($name) . "!&lt;/p&gt;";
+        exit;
+    }
+}
+?&gt;
+
+&lt;!-- Display errors if any --&gt;
+&lt;?php if (!empty($errors)): ?&gt;
+    &lt;div class="errors"&gt;
+        &lt;ul&gt;
+        &lt;?php foreach ($errors as $error): ?&gt;
+            &lt;li&gt;&lt;?= htmlspecialchars($error) ?&gt;&lt;/li&gt;
+        &lt;?php endforeach; ?&gt;
+        &lt;/ul&gt;
+    &lt;/div&gt;
+&lt;?php endif; ?&gt;
+
+&lt;!-- The form — values are "sticky" --&gt;
+&lt;form method="post"&gt;
+    &lt;label for="name"&gt;Name:&lt;/label&gt;
+    &lt;input type="text" id="name" name="name"
+           value="&lt;?= htmlspecialchars($name) ?&gt;"&gt;
+
+    &lt;label for="email"&gt;Email:&lt;/label&gt;
+    &lt;input type="email" id="email" name="email"
+           value="&lt;?= htmlspecialchars($email) ?&gt;"&gt;
+
+    &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                <blockquote>
+                    <strong>💡 Key Insight:</strong> Notice how <code>htmlspecialchars()</code> is used in the <code>value</code> attribute. This isn't just for display — it prevents a user from injecting HTML into your form by entering something like <code>"&gt;&lt;script&gt;alert('hacked')&lt;/script&gt;</code> as their name.
+                </blockquote>
+
+                <h3>Making Textareas Sticky</h3>
+                <p>Textareas don't use a <code>value</code> attribute — the content goes between the tags:</p>
+                <pre><code class="language-php">&lt;label for="bio"&gt;Bio:&lt;/label&gt;
+&lt;textarea id="bio" name="bio" rows="5"&gt;&lt;?= htmlspecialchars($bio) ?&gt;&lt;/textarea&gt;
+&lt;!-- ⚠️ No space between &gt; and &lt;?= or you'll get extra whitespace! --&gt;</code></pre>
+
+                <h3>Making Radio Buttons Sticky</h3>
+                <p>Add the <code>checked</code> attribute to the previously selected option:</p>
+                <pre><code class="language-php">&lt;?php $contact = $_POST["contact"] ?? "email"; ?&gt;
+
+&lt;label&gt;
+    &lt;input type="radio" name="contact" value="email"
+        &lt;?= $contact === "email" ? "checked" : "" ?&gt;&gt;
+    Email
+&lt;/label&gt;
+&lt;label&gt;
+    &lt;input type="radio" name="contact" value="phone"
+        &lt;?= $contact === "phone" ? "checked" : "" ?&gt;&gt;
+    Phone
+&lt;/label&gt;
+&lt;label&gt;
+    &lt;input type="radio" name="contact" value="text"
+        &lt;?= $contact === "text" ? "checked" : "" ?&gt;&gt;
+    Text
+&lt;/label&gt;</code></pre>
+
+                <h3>Making Checkboxes Sticky</h3>
+                <pre><code class="language-php">&lt;?php $languages = $_POST["languages"] ?? []; ?&gt;
+
+&lt;label&gt;
+    &lt;input type="checkbox" name="languages[]" value="php"
+        &lt;?= in_array("php", $languages) ? "checked" : "" ?&gt;&gt;
+    PHP
+&lt;/label&gt;
+&lt;label&gt;
+    &lt;input type="checkbox" name="languages[]" value="js"
+        &lt;?= in_array("js", $languages) ? "checked" : "" ?&gt;&gt;
+    JavaScript
+&lt;/label&gt;
+&lt;label&gt;
+    &lt;input type="checkbox" name="languages[]" value="python"
+        &lt;?= in_array("python", $languages) ? "checked" : "" ?&gt;&gt;
+    Python
+&lt;/label&gt;</code></pre>
+
+                <h3>Making Select Dropdowns Sticky</h3>
+                <pre><code class="language-php">&lt;?php $country = $_POST["country"] ?? ""; ?&gt;
+
+&lt;select name="country"&gt;
+    &lt;option value=""&gt;-- Select --&lt;/option&gt;
+    &lt;option value="us" &lt;?= $country === "us" ? "selected" : "" ?&gt;&gt;United States&lt;/option&gt;
+    &lt;option value="ca" &lt;?= $country === "ca" ? "selected" : "" ?&gt;&gt;Canada&lt;/option&gt;
+    &lt;option value="uk" &lt;?= $country === "uk" ? "selected" : "" ?&gt;&gt;United Kingdom&lt;/option&gt;
+    &lt;option value="ph" &lt;?= $country === "ph" ? "selected" : "" ?&gt;&gt;Philippines&lt;/option&gt;
+&lt;/select&gt;</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Sticky Form Cheat Sheet</h4>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Input Type</th>
+                                    <th>How to Make Sticky</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Text / Email / Password / Number</td>
+                                    <td><code>value="&lt;?= htmlspecialchars($var) ?&gt;"</code></td>
+                                </tr>
+                                <tr>
+                                    <td>Textarea</td>
+                                    <td>Content between tags: <code>&gt;&lt;?= htmlspecialchars($var) ?&gt;&lt;/textarea&gt;</code></td>
+                                </tr>
+                                <tr>
+                                    <td>Radio</td>
+                                    <td><code>&lt;?= $var === "value" ? "checked" : "" ?&gt;</code></td>
+                                </tr>
+                                <tr>
+                                    <td>Checkbox (single)</td>
+                                    <td><code>&lt;?= isset($_POST["key"]) ? "checked" : "" ?&gt;</code></td>
+                                </tr>
+                                <tr>
+                                    <td>Checkbox (group)</td>
+                                    <td><code>&lt;?= in_array("value", $arr) ? "checked" : "" ?&gt;</code></td>
+                                </tr>
+                                <tr>
+                                    <td>Select</td>
+                                    <td><code>&lt;?= $var === "value" ? "selected" : "" ?&gt;</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 8: Self-Processing Forms -->
+            <section id="section8" class="lesson-section">
+                <h2>Self-Processing Forms</h2>
+
+                <p>In the examples so far, the form and the processing script were separate files. In practice, it's common to combine them into a <strong>single PHP file</strong> that both displays the form and processes it. This is called a self-processing (or self-submitting) form.</p>
+
+                <h3>The Pattern</h3>
+                <pre><code class="language-php">&lt;?php
+// --- Step 1: Initialize variables ---
+$name    = "";
+$email   = "";
+$message = "";
+$errors  = [];
+$success = false;
+
+// --- Step 2: Process form if submitted ---
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Read and trim input
+    $name    = trim($_POST["name"] ?? "");
+    $email   = trim($_POST["email"] ?? "");
+    $message = trim($_POST["message"] ?? "");
+
+    // Validate
+    if ($name === "") {
+        $errors[] = "Name is required.";
+    }
+    if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "A valid email is required.";
+    }
+    if ($message === "") {
+        $errors[] = "Message is required.";
+    }
+
+    // If no errors, process the data
+    if (empty($errors)) {
+        // Save to database, send email, etc.
+        $success = true;
+    }
+}
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;Contact Us&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Contact Us&lt;/h1&gt;
+
+    &lt;?php if ($success): ?&gt;
+        &lt;div class="success"&gt;
+            &lt;p&gt;Thank you, &lt;?= htmlspecialchars($name) ?&gt;! Your message has been sent.&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;?php else: ?&gt;
+
+        &lt;?php if (!empty($errors)): ?&gt;
+            &lt;div class="errors"&gt;
+                &lt;ul&gt;
+                &lt;?php foreach ($errors as $error): ?&gt;
+                    &lt;li&gt;&lt;?= htmlspecialchars($error) ?&gt;&lt;/li&gt;
+                &lt;?php endforeach; ?&gt;
+                &lt;/ul&gt;
+            &lt;/div&gt;
+        &lt;?php endif; ?&gt;
+
+        &lt;form method="post" action=""&gt;
+            &lt;label for="name"&gt;Name:&lt;/label&gt;
+            &lt;input type="text" id="name" name="name"
+                   value="&lt;?= htmlspecialchars($name) ?&gt;"&gt;
+
+            &lt;label for="email"&gt;Email:&lt;/label&gt;
+            &lt;input type="email" id="email" name="email"
+                   value="&lt;?= htmlspecialchars($email) ?&gt;"&gt;
+
+            &lt;label for="message"&gt;Message:&lt;/label&gt;
+            &lt;textarea id="message" name="message" rows="5"&gt;&lt;?= htmlspecialchars($message) ?&gt;&lt;/textarea&gt;
+
+            &lt;button type="submit"&gt;Send Message&lt;/button&gt;
+        &lt;/form&gt;
+    &lt;?php endif; ?&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A[User visits contact.php] --> B{Is it a POST request?}
+                        B -->|No - first visit| C[Show empty form]
+                        B -->|Yes - form submitted| D[Read & validate input]
+                        D --> E{Errors?}
+                        E -->|Yes| F[Show form with errors + sticky values]
+                        E -->|No| G[Process data & show success message]
+                        F --> H[User fixes errors & resubmits]
+                        H --> D
+                </div>
+
+                <h3>Why <code>action=""</code>?</h3>
+                <p>Setting <code>action=""</code> (empty string) makes the form submit to the same URL — the current page. You can also use <code>action="&lt;?= htmlspecialchars($_SERVER["PHP_SELF"]) ?&gt;"</code>, but the empty string is simpler and just as effective.</p>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Don't Use <code>$_SERVER["PHP_SELF"]</code> Unescaped!</h4>
+                    <p>If you do use <code>PHP_SELF</code>, always wrap it in <code>htmlspecialchars()</code>. An attacker could craft a URL like <code>/contact.php/"&gt;&lt;script&gt;alert('xss')&lt;/script&gt;</code> to inject code into your form's action attribute.</p>
+                    <pre><code class="language-php">&lt;!-- BAD — XSS vulnerability --&gt;
+&lt;form action="&lt;?= $_SERVER["PHP_SELF"] ?&gt;" method="post"&gt;
+
+&lt;!-- GOOD — escaped --&gt;
+&lt;form action="&lt;?= htmlspecialchars($_SERVER["PHP_SELF"]) ?&gt;" method="post"&gt;
+
+&lt;!-- BEST — just use empty action --&gt;
+&lt;form action="" method="post"&gt;</code></pre>
+                </div>
+
+                <h3>Post/Redirect/Get (PRG) Pattern</h3>
+                <p>After a successful POST form submission, if the user refreshes the page, the browser will ask "Resubmit form data?" and may duplicate the action (double order, double message, etc.). The <strong>PRG pattern</strong> prevents this:</p>
+                <pre><code class="language-php">&lt;?php
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $name = trim($_POST["name"] ?? "");
+    // ... validate ...
+
+    if (empty($errors)) {
+        // Process the data (save to DB, send email, etc.)
+
+        // Redirect to prevent resubmission on refresh
+        header("Location: contact.php?success=1");
+        exit; // Always exit after header redirect!
+    }
+}
+
+// Check for success message from redirect
+if (isset($_GET["success"])) {
+    echo "&lt;p class='success'&gt;Your message has been sent!&lt;/p&gt;";
+}
+// ... show form ...</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ PRG is a Best Practice</h4>
+                    <p>The Post/Redirect/Get pattern is used by virtually every professional web application. After processing a POST request successfully, redirect the user with <code>header("Location: ...")</code> followed by <code>exit</code>. The redirect converts the POST into a GET, so refreshing the page won't resubmit the form.</p>
+                </div>
+            </section>
+
+            <!-- Section 9: Exercises -->
+            <section id="section9" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Calculator Form</h3>
+                    <p><strong>Objective:</strong> Build a self-processing calculator that takes two numbers and an operation.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a form with two number inputs and a select dropdown for the operation (+, -, *, /)</li>
+                        <li>Use <code>method="post"</code> and make the form self-processing</li>
+                        <li>Display the result below the form after submission</li>
+                        <li>Make the form sticky — preserve the inputs after submission</li>
+                        <li>Handle division by zero with an error message</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use a <code>match</code> expression for the operation. Cast inputs to <code>(float)</code>. Check for <code>$num2 == 0</code> before dividing.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$num1   = "";
+$num2   = "";
+$op     = "+";
+$result = null;
+$error  = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $num1 = $_POST["num1"] ?? "";
+    $num2 = $_POST["num2"] ?? "";
+    $op   = $_POST["op"] ?? "+";
+
+    if ($num1 === "" || $num2 === "" || !is_numeric($num1) || !is_numeric($num2)) {
+        $error = "Please enter valid numbers.";
+    } elseif ($op === "/" &amp;&amp; (float)$num2 == 0) {
+        $error = "Cannot divide by zero!";
+    } else {
+        $a = (float) $num1;
+        $b = (float) $num2;
+        $result = match ($op) {
+            "+" => $a + $b,
+            "-" => $a - $b,
+            "*" => $a * $b,
+            "/" => $a / $b,
+            default => null,
+        };
+    }
+}
+?&gt;
+&lt;h2&gt;Calculator&lt;/h2&gt;
+
+&lt;?php if ($error): ?&gt;
+    &lt;p style="color: red;"&gt;&lt;?= htmlspecialchars($error) ?&gt;&lt;/p&gt;
+&lt;?php endif; ?&gt;
+
+&lt;form method="post" action=""&gt;
+    &lt;input type="number" name="num1" step="any"
+           value="&lt;?= htmlspecialchars($num1) ?&gt;" placeholder="First number"&gt;
+
+    &lt;select name="op"&gt;
+        &lt;option value="+" &lt;?= $op === "+" ? "selected" : "" ?&gt;&gt;+&lt;/option&gt;
+        &lt;option value="-" &lt;?= $op === "-" ? "selected" : "" ?&gt;&gt;-&lt;/option&gt;
+        &lt;option value="*" &lt;?= $op === "*" ? "selected" : "" ?&gt;&gt;×&lt;/option&gt;
+        &lt;option value="/" &lt;?= $op === "/" ? "selected" : "" ?&gt;&gt;÷&lt;/option&gt;
+    &lt;/select&gt;
+
+    &lt;input type="number" name="num2" step="any"
+           value="&lt;?= htmlspecialchars($num2) ?&gt;" placeholder="Second number"&gt;
+
+    &lt;button type="submit"&gt;Calculate&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;?php if ($result !== null): ?&gt;
+    &lt;p&gt;&lt;strong&gt;Result:&lt;/strong&gt;
+    &lt;?= htmlspecialchars($num1) ?&gt; &lt;?= htmlspecialchars($op) ?&gt;
+    &lt;?= htmlspecialchars($num2) ?&gt; = &lt;strong&gt;&lt;?= $result ?&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;?php endif; ?&gt;</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Survey Form with All Input Types</h3>
+                    <p><strong>Objective:</strong> Build a complete survey form that uses every input type covered in this lesson.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a self-processing survey with these fields:
+                            <ul>
+                                <li>Name (text)</li>
+                                <li>Email (email)</li>
+                                <li>Age (number)</li>
+                                <li>Gender (radio buttons)</li>
+                                <li>Favorite colors (checkbox group — at least 5 options)</li>
+                                <li>Country (select dropdown)</li>
+                                <li>Comments (textarea)</li>
+                                <li>Subscribe to newsletter (single checkbox)</li>
+                            </ul>
+                        </li>
+                        <li>Validate: name and email are required, age must be 13–120</li>
+                        <li>Make every field sticky</li>
+                        <li>On success, display a formatted summary of all responses</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Initialize all variables at the top. Use <code>in_array()</code> for sticky checkboxes and radios. Remember the <code>[]</code> brackets for checkbox groups.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$name       = "";
+$email      = "";
+$age        = "";
+$gender     = "";
+$colors     = [];
+$country    = "";
+$comments   = "";
+$newsletter = false;
+$errors     = [];
+$success    = false;
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $name       = trim($_POST["name"] ?? "");
+    $email      = trim($_POST["email"] ?? "");
+    $age        = $_POST["age"] ?? "";
+    $gender     = $_POST["gender"] ?? "";
+    $colors     = $_POST["colors"] ?? [];
+    $country    = $_POST["country"] ?? "";
+    $comments   = trim($_POST["comments"] ?? "");
+    $newsletter = isset($_POST["newsletter"]);
+
+    // Validate
+    if ($name === "") { $errors[] = "Name is required."; }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors[] = "Valid email is required."; }
+    if ($age === "" || (int)$age &lt; 13 || (int)$age &gt; 120) { $errors[] = "Age must be 13–120."; }
+
+    // Validate multi-values
+    $validColors = ["red", "blue", "green", "yellow", "purple", "orange"];
+    $colors = array_filter($colors, fn($c) => in_array($c, $validColors));
+
+    if (empty($errors)) { $success = true; }
+}
+?&gt;
+
+&lt;?php if ($success): ?&gt;
+    &lt;h2&gt;Survey Summary&lt;/h2&gt;
+    &lt;p&gt;&lt;strong&gt;Name:&lt;/strong&gt; &lt;?= htmlspecialchars($name) ?&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;strong&gt;Email:&lt;/strong&gt; &lt;?= htmlspecialchars($email) ?&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;strong&gt;Age:&lt;/strong&gt; &lt;?= (int)$age ?&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;strong&gt;Gender:&lt;/strong&gt; &lt;?= htmlspecialchars($gender ?: "Not specified") ?&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;strong&gt;Colors:&lt;/strong&gt; &lt;?= implode(", ", array_map("htmlspecialchars", $colors)) ?: "None" ?&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;strong&gt;Country:&lt;/strong&gt; &lt;?= htmlspecialchars($country ?: "Not specified") ?&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;strong&gt;Comments:&lt;/strong&gt; &lt;?= nl2br(htmlspecialchars($comments)) ?: "None" ?&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;strong&gt;Newsletter:&lt;/strong&gt; &lt;?= $newsletter ? "Yes" : "No" ?&gt;&lt;/p&gt;
+&lt;?php else: ?&gt;
+
+    &lt;?php if (!empty($errors)): ?&gt;
+        &lt;div style="color:red"&gt;&lt;ul&gt;
+        &lt;?php foreach ($errors as $e): ?&gt;
+            &lt;li&gt;&lt;?= htmlspecialchars($e) ?&gt;&lt;/li&gt;
+        &lt;?php endforeach; ?&gt;
+        &lt;/ul&gt;&lt;/div&gt;
+    &lt;?php endif; ?&gt;
+
+    &lt;form method="post" action=""&gt;
+        &lt;label&gt;Name: &lt;input type="text" name="name" value="&lt;?= htmlspecialchars($name) ?&gt;"&gt;&lt;/label&gt;&lt;br&gt;
+        &lt;label&gt;Email: &lt;input type="email" name="email" value="&lt;?= htmlspecialchars($email) ?&gt;"&gt;&lt;/label&gt;&lt;br&gt;
+        &lt;label&gt;Age: &lt;input type="number" name="age" min="13" max="120" value="&lt;?= htmlspecialchars($age) ?&gt;"&gt;&lt;/label&gt;&lt;br&gt;
+
+        &lt;p&gt;Gender:&lt;/p&gt;
+        &lt;label&gt;&lt;input type="radio" name="gender" value="male" &lt;?= $gender === "male" ? "checked" : "" ?&gt;&gt; Male&lt;/label&gt;
+        &lt;label&gt;&lt;input type="radio" name="gender" value="female" &lt;?= $gender === "female" ? "checked" : "" ?&gt;&gt; Female&lt;/label&gt;
+        &lt;label&gt;&lt;input type="radio" name="gender" value="other" &lt;?= $gender === "other" ? "checked" : "" ?&gt;&gt; Other&lt;/label&gt;
+        &lt;label&gt;&lt;input type="radio" name="gender" value="prefer_not" &lt;?= $gender === "prefer_not" ? "checked" : "" ?&gt;&gt; Prefer not to say&lt;/label&gt;&lt;br&gt;
+
+        &lt;p&gt;Favorite Colors:&lt;/p&gt;
+        &lt;?php foreach (["red","blue","green","yellow","purple","orange"] as $c): ?&gt;
+            &lt;label&gt;&lt;input type="checkbox" name="colors[]" value="&lt;?= $c ?&gt;"
+                &lt;?= in_array($c, $colors) ? "checked" : "" ?&gt;&gt; &lt;?= ucfirst($c) ?&gt;&lt;/label&gt;
+        &lt;?php endforeach; ?&gt;&lt;br&gt;
+
+        &lt;label&gt;Country:
+        &lt;select name="country"&gt;
+            &lt;option value=""&gt;-- Select --&lt;/option&gt;
+            &lt;?php foreach (["us"=>"United States","ca"=>"Canada","uk"=>"UK","ph"=>"Philippines"] as $code => $label): ?&gt;
+                &lt;option value="&lt;?= $code ?&gt;" &lt;?= $country === $code ? "selected" : "" ?&gt;&gt;&lt;?= $label ?&gt;&lt;/option&gt;
+            &lt;?php endforeach; ?&gt;
+        &lt;/select&gt;&lt;/label&gt;&lt;br&gt;
+
+        &lt;label&gt;Comments:&lt;br&gt;&lt;textarea name="comments" rows="4" cols="40"&gt;&lt;?= htmlspecialchars($comments) ?&gt;&lt;/textarea&gt;&lt;/label&gt;&lt;br&gt;
+
+        &lt;label&gt;&lt;input type="checkbox" name="newsletter" &lt;?= $newsletter ? "checked" : "" ?&gt;&gt; Subscribe to newsletter&lt;/label&gt;&lt;br&gt;
+
+        &lt;button type="submit"&gt;Submit Survey&lt;/button&gt;
+    &lt;/form&gt;
+&lt;?php endif; ?&gt;</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> Which HTTP method should you use for a login form?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="GET puts data in the URL, which means the password would be visible in the address bar, browser history, and server logs.">
+                                A) GET — because it's simpler
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! POST sends data in the request body, keeping passwords out of the URL, browser history, and server logs. (You still need HTTPS for true security.)">
+                                B) POST — because it keeps sensitive data out of the URL
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both methods work, but one is much more appropriate for sensitive data like passwords.">
+                                C) Either one — it doesn't matter for login forms
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What happens when an unchecked checkbox is submitted?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP doesn't receive anything at all for unchecked checkboxes. Try isset() on the key.">
+                                A) PHP receives the value "off"
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The key doesn't exist at all — there's nothing to receive.">
+                                B) PHP receives an empty string ""
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! An unchecked checkbox sends nothing at all. The key won't exist in $_POST. That's why you use isset() or the null coalescing operator to check.">
+                                C) The key is completely absent from $_POST
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> Why do checkbox groups need <code>[]</code> in the name attribute?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Without [], PHP only keeps the last submitted value. The [] tells PHP to treat the values as an array, preserving all selected options.">
+                                A) Without [], PHP only receives the last checked value instead of all of them
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The [] affects how PHP processes the data, not the HTML rendering.">
+                                B) It's required for the HTML to be valid
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP does process the data without [] — it just only keeps the last value.">
+                                C) Without [], PHP ignores the entire checkbox group
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What does <code>htmlspecialchars()</code> do when used in a form's <code>value</code> attribute?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="htmlspecialchars doesn't remove characters — it converts them to safe HTML entities.">
+                                A) Removes special characters from the input
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! htmlspecialchars() converts characters like < > \" & into HTML entities (&lt; &gt; &quot; &amp;), preventing a user from injecting HTML or JavaScript through the value attribute.">
+                                B) Converts special characters to HTML entities, preventing XSS injection
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="htmlspecialchars works on any string, regardless of whether it's from a form or not.">
+                                C) It only works with form data — it has no effect on regular strings
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What is the Post/Redirect/Get (PRG) pattern?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Validation happens before the redirect, not instead of it.">
+                                A) A way to validate form data before submitting it
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! After a successful POST, you redirect the user with header('Location: ...') followed by exit. This converts the POST into a GET request, so refreshing the page won't trigger a duplicate form submission.">
+                                B) After processing a POST, redirect the user so that refreshing won't resubmit the form
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PRG is about preventing duplicate submissions, not about method selection.">
+                                C) A rule that says you should use GET before POST for every form
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Summary -->
+            <section id="section10" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>HTML forms</strong> send data to PHP via the <code>action</code> and <code>method</code> attributes; every input needs a <code>name</code> attribute</li>
+                        <li><strong>GET</strong> sends data in the URL (bookmarkable, visible) — use for searches, filters, navigation</li>
+                        <li><strong>POST</strong> sends data in the request body (hidden from URL) — use for sensitive data, creating/updating resources</li>
+                        <li><strong><code>$_GET</code> and <code>$_POST</code></strong> are superglobal arrays that PHP fills automatically with submitted data</li>
+                        <li><strong>Always check if data exists</strong> with <code>??</code>, <code>isset()</code>, or <code>!empty()</code> before using it</li>
+                        <li><strong>Always use <code>htmlspecialchars()</code></strong> when outputting user data to prevent XSS</li>
+                        <li><strong>Multi-value inputs</strong> (checkbox groups, multi-selects) need <code>[]</code> in the name: <code>name="items[]"</code></li>
+                        <li><strong>Sticky forms</strong> preserve user input by echoing values back into form fields with proper escaping</li>
+                        <li><strong>Self-processing forms</strong> combine the form and handler in one file using <code>$_SERVER["REQUEST_METHOD"]</code></li>
+                        <li><strong>PRG pattern</strong> — redirect after successful POST to prevent duplicate submissions on refresh</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/reserved.variables.get.php" target="_blank" rel="noopener">PHP Manual: $_GET</a></li>
+                    <li><a href="https://www.php.net/manual/en/reserved.variables.post.php" target="_blank" rel="noopener">PHP Manual: $_POST</a></li>
+                    <li><a href="https://www.php.net/manual/en/reserved.variables.server.php" target="_blank" rel="noopener">PHP Manual: $_SERVER</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.htmlspecialchars.php" target="_blank" rel="noopener">PHP Manual: htmlspecialchars()</a></li>
+                    <li><a href="https://developer.mozilla.org/en-US/docs/Learn/Forms" target="_blank" rel="noopener">MDN: Web Forms Guide</a></li>
+                    <li><a href="https://en.wikipedia.org/wiki/Post/Redirect/Get" target="_blank" rel="noopener">Wikipedia: Post/Redirect/Get Pattern</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Now that you can receive user input, you need to make sure it's safe and valid. In <strong>Lesson 12: Input Validation &amp; Sanitization</strong>, you'll learn to use <code>filter_var()</code>, <code>filter_input()</code>, PHP's built-in validation filters, regular expressions for custom rules, and how to display meaningful error messages.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've unlocked PHP's connection to the browser! From here on, everything you build will involve user interaction.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_10.html" class="prev-lesson">← Previous: Strings &amp; String Functions</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_12.html" class="next-lesson">Next: Input Validation &amp; Sanitization →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

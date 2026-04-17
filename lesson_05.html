@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn PHP control flow: if/elseif/else, switch, PHP 8 match expressions, nested conditionals, and truthy/falsy values.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Control Flow - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 2: Core Language</a></li>
+            <li aria-current="page">Lesson 5: Control Flow</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🔀 Lesson 5: Control Flow</h1>
+                <p class="lead">Programs that run the same code every time aren't very useful. Control flow lets your code make <em>decisions</em> — choosing different paths based on conditions, just like a choose-your-own-adventure book.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Write conditional logic using <code>if</code>, <code>elseif</code>, and <code>else</code></li>
+                        <li>Use <code>switch</code> statements for multi-branch comparisons</li>
+                        <li>Leverage PHP 8's <code>match</code> expression for concise, strict matching</li>
+                        <li>Understand truthy and falsy values and how PHP evaluates them</li>
+                        <li>Nest and combine conditionals for complex decision-making</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 45 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 4 (operators, comparison, logical)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">What Is Control Flow?</a></li>
+                        <li><a href="#section2" class="toc-link">if / elseif / else</a></li>
+                        <li><a href="#section3" class="toc-link">Truthy and Falsy Values</a></li>
+                        <li><a href="#section4" class="toc-link">Nested Conditionals</a></li>
+                        <li><a href="#section5" class="toc-link">The switch Statement</a></li>
+                        <li><a href="#section6" class="toc-link">PHP 8's match Expression</a></li>
+                        <li><a href="#section7" class="toc-link">Choosing the Right Tool</a></li>
+                        <li><a href="#section8" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section9" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: What Is Control Flow? -->
+            <section id="section1" class="lesson-section">
+                <h2>What Is Control Flow?</h2>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>Control Flow:</strong> The order in which individual statements and instructions are executed in a program. Control flow structures let you run different blocks of code based on conditions.</p>
+                </div>
+
+                <p>By default, PHP executes code from top to bottom, line by line. Control flow structures change this — they create <strong>branches</strong> where different code runs depending on whether a condition is true or false.</p>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A["Start"] --> B{"Is it raining?"}
+                        B -->|Yes| C["Grab umbrella"]
+                        B -->|No| D["Wear sunglasses"]
+                        C --> E["Go outside"]
+                        D --> E
+                        E --> F["End"]
+                </div>
+
+                <p>PHP gives you three main tools for branching:</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Structure</th>
+                                <th>Best For</th>
+                                <th>Key Feature</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>if/elseif/else</code></td>
+                                <td>General-purpose conditions</td>
+                                <td>Most flexible — any boolean expression</td>
+                            </tr>
+                            <tr>
+                                <td><code>switch</code></td>
+                                <td>Comparing one value against many options</td>
+                                <td>Cleaner than long if/elseif chains</td>
+                            </tr>
+                            <tr>
+                                <td><code>match</code> (PHP 8)</td>
+                                <td>Same as switch, but stricter and returns a value</td>
+                                <td>Strict comparison, no fall-through, is an expression</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 2: if / elseif / else -->
+            <section id="section2" class="lesson-section">
+                <h2>if / elseif / else</h2>
+
+                <p>The <code>if</code> statement is the most fundamental control structure in any programming language. It says: "If this condition is true, run this code."</p>
+
+                <h3>Basic if</h3>
+                <pre><code class="language-php">&lt;?php
+$temperature = 35;
+
+if ($temperature > 30) {
+    echo "It's hot outside! Stay hydrated. 🥵";
+}
+// This only runs if the condition is true</code></pre>
+
+                <h3>if / else</h3>
+                <p>Add <code>else</code> to handle the case when the condition is <em>not</em> true:</p>
+                <pre><code class="language-php">&lt;?php
+$hour = 14;
+
+if ($hour < 12) {
+    echo "Good morning! ☀️";
+} else {
+    echo "Good afternoon! 🌤️";
+}</code></pre>
+
+                <h3>if / elseif / else</h3>
+                <p>Chain multiple conditions together with <code>elseif</code>:</p>
+                <pre><code class="language-php">&lt;?php
+$score = 85;
+
+if ($score >= 90) {
+    $grade = "A";
+    $message = "Excellent work!";
+} elseif ($score >= 80) {
+    $grade = "B";
+    $message = "Good job!";
+} elseif ($score >= 70) {
+    $grade = "C";
+    $message = "Not bad, keep it up!";
+} elseif ($score >= 60) {
+    $grade = "D";
+    $message = "You passed, but let's improve.";
+} else {
+    $grade = "F";
+    $message = "Let's review the material together.";
+}
+
+echo "Grade: $grade — $message";
+// Output: Grade: B — Good job!</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Order Matters!</h4>
+                    <p>PHP checks conditions from top to bottom and runs the <strong>first</strong> block that matches. Once a match is found, all remaining <code>elseif</code> and <code>else</code> blocks are skipped.</p>
+                    <pre><code class="language-php">// BUG: This always prints "Passing" for any score >= 60
+$score = 95;
+if ($score >= 60) {
+    echo "Passing";     // This matches first!
+} elseif ($score >= 90) {
+    echo "Excellent";   // Never reached for 95!
+}
+
+// FIX: Check the most specific condition first
+if ($score >= 90) {
+    echo "Excellent";   // Checks this first ✓
+} elseif ($score >= 60) {
+    echo "Passing";
+}</code></pre>
+                </div>
+
+                <h3>Single-Line Conditions</h3>
+                <p>For simple one-line blocks, you can omit the curly braces — but it's <strong>not recommended</strong>:</p>
+                <pre><code class="language-php">&lt;?php
+// This works, but DON'T do it:
+if ($loggedIn) echo "Welcome back!";
+
+// This is safer and clearer:
+if ($loggedIn) {
+    echo "Welcome back!";
+}
+
+// Why? Because this common mistake is a silent bug:
+if ($loggedIn)
+    echo "Welcome back!";
+    echo "Loading dashboard..."; // ← ALWAYS runs! Not inside the if!</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Best Practice</h4>
+                    <p>Always use curly braces with <code>if</code>/<code>elseif</code>/<code>else</code>, even for single-line bodies. It prevents bugs and makes the code easier to modify later.</p>
+                </div>
+
+                <h3>Real-World Example: User Authentication</h3>
+                <pre><code class="language-php">&lt;?php
+$username = "admin";
+$password = "s3cur3P@ss";
+$isLocked = false;
+$loginAttempts = 2;
+
+if ($isLocked) {
+    echo "Account is locked. Contact support.";
+} elseif ($loginAttempts >= 5) {
+    echo "Too many failed attempts. Account locked.";
+    $isLocked = true;
+} elseif ($username === "admin" &amp;&amp; $password === "s3cur3P@ss") {
+    echo "Login successful! Welcome, $username.";
+    $loginAttempts = 0;
+} else {
+    $loginAttempts++;
+    echo "Invalid credentials. Attempt $loginAttempts of 5.";
+}</code></pre>
+            </section>
+
+            <!-- Section 3: Truthy and Falsy -->
+            <section id="section3" class="lesson-section">
+                <h2>Truthy and Falsy Values</h2>
+
+                <p>When PHP evaluates a condition, it doesn't <em>require</em> a boolean. It can evaluate <strong>any</strong> value as either truthy or falsy. Understanding this is crucial for writing clean, idiomatic PHP.</p>
+
+                <div class="card card-accent">
+                    <h4>📖 Definitions</h4>
+                    <p><strong>Falsy:</strong> A value that PHP treats as <code>false</code> when used in a boolean context.</p>
+                    <p><strong>Truthy:</strong> Any value that is <em>not</em> falsy.</p>
+                </div>
+
+                <h3>The Complete Falsy List</h3>
+                <p>PHP has exactly <strong>eight</strong> falsy values. Everything else is truthy.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Falsy Value</th>
+                                <th>Type</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>false</code></td>
+                                <td>Boolean</td>
+                                <td><code>if (false)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>0</code></td>
+                                <td>Integer</td>
+                                <td><code>if (0)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>0.0</code></td>
+                                <td>Float</td>
+                                <td><code>if (0.0)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>""</code> (empty string)</td>
+                                <td>String</td>
+                                <td><code>if ("")</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>"0"</code> (string zero)</td>
+                                <td>String</td>
+                                <td><code>if ("0")</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>[]</code> (empty array)</td>
+                                <td>Array</td>
+                                <td><code>if ([])</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>null</code></td>
+                                <td>Null</td>
+                                <td><code>if (null)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>-0</code></td>
+                                <td>Integer</td>
+                                <td><code>if (-0)</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Surprise: "0" Is Falsy!</h4>
+                    <p>The string <code>"0"</code> is falsy in PHP — this trips up many developers, especially those coming from other languages. The string <code>"false"</code> is <em>truthy</em>, however, because it's a non-empty, non-"0" string.</p>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+// Truthy examples — all of these run the if block
+if (1)           { echo "truthy\n"; }  // Non-zero integer
+if (-1)          { echo "truthy\n"; }  // Negative numbers are truthy!
+if (0.5)         { echo "truthy\n"; }  // Non-zero float
+if ("hello")     { echo "truthy\n"; }  // Non-empty string
+if ("false")     { echo "truthy\n"; }  // ⚠️ The STRING "false" is truthy!
+if (" ")         { echo "truthy\n"; }  // Space is a non-empty string
+if ([0])         { echo "truthy\n"; }  // Non-empty array
+
+// Falsy examples — none of these run the if block
+if (false) { echo "won't run\n"; }
+if (0)     { echo "won't run\n"; }
+if (0.0)   { echo "won't run\n"; }
+if ("")    { echo "won't run\n"; }
+if ("0")   { echo "won't run\n"; }  // ⚠️ Watch out!
+if ([])    { echo "won't run\n"; }
+if (null)  { echo "won't run\n"; }</code></pre>
+
+                <h3>Using Truthy/Falsy in Practice</h3>
+                <pre><code class="language-php">&lt;?php
+// Checking if a string has content
+$name = "Alice";
+if ($name) {
+    echo "Hello, $name!";   // Runs — $name is truthy
+}
+
+// Checking if an array has items
+$cart = [];
+if ($cart) {
+    echo "Your cart has items.";
+} else {
+    echo "Your cart is empty."; // Runs — empty array is falsy
+}
+
+// Checking if a variable exists and has a value
+$email = $_POST['email'] ?? null;
+if ($email) {
+    echo "Processing email: $email";
+} else {
+    echo "No email provided.";
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use Truthy/Falsy vs. Strict Comparison</h4>
+                    <p>Truthy/falsy checks are great for "does this have a value?" logic. But when the value <code>0</code> or <code>"0"</code> is a legitimate input (like a quantity or a database ID), use <strong>strict comparisons</strong> instead:</p>
+                    <pre><code class="language-php">// BAD — rejects valid quantity of 0
+$quantity = 0;
+if ($quantity) { /* never runs for 0! */ }
+
+// GOOD — explicitly check what you mean
+if ($quantity !== null) { /* runs for 0 */ }
+if (isset($quantity))   { /* runs for 0 */ }</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 4: Nested Conditionals -->
+            <section id="section4" class="lesson-section">
+                <h2>Nested Conditionals</h2>
+
+                <p>You can place <code>if</code> statements inside other <code>if</code> statements to handle complex logic. But be careful — deep nesting makes code hard to read.</p>
+
+                <h3>Basic Nesting</h3>
+                <pre><code class="language-php">&lt;?php
+$age = 25;
+$hasLicense = true;
+$hasCar = false;
+
+if ($age >= 16) {
+    if ($hasLicense) {
+        if ($hasCar) {
+            echo "You can drive your own car!";
+        } else {
+            echo "You have a license but need a car.";
+        }
+    } else {
+        echo "You're old enough, but need a license first.";
+    }
+} else {
+    echo "You're too young to drive.";
+}</code></pre>
+
+                <h3>The Problem with Deep Nesting</h3>
+                <p>Every level of nesting makes code harder to follow. The example above is already getting difficult — imagine adding more conditions!</p>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A{"age >= 16?"} -->|No| B["Too young"]
+                        A -->|Yes| C{"hasLicense?"}
+                        C -->|No| D["Need license"]
+                        C -->|Yes| E{"hasCar?"}
+                        E -->|No| F["Need car"]
+                        E -->|Yes| G["Can drive!"]
+                </div>
+
+                <h3>Flattening with Early Returns / Guard Clauses</h3>
+                <p>A <strong>guard clause</strong> checks for a disqualifying condition and exits early. This eliminates nesting:</p>
+
+                <pre><code class="language-php">&lt;?php
+function canDrive($age, $hasLicense, $hasCar): string
+{
+    // Guard clauses — check disqualifiers first
+    if ($age &lt; 16) {
+        return "You're too young to drive.";
+    }
+
+    if (!$hasLicense) {
+        return "You're old enough, but need a license first.";
+    }
+
+    if (!$hasCar) {
+        return "You have a license but need a car.";
+    }
+
+    // If we reach here, all conditions are met
+    return "You can drive your own car!";
+}
+
+echo canDrive(25, true, false);
+// Output: You have a license but need a car.</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Rule of Thumb</h4>
+                    <p>If your code nests more than <strong>two levels deep</strong>, consider refactoring with guard clauses, early returns, or extracting logic into functions. Flat code is almost always easier to understand.</p>
+                </div>
+
+                <h3>Combining Conditions Instead of Nesting</h3>
+                <p>Sometimes you can flatten nested <code>if</code> statements by combining conditions with <code>&amp;&amp;</code>:</p>
+
+                <pre><code class="language-php">&lt;?php
+// Nested (harder to read)
+if ($isLoggedIn) {
+    if ($isAdmin) {
+        if ($hasPermission) {
+            deleteUser($userId);
+        }
+    }
+}
+
+// Flat (easier to read, same logic)
+if ($isLoggedIn &amp;&amp; $isAdmin &amp;&amp; $hasPermission) {
+    deleteUser($userId);
+}</code></pre>
+            </section>
+
+            <!-- Section 5: switch -->
+            <section id="section5" class="lesson-section">
+                <h2>The switch Statement</h2>
+
+                <p>When you're comparing <strong>one value</strong> against many possible matches, a <code>switch</code> statement is cleaner than a long <code>if/elseif</code> chain.</p>
+
+                <h3>Basic Syntax</h3>
+                <pre><code class="language-php">&lt;?php
+$day = "Wednesday";
+
+switch ($day) {
+    case "Monday":
+        echo "Start of the work week 😩";
+        break;
+    case "Tuesday":
+    case "Wednesday":
+    case "Thursday":
+        echo "Midweek grind 💪";
+        break;
+    case "Friday":
+        echo "Almost the weekend! 🎉";
+        break;
+    case "Saturday":
+    case "Sunday":
+        echo "Weekend! 🏖️";
+        break;
+    default:
+        echo "That's not a valid day.";
+        break;
+}
+// Output: Midweek grind 💪</code></pre>
+
+                <h3>How switch Works</h3>
+                <div class="mermaid">
+                    flowchart TD
+                        A["Evaluate expression"] --> B{"Case 1 match?"}
+                        B -->|Yes| C["Run case 1 code"]
+                        C --> D{"break?"}
+                        D -->|Yes| E["Exit switch"]
+                        D -->|No| F["Fall through to case 2 code"]
+                        B -->|No| G{"Case 2 match?"}
+                        G -->|Yes| H["Run case 2 code"]
+                        G -->|No| I{"More cases?"}
+                        I -->|No| J["Run default"]
+                </div>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Don't Forget break!</h4>
+                    <p>Without <code>break</code>, PHP <strong>falls through</strong> to the next case — this is the #1 source of <code>switch</code> bugs:</p>
+                    <pre><code class="language-php">$fruit = "apple";
+
+switch ($fruit) {
+    case "apple":
+        echo "Apple\n";     // Runs
+        // Missing break!
+    case "banana":
+        echo "Banana\n";    // ALSO runs! (fall-through)
+        break;
+    case "cherry":
+        echo "Cherry\n";    // Doesn't run (break stopped it)
+        break;
+}
+// Output:
+// Apple
+// Banana</code></pre>
+                </div>
+
+                <h3>Intentional Fall-Through</h3>
+                <p>Sometimes fall-through is useful — for grouping multiple cases that share the same code:</p>
+                <pre><code class="language-php">&lt;?php
+$month = 3; // March
+
+switch ($month) {
+    case 12:
+    case 1:
+    case 2:
+        $season = "Winter";
+        break;
+    case 3:
+    case 4:
+    case 5:
+        $season = "Spring";
+        break;
+    case 6:
+    case 7:
+    case 8:
+        $season = "Summer";
+        break;
+    case 9:
+    case 10:
+    case 11:
+        $season = "Fall";
+        break;
+    default:
+        $season = "Unknown";
+}
+
+echo "$season"; // Spring</code></pre>
+
+                <h3>switch Uses Loose Comparison!</h3>
+                <p>A critical detail: <code>switch</code> uses <code>==</code> (loose comparison), <strong>not</strong> <code>===</code>. This means type juggling can surprise you:</p>
+
+                <pre><code class="language-php">&lt;?php
+$value = 0;
+
+switch ($value) {
+    case "hello":
+        echo "Matched 'hello'!"; // ⚠️ This runs! 0 == "hello" is true
+        break;
+    case 0:
+        echo "Matched 0";
+        break;
+}
+// Output: Matched 'hello'!
+// Because 0 == "hello" → true (string becomes 0 via type juggling)</code></pre>
+
+                <blockquote>
+                    <strong>💡 Tip:</strong> If you need strict comparison, use PHP 8's <code>match</code> expression instead — it uses <code>===</code> by default.
+                </blockquote>
+
+                <h3>Returning from switch</h3>
+                <p>When using <code>switch</code> inside a function, <code>return</code> exits both the case and the function — no <code>break</code> needed:</p>
+                <pre><code class="language-php">&lt;?php
+function getStatusMessage(string $status): string
+{
+    switch ($status) {
+        case "pending":
+            return "Your order is being processed.";
+        case "shipped":
+            return "Your order is on its way!";
+        case "delivered":
+            return "Your order has arrived.";
+        case "cancelled":
+            return "Your order was cancelled.";
+        default:
+            return "Unknown status: $status";
+    }
+}
+
+echo getStatusMessage("shipped");
+// Output: Your order is on its way!</code></pre>
+            </section>
+
+            <!-- Section 6: match -->
+            <section id="section6" class="lesson-section">
+                <h2>PHP 8's match Expression</h2>
+
+                <p>PHP 8 introduced <code>match</code> — a modern alternative to <code>switch</code> that fixes most of its footguns. It's one of the best additions to the language.</p>
+
+                <h3>Basic Syntax</h3>
+                <pre><code class="language-php">&lt;?php
+$statusCode = 404;
+
+$message = match ($statusCode) {
+    200 => "OK",
+    301 => "Moved Permanently",
+    404 => "Not Found",
+    500 => "Internal Server Error",
+    default => "Unknown Status",
+};
+
+echo $message; // "Not Found"</code></pre>
+
+                <h3>match vs. switch — Key Differences</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>switch</th>
+                                <th>match</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Comparison type</td>
+                                <td><code>==</code> (loose)</td>
+                                <td><code>===</code> (strict) ✅</td>
+                            </tr>
+                            <tr>
+                                <td>Fall-through</td>
+                                <td>Yes (need <code>break</code>)</td>
+                                <td>No fall-through ✅</td>
+                            </tr>
+                            <tr>
+                                <td>Returns a value</td>
+                                <td>No (it's a statement)</td>
+                                <td>Yes (it's an expression) ✅</td>
+                            </tr>
+                            <tr>
+                                <td>No match &amp; no default</td>
+                                <td>Silently continues</td>
+                                <td>Throws <code>UnhandledMatchError</code> ✅</td>
+                            </tr>
+                            <tr>
+                                <td>Multiple values per arm</td>
+                                <td>Stacked <code>case</code> labels</td>
+                                <td>Comma-separated values</td>
+                            </tr>
+                            <tr>
+                                <td>Body per arm</td>
+                                <td>Multiple statements</td>
+                                <td>Single expression only</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Strict Comparison (No Type Juggling)</h3>
+                <pre><code class="language-php">&lt;?php
+$value = 0;
+
+// switch would match "hello" (0 == "hello" is true)
+// match does NOT — it uses ===
+$result = match ($value) {
+    "hello" => "Matched hello",
+    0       => "Matched zero",   // ✅ This matches (0 === 0)
+    default => "No match",
+};
+
+echo $result; // "Matched zero"</code></pre>
+
+                <h3>Multiple Values Per Arm</h3>
+                <pre><code class="language-php">&lt;?php
+$month = 3;
+
+$season = match (true) {
+    in_array($month, [12, 1, 2])  => "Winter",
+    in_array($month, [3, 4, 5])   => "Spring",
+    in_array($month, [6, 7, 8])   => "Summer",
+    in_array($month, [9, 10, 11]) => "Fall",
+    default                        => "Unknown",
+};
+
+echo $season; // "Spring"
+
+// Or more simply, using comma-separated values:
+$season = match ($month) {
+    12, 1, 2  => "Winter",
+    3, 4, 5   => "Spring",
+    6, 7, 8   => "Summer",
+    9, 10, 11 => "Fall",
+    default   => "Unknown",
+};
+
+echo $season; // "Spring"</code></pre>
+
+                <h3>match with Complex Conditions</h3>
+                <p>By matching against <code>true</code>, you can use <code>match</code> like a supercharged if/elseif chain:</p>
+
+                <pre><code class="language-php">&lt;?php
+$score = 85;
+
+$grade = match (true) {
+    $score >= 90 => "A",
+    $score >= 80 => "B",
+    $score >= 70 => "C",
+    $score >= 60 => "D",
+    default      => "F",
+};
+
+echo "Grade: $grade"; // "Grade: B"</code></pre>
+
+                <h3>No match = Error</h3>
+                <p>Unlike <code>switch</code> (which silently does nothing), <code>match</code> throws an error if no arm matches and there's no <code>default</code>:</p>
+
+                <pre><code class="language-php">&lt;?php
+$color = "purple";
+
+// This throws UnhandledMatchError!
+$hex = match ($color) {
+    "red"   => "#FF0000",
+    "green" => "#00FF00",
+    "blue"  => "#0000FF",
+    // No default — "purple" causes an error
+};</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Pro Tip</h4>
+                    <p>Always include a <code>default</code> arm in <code>match</code> unless you <em>want</em> an error for unexpected values. Throwing an error is actually a feature — it catches bugs that <code>switch</code> would silently ignore.</p>
+                </div>
+
+                <h3>Real-World Example: HTTP Response Handler</h3>
+                <pre><code class="language-php">&lt;?php
+function handleResponse(int $code): string
+{
+    return match (true) {
+        $code >= 200 &amp;&amp; $code &lt; 300 => "✅ Success",
+        $code >= 300 &amp;&amp; $code &lt; 400 => "↪️ Redirect",
+        $code === 401                  => "🔒 Unauthorized — please log in",
+        $code === 403                  => "🚫 Forbidden — access denied",
+        $code === 404                  => "❓ Not Found",
+        $code === 429                  => "⏳ Too Many Requests — slow down",
+        $code >= 500                   => "💥 Server Error — try again later",
+        default                        => "❔ Unknown status code: $code",
+    };
+}
+
+echo handleResponse(200);  // ✅ Success
+echo handleResponse(404);  // ❓ Not Found
+echo handleResponse(503);  // 💥 Server Error — try again later</code></pre>
+            </section>
+
+            <!-- Section 7: Choosing the Right Tool -->
+            <section id="section7" class="lesson-section">
+                <h2>Choosing the Right Tool</h2>
+
+                <p>Here's a quick decision guide for which control flow structure to use:</p>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A["Need to branch?"] --> B{"How many branches?"}
+                        B -->|"1–2"| C["Use if/else"]
+                        B -->|"3+"| D{"Comparing one value?"}
+                        D -->|No| E["Use if/elseif/else"]
+                        D -->|Yes| F{"Need strict comparison?"}
+                        F -->|Yes| G["Use match ✅"]
+                        F -->|No| H{"Need multiple statements per case?"}
+                        H -->|Yes| I["Use switch"]
+                        H -->|No| G
+                </div>
+
+                <h3>Quick Reference</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Scenario</th>
+                                <th>Use This</th>
+                                <th>Why</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Simple true/false check</td>
+                                <td><code>if/else</code></td>
+                                <td>Simplest and most readable</td>
+                            </tr>
+                            <tr>
+                                <td>Range checks (score >= 90)</td>
+                                <td><code>if/elseif</code> or <code>match(true)</code></td>
+                                <td>Conditions aren't simple value matches</td>
+                            </tr>
+                            <tr>
+                                <td>Mapping value to result</td>
+                                <td><code>match</code></td>
+                                <td>Clean, strict, returns a value</td>
+                            </tr>
+                            <tr>
+                                <td>Multiple statements per case</td>
+                                <td><code>switch</code></td>
+                                <td><code>match</code> only allows one expression per arm</td>
+                            </tr>
+                            <tr>
+                                <td>One condition, compact</td>
+                                <td>Ternary (<code>?:</code>)</td>
+                                <td>Covered in Lesson 4!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Alternative Syntax for Templates</h3>
+                <p>When mixing PHP with HTML, PHP offers an alternative colon-based syntax that's easier to read in templates:</p>
+
+                <pre><code class="language-php">&lt;?php $role = "admin"; ?&gt;
+
+&lt;!-- Alternative if/elseif/else syntax --&gt;
+&lt;?php if ($role === "admin"): ?&gt;
+    &lt;div class="admin-panel"&gt;
+        &lt;h2&gt;Admin Dashboard&lt;/h2&gt;
+    &lt;/div&gt;
+&lt;?php elseif ($role === "editor"): ?&gt;
+    &lt;div class="editor-panel"&gt;
+        &lt;h2&gt;Editor Dashboard&lt;/h2&gt;
+    &lt;/div&gt;
+&lt;?php else: ?&gt;
+    &lt;div class="user-panel"&gt;
+        &lt;h2&gt;Welcome&lt;/h2&gt;
+    &lt;/div&gt;
+&lt;?php endif; ?&gt;
+
+&lt;!-- Alternative switch syntax --&gt;
+&lt;?php switch ($role):
+    case "admin": ?&gt;
+        &lt;span class="badge-admin"&gt;Admin&lt;/span&gt;
+        &lt;?php break; ?&gt;
+    &lt;?php case "editor": ?&gt;
+        &lt;span class="badge-editor"&gt;Editor&lt;/span&gt;
+        &lt;?php break; ?&gt;
+    &lt;?php default: ?&gt;
+        &lt;span class="badge-user"&gt;User&lt;/span&gt;
+&lt;?php endswitch; ?&gt;</code></pre>
+
+                <blockquote>
+                    <strong>💡 Note:</strong> The colon syntax (<code>if(): ... endif;</code>) is mainly used when writing HTML templates with embedded PHP. In pure PHP files, always use the standard curly-brace syntax.
+                </blockquote>
+            </section>
+
+            <!-- Section 8: Exercises -->
+            <section id="section8" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Ticket Pricing</h3>
+                    <p><strong>Objective:</strong> Use <code>if/elseif/else</code> to calculate admission price based on age and membership status.</p>
+
+                    <h4>Rules:</h4>
+                    <ol>
+                        <li>Children under 5: Free</li>
+                        <li>Children 5–12: $8</li>
+                        <li>Teens 13–17: $12</li>
+                        <li>Adults 18–64: $20</li>
+                        <li>Seniors 65+: $10</li>
+                        <li>Members get 25% off (applied after age pricing)</li>
+                    </ol>
+
+                    <h4>Starter Code:</h4>
+                    <pre><code class="language-php">&lt;?php
+$age = 30;
+$isMember = true;
+
+// TODO: Calculate $price based on age
+// TODO: Apply 25% member discount if applicable
+// TODO: Output the final price</code></pre>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Set the base price with <code>if/elseif</code> first, then apply the discount in a separate <code>if</code> after. Use <code>number_format()</code> for clean output.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$age = 30;
+$isMember = true;
+
+// Determine base price by age
+if ($age &lt; 5) {
+    $price = 0;
+} elseif ($age &lt;= 12) {
+    $price = 8;
+} elseif ($age &lt;= 17) {
+    $price = 12;
+} elseif ($age &lt;= 64) {
+    $price = 20;
+} else {
+    $price = 10;
+}
+
+// Apply member discount
+$discount = 0;
+if ($isMember &amp;&amp; $price > 0) {
+    $discount = $price * 0.25;
+    $price -= $discount;
+}
+
+echo "Age: $age\n";
+echo "Member: " . ($isMember ? "Yes" : "No") . "\n";
+if ($discount > 0) {
+    echo "Discount: -$" . number_format($discount, 2) . "\n";
+}
+echo "Price: $" . number_format($price, 2) . "\n";
+// Output:
+// Age: 30
+// Member: Yes
+// Discount: -$5.00
+// Price: $15.00</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Day Planner with match</h3>
+                    <p><strong>Objective:</strong> Use <code>match</code> to create a daily activity planner based on the day of the week.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create <code>exercise_05b.php</code></li>
+                        <li>Get the current day using <code>date("l")</code> (returns full day name)</li>
+                        <li>Use <code>match</code> to assign an activity, emoji, and workout</li>
+                        <li>Output a formatted daily plan</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use <code>date("l")</code> for the day name. You can return arrays or use multiple <code>match</code> calls. Group weekend days with comma-separated values.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$today = date("l"); // e.g., "Monday"
+
+$activity = match ($today) {
+    "Monday"    => "Team standup &amp; sprint planning",
+    "Tuesday"   => "Deep work — no meetings",
+    "Wednesday" => "Code review &amp; pair programming",
+    "Thursday"  => "Feature development",
+    "Friday"    => "Deploy &amp; retrospective",
+    "Saturday", "Sunday" => "Rest &amp; personal projects",
+};
+
+$workout = match ($today) {
+    "Monday", "Thursday"         => "🏋️ Strength training",
+    "Tuesday", "Friday"          => "🏃 Cardio",
+    "Wednesday"                  => "🧘 Yoga",
+    "Saturday", "Sunday"         => "🚶 Walk or rest",
+};
+
+$emoji = match ($today) {
+    "Monday"    => "🚀",
+    "Tuesday"   => "🎯",
+    "Wednesday" => "👥",
+    "Thursday"  => "💻",
+    "Friday"    => "🎉",
+    "Saturday", "Sunday" => "😎",
+};
+
+echo "===== $emoji $today =====\n";
+echo "Activity: $activity\n";
+echo "Workout:  $workout\n";</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 3: Grade Analyzer (All Three Approaches)</h3>
+                    <p><strong>Objective:</strong> Write the same grading logic three ways — <code>if/elseif</code>, <code>switch</code>, and <code>match</code> — to see the differences firsthand.</p>
+
+                    <h4>Grading Scale:</h4>
+                    <p>90–100 = A, 80–89 = B, 70–79 = C, 60–69 = D, below 60 = F</p>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$score = 85;
+
+// === Approach 1: if/elseif ===
+if ($score >= 90) {
+    $grade1 = "A";
+} elseif ($score >= 80) {
+    $grade1 = "B";
+} elseif ($score >= 70) {
+    $grade1 = "C";
+} elseif ($score >= 60) {
+    $grade1 = "D";
+} else {
+    $grade1 = "F";
+}
+
+// === Approach 2: switch (with intdiv trick) ===
+switch (intdiv($score, 10)) {
+    case 10:
+    case 9:
+        $grade2 = "A";
+        break;
+    case 8:
+        $grade2 = "B";
+        break;
+    case 7:
+        $grade2 = "C";
+        break;
+    case 6:
+        $grade2 = "D";
+        break;
+    default:
+        $grade2 = "F";
+}
+
+// === Approach 3: match (cleanest!) ===
+$grade3 = match (true) {
+    $score >= 90 => "A",
+    $score >= 80 => "B",
+    $score >= 70 => "C",
+    $score >= 60 => "D",
+    default      => "F",
+};
+
+echo "if/elseif: $grade1\n";  // B
+echo "switch:    $grade2\n";  // B
+echo "match:     $grade3\n";  // B</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What happens if you forget <code>break</code> in a <code>switch</code> case?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP won't throw an error — it will silently do something unexpected.">
+                                A) PHP throws an error
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Without break, PHP 'falls through' and executes the next case's code too — even if that case doesn't match. This is the most common switch bug.">
+                                B) Execution falls through to the next case
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="break is not added automatically. You must write it explicitly.">
+                                C) PHP automatically adds break
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> Which value is <em>truthy</em> in PHP?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Empty string is one of PHP's eight falsy values.">
+                                A) "" (empty string)
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The string &quot;0&quot; is falsy in PHP — a common gotcha!">
+                                B) "0"
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The string 'false' is truthy because it's a non-empty, non-'0' string. PHP doesn't parse the word — it only cares about whether the string is empty or '0'.">
+                                C) "false"
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="An empty array is falsy in PHP.">
+                                D) [] (empty array)
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What type of comparison does <code>match</code> use?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="That's what switch uses. match was designed to be stricter.">
+                                A) Loose comparison (==)
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! match uses strict comparison (===) by default. This means 0 won't accidentally match the string 'hello' like it would with switch. This is one of the main reasons match was introduced in PHP 8.">
+                                B) Strict comparison (===)
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="match compares values, not object identity.">
+                                C) Identity comparison
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What happens if no arm matches in a <code>match</code> expression and there's no <code>default</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="match is designed to be strict — it doesn't silently fail.">
+                                A) It returns null
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="That's what switch does, not match.">
+                                B) It silently continues
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! match throws an UnhandledMatchError if no arm matches and there's no default. This is actually a safety feature — it catches bugs that switch would silently ignore.">
+                                C) It throws an UnhandledMatchError
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What is a "guard clause"?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Guard clauses are a coding pattern, not a PHP keyword.">
+                                A) A special PHP keyword for security
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Guard clauses check for invalid or disqualifying conditions early and return/exit immediately. This 'flattens' your code by avoiding deep nesting. Instead of wrapping everything in if blocks, you reject bad cases at the top.">
+                                B) An early return that checks for a disqualifying condition
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="A guard clause is a pattern that reduces nesting, not adds to it.">
+                                C) A way to wrap code in multiple if blocks for safety
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 9: Summary -->
+            <section id="section9" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>if/elseif/else</strong> — The most flexible control structure; check conditions from most specific to least specific</li>
+                        <li><strong>Truthy/Falsy</strong> — PHP has 8 falsy values (false, 0, 0.0, "", "0", [], null, -0); everything else is truthy</li>
+                        <li><strong>Guard clauses</strong> — Check disqualifiers early and return to avoid deep nesting</li>
+                        <li><strong>switch</strong> — Cleaner than if/elseif for comparing one value against many; uses loose comparison; don't forget <code>break</code></li>
+                        <li><strong>match (PHP 8)</strong> — Modern replacement for switch: strict comparison, no fall-through, returns a value, throws on no match</li>
+                        <li><strong>Always use curly braces</strong> with if/elseif/else to prevent subtle bugs</li>
+                        <li><strong>Alternative syntax</strong> (<code>if(): ... endif;</code>) exists for HTML templates</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/control-structures.if.php" target="_blank" rel="noopener">PHP Manual: if</a></li>
+                    <li><a href="https://www.php.net/manual/en/control-structures.switch.php" target="_blank" rel="noopener">PHP Manual: switch</a></li>
+                    <li><a href="https://www.php.net/manual/en/control-structures.match.php" target="_blank" rel="noopener">PHP Manual: match (PHP 8)</a></li>
+                    <li><a href="https://www.php.net/manual/en/types.comparisons.php" target="_blank" rel="noopener">PHP Manual: Type Comparison Tables</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Now that your code can make decisions, it's time to make it <em>repeat</em> things. In <strong>Lesson 6: Loops</strong>, you'll master <code>for</code>, <code>while</code>, <code>do-while</code>, and <code>foreach</code> — the tools that let PHP do the heavy lifting.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>Your code can now make decisions! With <code>if</code>, <code>switch</code>, and <code>match</code> in your toolkit, your programs are no longer one-track — they can adapt to any situation.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_04.html" class="prev-lesson">← Previous: Operators &amp; Expressions</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_06.html" class="next-lesson">Next: Loops →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

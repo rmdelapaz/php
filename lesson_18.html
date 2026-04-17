@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn PHP error handling — try/catch/finally, exceptions, custom exception classes, error levels, error reporting, and building robust error-handling strategies.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Error Handling - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 6: Database Integration</a></li>
+            <li aria-current="page">Lesson 18: Error Handling</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🛡️ Lesson 18: Error Handling</h1>
+                <p class="lead">Things go wrong in programs — files don't exist, users enter bad data, databases refuse connections, APIs time out. The question isn't <em>if</em> errors will happen, but <em>how your code responds</em> when they do. PHP gives you two systems for handling problems: the legacy <strong>error system</strong> (warnings, notices, fatal errors) and the modern <strong>exception system</strong> (<code>try/catch</code>). In this lesson, you'll master both — and learn to build code that fails gracefully instead of crashing.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Understand PHP's error levels and what triggers each type</li>
+                        <li>Configure error reporting for development and production</li>
+                        <li>Use <code>try/catch/finally</code> to handle exceptions gracefully</li>
+                        <li>Throw exceptions with <code>throw</code> and create custom exception classes</li>
+                        <li>Catch multiple exception types with multi-catch syntax</li>
+                        <li>Convert legacy errors to exceptions with a custom error handler</li>
+                        <li>Build a practical error-handling strategy for real applications</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 45 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 16–17 (OOP basics, inheritance)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">PHP's Two Error Systems</a></li>
+                        <li><a href="#section2" class="toc-link">Error Levels &amp; error_reporting</a></li>
+                        <li><a href="#section3" class="toc-link">Exceptions &amp; try/catch/finally</a></li>
+                        <li><a href="#section4" class="toc-link">Throwing Exceptions</a></li>
+                        <li><a href="#section5" class="toc-link">Built-In Exception Classes</a></li>
+                        <li><a href="#section6" class="toc-link">Custom Exception Classes</a></li>
+                        <li><a href="#section7" class="toc-link">Converting Errors to Exceptions</a></li>
+                        <li><a href="#section8" class="toc-link">Error Handling in Practice</a></li>
+                        <li><a href="#section9" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section10" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Two Error Systems -->
+            <section id="section1" class="lesson-section">
+                <h2>PHP's Two Error Systems</h2>
+
+                <p>PHP has two distinct mechanisms for reporting problems, and understanding the difference is essential before you start handling them.</p>
+
+                <h3>1. Legacy Errors (Warnings, Notices, Fatal Errors)</h3>
+                <p>These are PHP's original error system. When something goes wrong, PHP generates an error at a certain <strong>level</strong> (notice, warning, fatal, etc.). Some are recoverable; others kill the script immediately.</p>
+
+                <pre><code class="language-php">&lt;?php
+// E_NOTICE — minor issue, script continues
+echo $undefinedVariable; // Notice: Undefined variable
+
+// E_WARNING — something's wrong, script continues
+$file = file_get_contents("nonexistent.txt"); // Warning: file not found
+
+// E_ERROR (Fatal) — script stops immediately
+// nonExistentFunction(); // Fatal error: Call to undefined function</code></pre>
+
+                <h3>2. Exceptions (Modern OOP Approach)</h3>
+                <p>Exceptions are objects that represent errors. You <strong>throw</strong> them when something goes wrong, and <strong>catch</strong> them where you can handle the problem. Code between <code>try</code> and <code>catch</code> is protected — if an exception is thrown, execution jumps to the <code>catch</code> block instead of crashing.</p>
+
+                <pre><code class="language-php">&lt;?php
+try {
+    // Code that might fail
+    $data = json_decode("invalid json", true, 512, JSON_THROW_ON_ERROR);
+} catch (JsonException $e) {
+    // Handle the failure gracefully
+    echo "Bad JSON: " . $e->getMessage();
+}
+// Script continues normally after the catch block</code></pre>
+
+                <div class="mermaid">
+                    flowchart LR
+                        A[Problem Occurs] --> B{Which system?}
+                        B -->|Legacy Error| C[PHP generates error at a level]
+                        C --> D{Fatal?}
+                        D -->|Yes| E[Script dies]
+                        D -->|No| F[Warning/Notice shown, script continues]
+                        B -->|Exception| G[Exception object thrown]
+                        G --> H{Caught?}
+                        H -->|Yes| I[catch block handles it]
+                        H -->|No| J[Uncaught exception — script dies]
+                </div>
+
+                <div class="card card-accent">
+                    <h4>📖 The Trend: Everything Is Moving to Exceptions</h4>
+                    <p>Modern PHP (8.0+) is gradually converting legacy errors into exceptions. For example, division by zero used to be a warning — now it throws a <code>DivisionByZeroError</code>. Type errors that used to be fatal errors are now <code>TypeError</code> exceptions. The future of PHP error handling is exceptions, and that's where we'll focus most of this lesson.</p>
+                </div>
+            </section>
+
+            <!-- Section 2: Error Levels -->
+            <section id="section2" class="lesson-section">
+                <h2>Error Levels &amp; error_reporting</h2>
+
+                <h3>PHP Error Levels</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Constant</th>
+                                <th>Level</th>
+                                <th>Description</th>
+                                <th>Fatal?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>E_NOTICE</code></td>
+                                <td>Notice</td>
+                                <td>Minor issues — undefined variables, array offset issues</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td><code>E_WARNING</code></td>
+                                <td>Warning</td>
+                                <td>Significant issues — missing files, wrong parameter types</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td><code>E_ERROR</code></td>
+                                <td>Fatal Error</td>
+                                <td>Unrecoverable — undefined functions, out of memory</td>
+                                <td>Yes</td>
+                            </tr>
+                            <tr>
+                                <td><code>E_PARSE</code></td>
+                                <td>Parse Error</td>
+                                <td>Syntax errors — missing semicolons, unclosed brackets</td>
+                                <td>Yes</td>
+                            </tr>
+                            <tr>
+                                <td><code>E_DEPRECATED</code></td>
+                                <td>Deprecation</td>
+                                <td>Feature will be removed in a future PHP version</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td><code>E_STRICT</code></td>
+                                <td>Strict</td>
+                                <td>Suggestions for forward compatibility (mostly removed in PHP 8)</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td><code>E_ALL</code></td>
+                                <td>All</td>
+                                <td>All errors and warnings combined</td>
+                                <td>—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Configuring Error Reporting</h3>
+                <pre><code class="language-php">&lt;?php
+// === DEVELOPMENT: Show all errors ===
+error_reporting(E_ALL);          // Report all error levels
+ini_set("display_errors", "1");  // Show errors in browser
+
+// === PRODUCTION: Hide errors from users, log them instead ===
+error_reporting(E_ALL);          // Still report all levels
+ini_set("display_errors", "0");  // Don't show in browser
+ini_set("log_errors", "1");      // Write to log file instead
+ini_set("error_log", "/var/log/php/app_errors.log");
+
+// You can also set these in php.ini (applies globally):
+// error_reporting = E_ALL
+// display_errors = Off
+// log_errors = On
+// error_log = /var/log/php/error.log</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Never Display Errors in Production</h4>
+                    <p>Error messages can reveal file paths, database credentials, code structure, and other sensitive information. Always set <code>display_errors = Off</code> in production and use <code>log_errors = On</code> instead. Check your log files to find and fix issues.</p>
+                </div>
+
+                <h3>The Error Suppression Operator (@)</h3>
+                <pre><code class="language-php">&lt;?php
+// The @ operator suppresses errors for a single expression
+$value = @file_get_contents("maybe_missing.txt");
+
+// If the file doesn't exist, no warning is shown
+// $value will be false
+
+// DON'T DO THIS — it hides problems and makes debugging harder
+// Instead, check before you access:
+if (file_exists("maybe_missing.txt")) {
+    $value = file_get_contents("maybe_missing.txt");
+} else {
+    $value = "Default content";
+}
+
+// Or use try/catch with exceptions (preferred):
+try {
+    $value = file_get_contents("maybe_missing.txt");
+    if ($value === false) {
+        throw new RuntimeException("Could not read file");
+    }
+} catch (RuntimeException $e) {
+    $value = "Default content";
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Rule of Thumb</h4>
+                    <p>Avoid the <code>@</code> operator. It silences errors entirely — including ones you'd want to know about. Use proper error checking or exception handling instead. The only defensible use of <code>@</code> is with a few legacy functions where you immediately check the return value (like <code>@fopen()</code> followed by a check for <code>false</code>).</p>
+                </div>
+            </section>
+
+            <!-- Section 3: try/catch/finally -->
+            <section id="section3" class="lesson-section">
+                <h2>Exceptions &amp; try/catch/finally</h2>
+
+                <p>The <code>try/catch/finally</code> structure is PHP's primary mechanism for handling exceptions. It lets you attempt risky operations and respond gracefully when they fail.</p>
+
+                <h3>Basic try/catch</h3>
+                <pre><code class="language-php">&lt;?php
+try {
+    // Code that might throw an exception
+    $result = 10 / 0;
+} catch (DivisionByZeroError $e) {
+    // Handle the specific error
+    echo "Can't divide by zero!\n";
+    echo "Error: " . $e->getMessage() . "\n";
+}
+
+echo "Script continues after the catch block.\n";</code></pre>
+
+                <h3>The Exception Object</h3>
+                <p>When you catch an exception, you get an object with useful information about what went wrong:</p>
+
+                <pre><code class="language-php">&lt;?php
+try {
+    throw new RuntimeException("Something broke", 500);
+} catch (RuntimeException $e) {
+    echo $e->getMessage();   // "Something broke"
+    echo $e->getCode();      // 500
+    echo $e->getFile();      // "/path/to/script.php"
+    echo $e->getLine();      // Line number where throw occurred
+    echo $e->getTraceAsString(); // Full stack trace
+}
+
+// The exception hierarchy (simplified):
+// Throwable (interface)
+//   ├── Error (internal PHP errors — TypeError, ValueError, etc.)
+//   └── Exception (application-level exceptions)
+//         ├── RuntimeException
+//         ├── InvalidArgumentException
+//         ├── LogicException
+//         └── ... more built-in exceptions</code></pre>
+
+                <h3>Catching Multiple Exception Types</h3>
+                <pre><code class="language-php">&lt;?php
+function processFile(string $path): string {
+    if (!file_exists($path)) {
+        throw new InvalidArgumentException("File not found: $path");
+    }
+
+    $content = file_get_contents($path);
+    if ($content === false) {
+        throw new RuntimeException("Could not read file: $path");
+    }
+
+    $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+    return $data["name"] ?? "Unknown";
+}
+
+// Catch different exception types with separate catch blocks
+try {
+    $name = processFile("config.json");
+    echo "Name: $name\n";
+} catch (InvalidArgumentException $e) {
+    // Handle missing file
+    echo "Bad input: " . $e->getMessage() . "\n";
+} catch (JsonException $e) {
+    // Handle malformed JSON
+    echo "Invalid JSON: " . $e->getMessage() . "\n";
+} catch (RuntimeException $e) {
+    // Handle read errors
+    echo "Read error: " . $e->getMessage() . "\n";
+}
+
+// PHP 8+ multi-catch — catch multiple types in one block
+try {
+    $name = processFile("config.json");
+} catch (InvalidArgumentException | JsonException $e) {
+    // Handle both input errors the same way
+    echo "Input problem: " . $e->getMessage() . "\n";
+} catch (RuntimeException $e) {
+    echo "System error: " . $e->getMessage() . "\n";
+}</code></pre>
+
+                <h3>The <code>finally</code> Block</h3>
+                <p>The <code>finally</code> block runs <em>no matter what</em> — whether an exception was thrown, caught, or not. It's the perfect place for cleanup code.</p>
+
+                <pre><code class="language-php">&lt;?php
+function readConfig(string $path): array {
+    $handle = null;
+
+    try {
+        $handle = fopen($path, "r");
+        if ($handle === false) {
+            throw new RuntimeException("Cannot open: $path");
+        }
+
+        $content = fread($handle, filesize($path));
+        $config = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+        return $config;
+
+    } catch (RuntimeException $e) {
+        echo "File error: " . $e->getMessage() . "\n";
+        return []; // Return empty config as fallback
+
+    } catch (JsonException $e) {
+        echo "Invalid config format: " . $e->getMessage() . "\n";
+        return [];
+
+    } finally {
+        // This runs regardless — exception or not
+        if ($handle !== null) {
+            fclose($handle);
+            echo "File handle closed.\n";
+        }
+    }
+}
+
+// Case 1: File exists and is valid JSON → returns config, finally closes handle
+// Case 2: File missing → catch runs, finally still runs
+// Case 3: Invalid JSON → catch runs, finally still runs</code></pre>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A["try block starts"] --> B{Exception thrown?}
+                        B -->|No| C[try block completes normally]
+                        B -->|Yes| D{Matching catch block?}
+                        D -->|Yes| E[catch block runs]
+                        D -->|No| F[Exception propagates up]
+                        C --> G["finally block runs (always)"]
+                        E --> G
+                        F --> G
+                        G --> H[Continue execution]
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use finally</h4>
+                    <p>Use <code>finally</code> for cleanup that must happen regardless of success or failure: closing file handles, database connections, releasing locks, stopping timers, or restoring state. Even if you <code>return</code> from inside a <code>try</code> or <code>catch</code> block, the <code>finally</code> block still runs before the function returns.</p>
+                </div>
+            </section>
+
+            <!-- Section 4: Throwing Exceptions -->
+            <section id="section4" class="lesson-section">
+                <h2>Throwing Exceptions</h2>
+
+                <p>You don't just catch exceptions — you <strong>throw</strong> them when your code detects a problem it can't handle locally. This passes the problem up the call stack to whoever called your function.</p>
+
+                <h3>Basic throw</h3>
+                <pre><code class="language-php">&lt;?php
+function divide(float $a, float $b): float {
+    if ($b == 0) {
+        throw new InvalidArgumentException("Cannot divide by zero");
+    }
+    return $a / $b;
+}
+
+function calculateAverage(array $numbers): float {
+    if (empty($numbers)) {
+        throw new InvalidArgumentException("Array cannot be empty");
+    }
+    return array_sum($numbers) / count($numbers);
+}
+
+// Using the functions
+try {
+    echo divide(10, 3);         // 3.333...
+    echo divide(10, 0);         // Throws!
+} catch (InvalidArgumentException $e) {
+    echo "Math error: " . $e->getMessage();
+}</code></pre>
+
+                <h3>Exception Chaining</h3>
+                <p>When catching one exception and throwing a new one, you can preserve the original as the <strong>previous exception</strong>. This creates a chain that helps with debugging — you can see the root cause.</p>
+
+                <pre><code class="language-php">&lt;?php
+class ConfigLoader {
+    public function load(string $path): array {
+        try {
+            $content = file_get_contents($path);
+            if ($content === false) {
+                throw new RuntimeException("Cannot read file");
+            }
+            return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+        } catch (JsonException $e) {
+            // Wrap the low-level exception in a more meaningful one
+            // Pass $e as the third argument to preserve the chain
+            throw new RuntimeException(
+                "Config file '$path' contains invalid JSON",
+                0,        // code
+                $e        // previous exception
+            );
+        }
+    }
+}
+
+try {
+    $loader = new ConfigLoader();
+    $config = $loader->load("config.json");
+} catch (RuntimeException $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+    // "Config file 'config.json' contains invalid JSON"
+
+    // Access the original exception
+    $prev = $e->getPrevious();
+    if ($prev) {
+        echo "Caused by: " . $prev->getMessage() . "\n";
+        // "Syntax error" (from JsonException)
+    }
+}</code></pre>
+
+                <h3>Throw Expression (PHP 8.0+)</h3>
+                <pre><code class="language-php">&lt;?php
+// In PHP 8+, throw is an expression (not just a statement)
+// This means you can use it in more places:
+
+// With the null coalescing operator
+$name = $config["name"] ?? throw new RuntimeException("Name is required");
+
+// With the ternary operator
+$age = $input >= 0 ? $input : throw new InvalidArgumentException("Age must be positive");
+
+// With the null coalescing assignment
+$value ??= throw new RuntimeException("Value was never set");
+
+// In arrow functions
+$validator = fn($x) => $x > 0 ? $x : throw new InvalidArgumentException("Must be positive");</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 When to Throw vs. Return</h4>
+                    <p><strong>Throw an exception</strong> when a function cannot fulfill its contract — the inputs are invalid, a required resource is unavailable, or an operation fails in a way the function can't recover from. Let the caller decide how to handle it.</p>
+                    <p><strong>Return a value</strong> (like <code>null</code>, <code>false</code>, or a default) when the absence of a result is a normal, expected outcome — not an error. For example, searching for a user who doesn't exist might return <code>null</code> rather than throwing.</p>
+                </div>
+            </section>
+
+            <!-- Section 5: Built-In Exception Classes -->
+            <section id="section5" class="lesson-section">
+                <h2>Built-In Exception Classes</h2>
+
+                <p>PHP provides a hierarchy of exception classes. Choosing the right one makes your error handling more precise and your code more readable.</p>
+
+                <div class="mermaid">
+                    classDiagram
+                        class Throwable {
+                            &lt;&lt;interface&gt;&gt;
+                        }
+                        class Error {
+                            TypeError
+                            ValueError
+                            DivisionByZeroError
+                            ArithmeticError
+                        }
+                        class Exception {
+                            RuntimeException
+                            LogicException
+                            InvalidArgumentException
+                            OverflowException
+                            UnderflowException
+                            RangeException
+                            LengthException
+                            OutOfRangeException
+                            OutOfBoundsException
+                            BadMethodCallException
+                        }
+                        Throwable <|.. Error
+                        Throwable <|.. Exception
+                </div>
+
+                <h3>Logic Exceptions (Programmer Mistakes)</h3>
+                <p>These represent bugs — problems that should be fixed in code, not caught at runtime.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Exception</th>
+                                <th>When to Use</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>InvalidArgumentException</code></td>
+                                <td>Function received an invalid argument</td>
+                                <td>Negative number for age, empty string for name</td>
+                            </tr>
+                            <tr>
+                                <td><code>LengthException</code></td>
+                                <td>Invalid length detected</td>
+                                <td>Password too short, array exceeds maximum size</td>
+                            </tr>
+                            <tr>
+                                <td><code>OutOfRangeException</code></td>
+                                <td>Value is outside an expected range</td>
+                                <td>Month = 13, array index beyond bounds</td>
+                            </tr>
+                            <tr>
+                                <td><code>BadMethodCallException</code></td>
+                                <td>Method called incorrectly or doesn't exist</td>
+                                <td>Calling a method that requires setup that wasn't done</td>
+                            </tr>
+                            <tr>
+                                <td><code>LogicException</code></td>
+                                <td>General logic error (base class)</td>
+                                <td>Program flow violation, invalid state</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Runtime Exceptions (External Failures)</h3>
+                <p>These represent problems that occur during execution — even in correctly written code.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Exception</th>
+                                <th>When to Use</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>RuntimeException</code></td>
+                                <td>General runtime failure</td>
+                                <td>File not found, API unreachable, operation failed</td>
+                            </tr>
+                            <tr>
+                                <td><code>OverflowException</code></td>
+                                <td>Adding to a full container</td>
+                                <td>Queue at max capacity, buffer full</td>
+                            </tr>
+                            <tr>
+                                <td><code>UnderflowException</code></td>
+                                <td>Removing from an empty container</td>
+                                <td>Dequeue from empty queue, pop from empty stack</td>
+                            </tr>
+                            <tr>
+                                <td><code>OutOfBoundsException</code></td>
+                                <td>Invalid key/index at runtime</td>
+                                <td>Accessing a non-existent array key or collection item</td>
+                            </tr>
+                            <tr>
+                                <td><code>UnexpectedValueException</code></td>
+                                <td>Unexpected value encountered</td>
+                                <td>Database returned unexpected data format</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Errors (Internal PHP Problems)</h3>
+                <pre><code class="language-php">&lt;?php
+// TypeError — wrong type passed to function
+function addInts(int $a, int $b): int {
+    return $a + $b;
+}
+
+try {
+    echo addInts("hello", "world"); // TypeError
+} catch (TypeError $e) {
+    echo "Type error: " . $e->getMessage();
+}
+
+// ValueError — right type, wrong value (PHP 8+)
+try {
+    $colors = ["red", "green", "blue"];
+    array_chunk($colors, -1); // ValueError: size must be > 0
+} catch (ValueError $e) {
+    echo "Value error: " . $e->getMessage();
+}
+
+// DivisionByZeroError
+try {
+    $result = 10 % 0; // DivisionByZeroError
+} catch (DivisionByZeroError $e) {
+    echo "Division error: " . $e->getMessage();
+}
+
+// Catch any throwable (both Errors and Exceptions)
+try {
+    // ... risky code ...
+} catch (\Throwable $e) {
+    // Catches EVERYTHING — use sparingly
+    echo "Something went wrong: " . $e->getMessage();
+}</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Catching \Throwable</h4>
+                    <p>Catching <code>\Throwable</code> catches <em>everything</em> — including <code>Error</code> subclasses like <code>TypeError</code> and <code>ParseError</code>. Only do this at the top level of your application (like a global error handler). In regular code, catch specific exception types so you don't accidentally swallow errors that indicate genuine bugs.</p>
+                </div>
+            </section>
+
+            <!-- Section 6: Custom Exception Classes -->
+            <section id="section6" class="lesson-section">
+                <h2>Custom Exception Classes</h2>
+
+                <p>Custom exceptions let you define application-specific error types. This makes your error handling more expressive and lets callers catch exactly the errors they care about.</p>
+
+                <h3>Creating Custom Exceptions</h3>
+                <pre><code class="language-php">&lt;?php
+// Simple custom exception — just a named type
+class UserNotFoundException extends RuntimeException {}
+class DuplicateEmailException extends RuntimeException {}
+class InsufficientFundsException extends RuntimeException {}
+
+// Custom exception with extra data
+class ValidationException extends RuntimeException {
+    private array $errors;
+
+    public function __construct(array $errors, int $code = 0, ?\Throwable $previous = null) {
+        $this->errors = $errors;
+        $message = "Validation failed: " . implode(", ", $errors);
+        parent::__construct($message, $code, $previous);
+    }
+
+    public function getErrors(): array {
+        return $this->errors;
+    }
+}
+
+// Custom exception with HTTP status code
+class HttpException extends RuntimeException {
+    public function __construct(
+        public readonly int $statusCode,
+        string $message = "",
+        ?\Throwable $previous = null,
+    ) {
+        parent::__construct($message, $statusCode, $previous);
+    }
+}
+
+class NotFoundException extends HttpException {
+    public function __construct(string $message = "Not Found", ?\Throwable $previous = null) {
+        parent::__construct(404, $message, $previous);
+    }
+}
+
+class ForbiddenException extends HttpException {
+    public function __construct(string $message = "Forbidden", ?\Throwable $previous = null) {
+        parent::__construct(403, $message, $previous);
+    }
+}</code></pre>
+
+                <h3>Using Custom Exceptions</h3>
+                <pre><code class="language-php">&lt;?php
+class UserService {
+    private array $users = [];
+
+    public function register(string $name, string $email, string $password): array {
+        // Validate
+        $errors = [];
+        if (empty($name))    $errors[] = "Name is required";
+        if (empty($email))   $errors[] = "Email is required";
+        if (strlen($password) < 8) $errors[] = "Password must be at least 8 characters";
+
+        if (!empty($errors)) {
+            throw new ValidationException($errors);
+        }
+
+        // Check for duplicate
+        foreach ($this->users as $user) {
+            if ($user["email"] === $email) {
+                throw new DuplicateEmailException("Email already registered: $email");
+            }
+        }
+
+        // Create user
+        $user = [
+            "id"    => count($this->users) + 1,
+            "name"  => $name,
+            "email" => $email,
+        ];
+        $this->users[] = $user;
+        return $user;
+    }
+
+    public function findById(int $id): array {
+        foreach ($this->users as $user) {
+            if ($user["id"] === $id) {
+                return $user;
+            }
+        }
+        throw new UserNotFoundException("User not found: #$id");
+    }
+}
+
+// Usage with targeted error handling
+$service = new UserService();
+
+try {
+    $user = $service->register("", "bad-email", "123");
+} catch (ValidationException $e) {
+    echo "Fix these errors:\n";
+    foreach ($e->getErrors() as $error) {
+        echo "  - $error\n";
+    }
+} catch (DuplicateEmailException $e) {
+    echo "That email is taken. Try another or log in.\n";
+}
+
+try {
+    $user = $service->findById(999);
+} catch (UserNotFoundException $e) {
+    echo $e->getMessage(); // "User not found: #999"
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Custom Exception Best Practices</h4>
+                    <ul>
+                        <li><strong>Extend the right base class:</strong> Use <code>InvalidArgumentException</code> for bad inputs, <code>RuntimeException</code> for operational failures</li>
+                        <li><strong>Name them clearly:</strong> <code>UserNotFoundException</code> is more meaningful than <code>NotFoundException</code></li>
+                        <li><strong>Add useful data:</strong> Include relevant context (like <code>getErrors()</code> on <code>ValidationException</code>)</li>
+                        <li><strong>Keep the hierarchy shallow:</strong> 1–2 levels of custom exceptions is usually enough</li>
+                        <li><strong>Group in a namespace:</strong> <code>App\Exceptions\UserNotFoundException</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 7: Converting Errors to Exceptions -->
+            <section id="section7" class="lesson-section">
+                <h2>Converting Errors to Exceptions</h2>
+
+                <p>Many built-in PHP functions still use the legacy error system (warnings and notices) instead of throwing exceptions. You can bridge the gap by registering a custom error handler that converts these errors into exceptions.</p>
+
+                <h3>set_error_handler</h3>
+                <pre><code class="language-php">&lt;?php
+// Convert PHP errors (warnings, notices) into ErrorException objects
+set_error_handler(function (int $severity, string $message, string $file, int $line): bool {
+    // Don't convert errors that are suppressed by error_reporting setting
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
+
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+
+// Now warnings become catchable exceptions!
+try {
+    $content = file_get_contents("nonexistent.txt");
+    // Without the handler: E_WARNING, $content = false, script continues
+    // WITH the handler: throws ErrorException, caught by catch block
+} catch (ErrorException $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+    // "Caught: file_get_contents(nonexistent.txt): Failed to open stream: No such file..."
+}</code></pre>
+
+                <h3>set_exception_handler (Last Resort)</h3>
+                <pre><code class="language-php">&lt;?php
+// Global handler for any uncaught exception — the last line of defense
+set_exception_handler(function (\Throwable $e): void {
+    // Log the error
+    error_log(sprintf(
+        "[%s] Uncaught %s: %s in %s:%d\nStack trace:\n%s",
+        date("Y-m-d H:i:s"),
+        get_class($e),
+        $e->getMessage(),
+        $e->getFile(),
+        $e->getLine(),
+        $e->getTraceAsString()
+    ));
+
+    // Show a user-friendly message (production)
+    if (ini_get("display_errors") === "0") {
+        http_response_code(500);
+        echo "&lt;h1&gt;Something went wrong&lt;/h1&gt;";
+        echo "&lt;p&gt;We're looking into it. Please try again later.&lt;/p&gt;";
+    } else {
+        // Development — show the full error
+        echo "&lt;h1&gt;" . get_class($e) . "&lt;/h1&gt;";
+        echo "&lt;p&gt;" . $e->getMessage() . "&lt;/p&gt;";
+        echo "&lt;pre&gt;" . $e->getTraceAsString() . "&lt;/pre&gt;";
+    }
+});
+
+// If this exception isn't caught anywhere, the handler above catches it
+throw new RuntimeException("Unhandled error!");</code></pre>
+
+                <h3>A Complete Bootstrap Setup</h3>
+                <pre><code class="language-php">&lt;?php
+// File: bootstrap.php — include at the top of your application
+
+// 1. Set error reporting
+error_reporting(E_ALL);
+
+// 2. Development vs. Production
+$isDev = ($_ENV["APP_ENV"] ?? "development") === "development";
+ini_set("display_errors", $isDev ? "1" : "0");
+ini_set("log_errors", "1");
+ini_set("error_log", __DIR__ . "/logs/error.log");
+
+// 3. Convert errors to exceptions
+set_error_handler(function (int $severity, string $message, string $file, int $line): bool {
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+
+// 4. Global exception handler (safety net)
+set_exception_handler(function (\Throwable $e) use ($isDev): void {
+    error_log("[" . date("Y-m-d H:i:s") . "] " . get_class($e) . ": "
+        . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+
+    http_response_code(500);
+
+    if ($isDev) {
+        echo "&lt;h1&gt;" . htmlspecialchars(get_class($e)) . "&lt;/h1&gt;";
+        echo "&lt;p&gt;" . htmlspecialchars($e->getMessage()) . "&lt;/p&gt;";
+        echo "&lt;pre&gt;" . htmlspecialchars($e->getTraceAsString()) . "&lt;/pre&gt;";
+    } else {
+        echo "&lt;h1&gt;Server Error&lt;/h1&gt;&lt;p&gt;Please try again later.&lt;/p&gt;";
+    }
+});
+
+// Now every file that includes bootstrap.php gets consistent error handling</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 The Three Layers of Defense</h4>
+                    <ol>
+                        <li><strong>try/catch</strong> — Local handling: catch specific exceptions where you can recover</li>
+                        <li><strong>set_error_handler</strong> — Convert legacy warnings/notices into exceptions</li>
+                        <li><strong>set_exception_handler</strong> — Global safety net for anything uncaught</li>
+                    </ol>
+                    <p>Together, these three layers ensure that no error goes unhandled — whether it's a PHP warning, a thrown exception, or an uncaught exception.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Error Handling in Practice -->
+            <section id="section8" class="lesson-section">
+                <h2>Error Handling in Practice</h2>
+
+                <p>Let's put it all together with real-world patterns you'll use in every PHP project.</p>
+
+                <h3>Pattern 1: Validate Input Early, Fail Fast</h3>
+                <pre><code class="language-php">&lt;?php
+class ContactForm {
+    public static function validate(array $data): array {
+        $errors = [];
+
+        if (empty($data["name"] ?? "")) {
+            $errors["name"] = "Name is required";
+        }
+
+        $email = $data["email"] ?? "";
+        if (empty($email)) {
+            $errors["email"] = "Email is required";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors["email"] = "Invalid email format";
+        }
+
+        $message = $data["message"] ?? "";
+        if (empty($message)) {
+            $errors["message"] = "Message is required";
+        } elseif (strlen($message) < 10) {
+            $errors["message"] = "Message must be at least 10 characters";
+        }
+
+        return $errors;
+    }
+
+    public static function submit(array $data): string {
+        // Validate first — fail fast if input is bad
+        $errors = self::validate($data);
+        if (!empty($errors)) {
+            throw new ValidationException($errors);
+        }
+
+        // If we get here, data is valid — proceed with confidence
+        // ... send email, save to database, etc.
+        return "Message sent successfully!";
+    }
+}
+
+// Usage
+try {
+    $result = ContactForm::submit($_POST);
+    echo $result;
+} catch (ValidationException $e) {
+    // Show errors next to form fields
+    foreach ($e->getErrors() as $field => $error) {
+        echo "&lt;p class='error'&gt;$error&lt;/p&gt;\n";
+    }
+}</code></pre>
+
+                <h3>Pattern 2: Wrap Risky Operations</h3>
+                <pre><code class="language-php">&lt;?php
+class ApiClient {
+    public function __construct(
+        private string $baseUrl,
+        private int $timeout = 10,
+    ) {}
+
+    public function get(string $endpoint): array {
+        $url = $this->baseUrl . $endpoint;
+
+        // Create a stream context with timeout
+        $context = stream_context_create([
+            "http" => [
+                "timeout" => $this->timeout,
+                "ignore_errors" => true,
+            ],
+        ]);
+
+        try {
+            $response = file_get_contents($url, false, $context);
+
+            if ($response === false) {
+                throw new RuntimeException("Request failed: $url");
+            }
+
+            $data = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+
+            // Check for API-level errors
+            if (isset($data["error"])) {
+                throw new RuntimeException("API error: " . $data["error"]);
+            }
+
+            return $data;
+
+        } catch (JsonException $e) {
+            throw new RuntimeException("Invalid response from API: $url", 0, $e);
+        }
+    }
+}
+
+// Usage with retry logic
+function fetchWithRetry(ApiClient $client, string $endpoint, int $maxRetries = 3): array {
+    $lastException = null;
+
+    for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+        try {
+            return $client->get($endpoint);
+        } catch (RuntimeException $e) {
+            $lastException = $e;
+            echo "Attempt $attempt failed: {$e->getMessage()}\n";
+
+            if ($attempt < $maxRetries) {
+                sleep($attempt); // Exponential-ish backoff
+            }
+        }
+    }
+
+    throw new RuntimeException(
+        "All $maxRetries attempts failed for $endpoint",
+        0,
+        $lastException
+    );
+}</code></pre>
+
+                <h3>Pattern 3: Logging Errors</h3>
+                <pre><code class="language-php">&lt;?php
+class SimpleLogger {
+    private string $logFile;
+
+    public function __construct(string $logFile = "app.log") {
+        $this->logFile = $logFile;
+        $dir = dirname($logFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+    }
+
+    public function error(string $message, ?\Throwable $exception = null): void {
+        $entry = "[" . date("Y-m-d H:i:s") . "] ERROR: $message";
+
+        if ($exception) {
+            $entry .= "\n  Exception: " . get_class($exception)
+                     . ": " . $exception->getMessage()
+                     . "\n  File: " . $exception->getFile() . ":" . $exception->getLine()
+                     . "\n  Trace: " . $exception->getTraceAsString();
+        }
+
+        file_put_contents($this->logFile, $entry . "\n\n", FILE_APPEND | LOCK_EX);
+    }
+
+    public function info(string $message): void {
+        $entry = "[" . date("Y-m-d H:i:s") . "] INFO: $message\n";
+        file_put_contents($this->logFile, $entry, FILE_APPEND | LOCK_EX);
+    }
+}
+
+// Usage
+$logger = new SimpleLogger("logs/app.log");
+
+try {
+    // ... risky operation ...
+    throw new RuntimeException("Database connection timeout");
+} catch (RuntimeException $e) {
+    $logger->error("Failed to process request", $e);
+
+    // Show user-friendly message, not the raw error
+    echo "Sorry, something went wrong. Please try again.";
+}</code></pre>
+
+                <h3>✅ Do's and ❌ Don'ts</h3>
+
+                <div class="card card-success">
+                    <h4>✅ Error Handling Do's</h4>
+                    <ul>
+                        <li><strong>Catch specific exceptions</strong> — not just <code>Exception</code> or <code>Throwable</code></li>
+                        <li><strong>Fail fast</strong> — validate inputs at the boundary, throw immediately on bad data</li>
+                        <li><strong>Log errors</strong> — always log exceptions with full context for debugging</li>
+                        <li><strong>Chain exceptions</strong> — preserve the root cause with the <code>$previous</code> parameter</li>
+                        <li><strong>Clean up in finally</strong> — close resources regardless of success or failure</li>
+                        <li><strong>Use custom exceptions</strong> — named types are more meaningful than generic messages</li>
+                        <li><strong>Show user-friendly errors</strong> — never expose stack traces in production</li>
+                    </ul>
+                </div>
+
+                <div class="card card-warning">
+                    <h4>❌ Error Handling Don'ts</h4>
+                    <ul>
+                        <li><strong>Don't catch and ignore</strong> — an empty catch block hides bugs: <code>catch (Exception $e) { }</code></li>
+                        <li><strong>Don't catch Throwable everywhere</strong> — catch only what you can handle</li>
+                        <li><strong>Don't use exceptions for control flow</strong> — exceptions are for exceptional situations, not normal logic</li>
+                        <li><strong>Don't expose internals</strong> — error messages to users should be vague; logs should be detailed</li>
+                        <li><strong>Don't use @ suppression</strong> — it hides important warnings and makes debugging painful</li>
+                        <li><strong>Don't re-throw without context</strong> — if you re-throw, add information or use chaining</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 9: Exercises -->
+            <section id="section9" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Safe Calculator</h3>
+                    <p><strong>Objective:</strong> Build a calculator class with comprehensive error handling.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a <code>Calculator</code> class with methods: <code>add()</code>, <code>subtract()</code>, <code>multiply()</code>, <code>divide()</code>, <code>power()</code></li>
+                        <li>Each method takes two <code>float</code> parameters and returns a <code>float</code></li>
+                        <li><code>divide()</code> throws <code>InvalidArgumentException</code> on division by zero</li>
+                        <li><code>power()</code> throws <code>OverflowException</code> if the result exceeds <code>PHP_FLOAT_MAX</code></li>
+                        <li>Add a <code>calculate(string $operator, float $a, float $b)</code> method that dispatches to the right method, throwing <code>InvalidArgumentException</code> for unknown operators</li>
+                        <li>Keep a history of all operations (including errors) and provide a <code>getHistory()</code> method</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use a <code>match</code> expression in <code>calculate()</code> to dispatch operators. For the history, store each operation as an associative array with keys like <code>operator</code>, <code>a</code>, <code>b</code>, <code>result</code>, and <code>error</code>. Wrap each operation in try/catch inside <code>calculate()</code> to log both successes and failures.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+class Calculator {
+    private array $history = [];
+
+    public function add(float $a, float $b): float {
+        return $a + $b;
+    }
+
+    public function subtract(float $a, float $b): float {
+        return $a - $b;
+    }
+
+    public function multiply(float $a, float $b): float {
+        return $a * $b;
+    }
+
+    public function divide(float $a, float $b): float {
+        if ($b == 0) {
+            throw new InvalidArgumentException("Cannot divide by zero");
+        }
+        return $a / $b;
+    }
+
+    public function power(float $base, float $exponent): float {
+        $result = $base ** $exponent;
+        if (is_infinite($result)) {
+            throw new OverflowException(
+                "Result too large: $base ^ $exponent exceeds float maximum"
+            );
+        }
+        return $result;
+    }
+
+    public function calculate(string $operator, float $a, float $b): float {
+        try {
+            $result = match ($operator) {
+                "+"  => $this->add($a, $b),
+                "-"  => $this->subtract($a, $b),
+                "*"  => $this->multiply($a, $b),
+                "/"  => $this->divide($a, $b),
+                "**" => $this->power($a, $b),
+                default => throw new InvalidArgumentException("Unknown operator: $operator"),
+            };
+
+            $this->history[] = [
+                "expression" => "$a $operator $b",
+                "result"     => $result,
+                "error"      => null,
+            ];
+
+            return $result;
+
+        } catch (\Throwable $e) {
+            $this->history[] = [
+                "expression" => "$a $operator $b",
+                "result"     => null,
+                "error"      => $e->getMessage(),
+            ];
+            throw $e; // Re-throw so the caller can handle it
+        }
+    }
+
+    public function getHistory(): array {
+        return $this->history;
+    }
+}
+
+// Test it
+$calc = new Calculator();
+
+echo $calc->calculate("+", 10, 5) . "\n";  // 15
+echo $calc->calculate("*", 3, 7) . "\n";   // 21
+
+try {
+    $calc->calculate("/", 10, 0);
+} catch (InvalidArgumentException $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+}
+
+try {
+    $calc->calculate("**", 999999, 999999);
+} catch (OverflowException $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+}
+
+echo "\nHistory:\n";
+foreach ($calc->getHistory() as $entry) {
+    $status = $entry["error"] ? "FAIL: {$entry['error']}" : "= {$entry['result']}";
+    echo "  {$entry['expression']} → $status\n";
+}</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: File Processor with Error Handling</h3>
+                    <p><strong>Objective:</strong> Build a <code>JsonFileProcessor</code> that reads, validates, and processes JSON files with proper error handling at every step.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create custom exceptions: <code>FileNotFoundException</code>, <code>FileReadException</code>, <code>JsonParseException</code></li>
+                        <li>Create a <code>JsonFileProcessor</code> class with a <code>process(string $path): array</code> method</li>
+                        <li>The method should: check if the file exists (throw <code>FileNotFoundException</code>), read the file (throw <code>FileReadException</code> on failure), parse JSON (throw <code>JsonParseException</code> on invalid JSON)</li>
+                        <li>Use exception chaining to preserve root causes</li>
+                        <li>Add a <code>processOrDefault(string $path, array $default): array</code> method that returns the default on any error</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Each custom exception should extend <code>RuntimeException</code>. In the <code>processOrDefault()</code> method, wrap <code>process()</code> in a try/catch that catches <code>RuntimeException</code> (the base for all your custom exceptions) and returns the default.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+class FileNotFoundException extends RuntimeException {}
+class FileReadException extends RuntimeException {}
+class JsonParseException extends RuntimeException {}
+
+class JsonFileProcessor {
+    public function process(string $path): array {
+        // Step 1: Check existence
+        if (!file_exists($path)) {
+            throw new FileNotFoundException("File not found: $path");
+        }
+
+        // Step 2: Read file
+        $content = file_get_contents($path);
+        if ($content === false) {
+            throw new FileReadException("Could not read file: $path");
+        }
+
+        // Step 3: Parse JSON
+        try {
+            $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new JsonParseException(
+                "Invalid JSON in file: $path",
+                0,
+                $e // Chain the original JsonException
+            );
+        }
+
+        return $data;
+    }
+
+    public function processOrDefault(string $path, array $default = []): array {
+        try {
+            return $this->process($path);
+        } catch (RuntimeException $e) {
+            // Log the error but return the default
+            error_log("JsonFileProcessor: " . $e->getMessage());
+            return $default;
+        }
+    }
+}
+
+// Test
+$processor = new JsonFileProcessor();
+
+// Happy path
+try {
+    $data = $processor->process("data/users.json");
+    echo "Loaded " . count($data) . " records\n";
+} catch (FileNotFoundException $e) {
+    echo "Missing: " . $e->getMessage() . "\n";
+} catch (JsonParseException $e) {
+    echo "Bad JSON: " . $e->getMessage() . "\n";
+    echo "  Caused by: " . $e->getPrevious()->getMessage() . "\n";
+} catch (FileReadException $e) {
+    echo "Read error: " . $e->getMessage() . "\n";
+}
+
+// Safe fallback version
+$config = $processor->processOrDefault("config.json", [
+    "debug" => false,
+    "name"  => "Default App",
+]);
+echo "App name: " . $config["name"] . "\n";</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What is the purpose of the <code>finally</code> block?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="'finally' runs no matter what — it's not just for the no-exception case. That's the plain code after try/catch.">
+                                A) It runs only when no exception is thrown
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The finally block runs regardless of whether an exception was thrown, caught, or the try block completed normally. It even runs if you 'return' from inside a try or catch block. It's the ideal place for cleanup — closing files, database connections, or releasing resources.">
+                                B) It runs always — whether an exception was thrown or not — for cleanup
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The catch block handles exceptions. 'finally' runs after try and catch, regardless of what happened.">
+                                C) It handles exceptions that no catch block matches
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What should you use to catch both <code>Error</code> and <code>Exception</code> in a single catch block?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Exception only catches Exception and its subclasses — it does NOT catch Error subclasses like TypeError or DivisionByZeroError.">
+                                A) <code>catch (Exception $e)</code>
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Throwable is the interface that both Error and Exception implement. Catching Throwable catches everything that can be thrown in PHP. However, use this sparingly — typically only in global error handlers. In most code, catch specific types.">
+                                B) <code>catch (\Throwable $e)</code>
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Error catches only internal PHP errors (TypeError, ValueError, etc.) — it misses Exception subclasses like RuntimeException and InvalidArgumentException.">
+                                C) <code>catch (Error $e)</code>
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What does <code>set_error_handler()</code> allow you to do?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="set_exception_handler handles uncaught exceptions. set_error_handler deals with legacy PHP errors (warnings, notices).">
+                                A) Handle uncaught exceptions globally
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! set_error_handler lets you register a callback that PHP calls whenever a legacy error (E_WARNING, E_NOTICE, etc.) occurs. The common pattern is to throw an ErrorException inside this handler, converting legacy errors into catchable exceptions.">
+                                B) Convert PHP legacy errors (warnings, notices) into exceptions
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="display_errors and log_errors control visibility. set_error_handler gives you a custom function to process errors however you want.">
+                                C) Disable error messages in the browser
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> Why should you avoid empty catch blocks like <code>catch (Exception $e) { }</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Empty catch blocks don't cause performance issues. The problem is about correctness and maintainability, not speed.">
+                                A) They cause performance issues
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Empty catch blocks are valid PHP syntax and won't cause a syntax error.">
+                                B) PHP will throw a syntax error
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! An empty catch block silently swallows the exception — the error happened, but nobody knows about it. This hides bugs, makes debugging extremely difficult, and can lead to corrupt data or mysterious behavior. At minimum, log the exception. The rule: never catch an exception without doing something useful with it.">
+                                C) They silently swallow errors, hiding bugs and making debugging nearly impossible
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What is exception chaining used for?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Throwing multiple exceptions at once isn't possible in PHP. Exception chaining links exceptions sequentially — one caused the other.">
+                                A) Throwing multiple exceptions simultaneously
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! When you catch one exception and throw a new, more meaningful one, you pass the original as the third argument: throw new RuntimeException('message', 0, $previousException). The new exception wraps the old one, so you can access the root cause via getPrevious(). This preserves the full error chain for debugging.">
+                                B) Preserving the original exception as the cause when throwing a new, more descriptive exception
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Multiple catch blocks handle different exception types. Chaining is about linking a new exception to the one that caused it.">
+                                C) Catching multiple exception types in sequence
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Summary -->
+            <section id="section10" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Two error systems:</strong> Legacy errors (warnings, notices, fatals) and modern exceptions (<code>try/catch</code>). The trend is toward exceptions.</li>
+                        <li><strong>Error reporting:</strong> Use <code>E_ALL</code> always. Show errors in development (<code>display_errors = On</code>), log them in production (<code>display_errors = Off</code>, <code>log_errors = On</code>).</li>
+                        <li><strong>try/catch/finally:</strong> <code>try</code> protects risky code, <code>catch</code> handles specific exceptions, <code>finally</code> always runs for cleanup.</li>
+                        <li><strong>Throwing exceptions:</strong> Use <code>throw</code> when a function can't fulfill its contract. Chain exceptions to preserve root causes.</li>
+                        <li><strong>Built-in hierarchy:</strong> <code>InvalidArgumentException</code> for bad inputs, <code>RuntimeException</code> for operational failures, <code>TypeError</code>/<code>ValueError</code> for type/value issues.</li>
+                        <li><strong>Custom exceptions:</strong> Create named exception classes for domain-specific errors. Add extra data (like validation errors) as properties.</li>
+                        <li><strong>Error-to-exception conversion:</strong> Use <code>set_error_handler()</code> to convert legacy warnings into <code>ErrorException</code> objects.</li>
+                        <li><strong>Global safety net:</strong> Use <code>set_exception_handler()</code> to catch any uncaught exception and log it.</li>
+                        <li><strong>Best practices:</strong> Catch specific types, never swallow exceptions silently, log everything, show friendly messages to users.</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/language.exceptions.php" target="_blank" rel="noopener">PHP Manual: Exceptions</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.set-error-handler.php" target="_blank" rel="noopener">PHP Manual: set_error_handler()</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.set-exception-handler.php" target="_blank" rel="noopener">PHP Manual: set_exception_handler()</a></li>
+                    <li><a href="https://www.php.net/manual/en/class.errorexception.php" target="_blank" rel="noopener">PHP Manual: ErrorException</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.errors.php7.php" target="_blank" rel="noopener">PHP Manual: Errors in PHP 7+</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>You now know how to handle errors like a professional. In <strong>Lesson 19: PDO — Connecting to MySQL &amp; Prepared Statements</strong>, you'll use these skills immediately — database connections can fail, queries can go wrong, and proper error handling is what separates a crash from a graceful recovery. Let's connect PHP to the MySQL databases you built in the MySQL Foundations course!</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've mastered PHP error handling! From error levels to exceptions to custom error classes, you can now build code that handles failure gracefully — a critical skill for the database-connected applications coming next.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_17.html" class="prev-lesson">← Previous: OOP — Inheritance, Interfaces &amp; Traits</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_19.html" class="next-lesson">Next: PDO — Connecting to MySQL →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

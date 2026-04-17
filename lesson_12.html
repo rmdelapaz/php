@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn PHP input validation and sanitization using filter_var, filter_input, FILTER_VALIDATE and FILTER_SANITIZE constants, regex validation, and user-friendly error messages.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Input Validation &amp; Sanitization - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 4: Web Fundamentals</a></li>
+            <li aria-current="page">Lesson 12: Input Validation &amp; Sanitization</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🛡️ Lesson 12: Input Validation &amp; Sanitization</h1>
+                <p class="lead">Never trust user input. Every piece of data that comes from a form, URL, cookie, or API must be validated (is it what we expect?) and sanitized (is it safe to use?). This lesson teaches you PHP's built-in tools for both — so your applications reject bad data before it causes problems.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Explain the difference between validation and sanitization</li>
+                        <li>Use <code>filter_var()</code> with <code>FILTER_VALIDATE_*</code> constants to validate emails, URLs, integers, and more</li>
+                        <li>Use <code>filter_var()</code> with <code>FILTER_SANITIZE_*</code> constants to clean user input</li>
+                        <li>Use <code>filter_input()</code> to read and filter GET/POST data in one step</li>
+                        <li>Build custom validation rules with regular expressions</li>
+                        <li>Implement a reusable validation pattern with user-friendly error messages</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 45 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 11 (forms, $_GET, $_POST)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">Why Validate? The Trust Boundary</a></li>
+                        <li><a href="#section2" class="toc-link">Validation vs. Sanitization</a></li>
+                        <li><a href="#section3" class="toc-link">filter_var() — Validation Filters</a></li>
+                        <li><a href="#section4" class="toc-link">filter_var() — Sanitization Filters</a></li>
+                        <li><a href="#section5" class="toc-link">filter_input() — Direct from GET/POST</a></li>
+                        <li><a href="#section6" class="toc-link">Custom Validation with Regex</a></li>
+                        <li><a href="#section7" class="toc-link">Building a Validation Pattern</a></li>
+                        <li><a href="#section8" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section9" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Why Validate -->
+            <section id="section1" class="lesson-section">
+                <h2>Why Validate? The Trust Boundary</h2>
+
+                <p>In Lesson 11, we learned to read form data with <code>$_GET</code> and <code>$_POST</code>. But we only added basic checks like "is the field empty?" Real applications face a much bigger problem: <strong>users (and attackers) can send absolutely anything</strong>.</p>
+
+                <p>Consider this: your form has a number field for "age" with <code>min="18" max="120"</code>. HTML5 prevents the browser from submitting invalid values, right? Wrong. Anyone can:</p>
+
+                <ul>
+                    <li>Edit the HTML with browser developer tools and remove the constraints</li>
+                    <li>Submit the form using <code>curl</code> or Postman without any browser at all</li>
+                    <li>Send <code>age=-9999</code> or <code>age=&lt;script&gt;alert('hacked')&lt;/script&gt;</code></li>
+                </ul>
+
+                <div class="card card-warning">
+                    <h4>⚠️ The Golden Rule of Web Security</h4>
+                    <p><strong>Client-side validation is a convenience for the user. Server-side validation is a requirement for security.</strong> HTML5 validation attributes, JavaScript checks, and browser constraints can all be bypassed. PHP must be the final gatekeeper.</p>
+                </div>
+
+                <div class="mermaid">
+                    flowchart LR
+                        A[User Input] --> B{Client-Side Validation}
+                        B -->|Can be bypassed| C{Server-Side Validation}
+                        C -->|Valid| D[Process Data]
+                        C -->|Invalid| E[Return Errors]
+                        style B fill:#fef3c7,stroke:#f59e0b
+                        style C fill:#dcfce7,stroke:#22c55e
+                </div>
+
+                <h3>What Can Go Wrong?</h3>
+                <p>Without proper validation and sanitization, your application is vulnerable to:</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Attack</th>
+                                <th>What Happens</th>
+                                <th>Defense</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>SQL Injection</strong></td>
+                                <td>Attacker manipulates database queries</td>
+                                <td>Prepared statements (Lesson 19)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>XSS (Cross-Site Scripting)</strong></td>
+                                <td>Attacker injects JavaScript into your pages</td>
+                                <td><code>htmlspecialchars()</code> on all output</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Data corruption</strong></td>
+                                <td>Invalid data breaks your logic or database</td>
+                                <td>Type validation, range checks</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email header injection</strong></td>
+                                <td>Attacker sends spam through your contact form</td>
+                                <td>Email validation, newline filtering</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Path traversal</strong></td>
+                                <td>Attacker accesses files outside allowed directories</td>
+                                <td>Filename validation, <code>basename()</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>Validation and sanitization are your first line of defense. We'll revisit security in depth in Lesson 23, but learning these habits now prevents problems later.</p>
+            </section>
+
+            <!-- Section 2: Validation vs Sanitization -->
+            <section id="section2" class="lesson-section">
+                <h2>Validation vs. Sanitization</h2>
+
+                <p>These two concepts are related but distinct, and you'll often use both together.</p>
+
+                <div class="card card-accent">
+                    <h4>📖 Definitions</h4>
+                    <p><strong>Validation:</strong> Checking whether input meets your requirements. Does this look like an email? Is this number in the allowed range? Is this field filled in? Validation answers yes or no — it doesn't change the data.</p>
+                    <p><strong>Sanitization:</strong> Cleaning input to make it safe. Stripping HTML tags, removing illegal characters, encoding special characters. Sanitization modifies the data to remove anything dangerous.</p>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+$email = " Alice@Example.COM  ";
+
+// Sanitization — clean it up
+$email = trim($email);                                    // "Alice@Example.COM"
+$email = filter_var($email, FILTER_SANITIZE_EMAIL);       // "Alice@Example.COM"
+$email = strtolower($email);                              // "alice@example.com"
+
+// Validation — is it actually valid?
+if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo "Valid email: $email";
+} else {
+    echo "Invalid email!";
+}</code></pre>
+
+                <h3>The Recommended Order</h3>
+                <div class="mermaid">
+                    flowchart LR
+                        A[Raw Input] --> B["1. Trim whitespace"]
+                        B --> C["2. Sanitize (clean)"]
+                        C --> D["3. Validate (check)"]
+                        D -->|Pass| E[Use the data]
+                        D -->|Fail| F[Show error message]
+                </div>
+
+                <ol>
+                    <li><strong>Trim</strong> — Remove leading/trailing whitespace with <code>trim()</code></li>
+                    <li><strong>Sanitize</strong> — Remove or encode unwanted characters</li>
+                    <li><strong>Validate</strong> — Check that the cleaned data meets your rules</li>
+                </ol>
+
+                <div class="card card-success">
+                    <h4>✅ Think of It Like This</h4>
+                    <p><strong>Sanitization</strong> is like washing vegetables — remove the dirt. <strong>Validation</strong> is like checking the expiration date — is it still good to use? You wash first, then check.</p>
+                </div>
+            </section>
+
+            <!-- Section 3: Validation Filters -->
+            <section id="section3" class="lesson-section">
+                <h2>filter_var() — Validation Filters</h2>
+
+                <p><code>filter_var()</code> is PHP's Swiss Army knife for input filtering. It takes a value and a filter constant, and either returns the filtered value or <code>false</code> on failure.</p>
+
+                <pre><code class="language-php">&lt;?php
+// Basic syntax
+$result = filter_var($value, FILTER_CONSTANT);
+// Returns the value if valid, or false if invalid</code></pre>
+
+                <h3>FILTER_VALIDATE_EMAIL</h3>
+                <pre><code class="language-php">&lt;?php
+// Validates email format (follows RFC 822)
+var_dump(filter_var("alice@example.com", FILTER_VALIDATE_EMAIL));
+// string "alice@example.com"
+
+var_dump(filter_var("not-an-email", FILTER_VALIDATE_EMAIL));
+// false
+
+var_dump(filter_var("alice@.com", FILTER_VALIDATE_EMAIL));
+// false
+
+var_dump(filter_var("alice+work@example.co.uk", FILTER_VALIDATE_EMAIL));
+// string "alice+work@example.co.uk" (valid!)
+
+// Practical usage
+$email = trim($_POST["email"] ?? "");
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors[] = "Please enter a valid email address.";
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Always Use <code>FILTER_VALIDATE_EMAIL</code></h4>
+                    <p>Don't write your own email regex — it's nearly impossible to cover the full email spec. PHP's built-in filter handles edge cases like plus addressing (<code>user+tag@domain.com</code>), subdomains, and international TLDs correctly.</p>
+                </div>
+
+                <h3>FILTER_VALIDATE_INT</h3>
+                <pre><code class="language-php">&lt;?php
+// Validates that a value is an integer
+var_dump(filter_var("42", FILTER_VALIDATE_INT));      // int 42
+var_dump(filter_var("0", FILTER_VALIDATE_INT));        // int 0
+var_dump(filter_var("-7", FILTER_VALIDATE_INT));        // int -7
+var_dump(filter_var("3.14", FILTER_VALIDATE_INT));     // false (float!)
+var_dump(filter_var("42abc", FILTER_VALIDATE_INT));    // false
+var_dump(filter_var("", FILTER_VALIDATE_INT));          // false
+
+// With range options
+$age = filter_var($_POST["age"] ?? "", FILTER_VALIDATE_INT, [
+    "options" => [
+        "min_range" => 13,
+        "max_range" => 120,
+    ]
+]);
+
+if ($age === false) {
+    $errors[] = "Age must be a whole number between 13 and 120.";
+}</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Zero Is Valid! Use Strict Comparison</h4>
+                    <p><code>filter_var("0", FILTER_VALIDATE_INT)</code> returns <code>0</code>, which is falsy. Always compare with <code>=== false</code>:</p>
+                    <pre><code class="language-php">// BAD — thinks 0 is invalid!
+if (!filter_var("0", FILTER_VALIDATE_INT)) { ... }
+
+// GOOD — strict check for false
+if (filter_var("0", FILTER_VALIDATE_INT) === false) { ... }</code></pre>
+                </div>
+
+                <h3>FILTER_VALIDATE_FLOAT</h3>
+                <pre><code class="language-php">&lt;?php
+var_dump(filter_var("3.14", FILTER_VALIDATE_FLOAT));     // float 3.14
+var_dump(filter_var("42", FILTER_VALIDATE_FLOAT));        // float 42.0
+var_dump(filter_var("-0.5", FILTER_VALIDATE_FLOAT));      // float -0.5
+var_dump(filter_var("1,234.56", FILTER_VALIDATE_FLOAT));  // false (comma!)
+
+// Allow thousand separator
+$price = filter_var("1,234.56", FILTER_VALIDATE_FLOAT, [
+    "flags" => FILTER_FLAG_ALLOW_THOUSAND
+]);
+// float 1234.56</code></pre>
+
+                <h3>FILTER_VALIDATE_URL</h3>
+                <pre><code class="language-php">&lt;?php
+var_dump(filter_var("https://example.com", FILTER_VALIDATE_URL));
+// string "https://example.com"
+
+var_dump(filter_var("ftp://files.example.com/doc", FILTER_VALIDATE_URL));
+// string "ftp://files.example.com/doc"
+
+var_dump(filter_var("not a url", FILTER_VALIDATE_URL));
+// false
+
+var_dump(filter_var("example.com", FILTER_VALIDATE_URL));
+// false (needs scheme: https://example.com)
+
+// Require specific components
+$url = filter_var($input, FILTER_VALIDATE_URL);
+if ($url === false) {
+    $errors[] = "Please enter a valid URL (include https://).";
+}</code></pre>
+
+                <h3>FILTER_VALIDATE_IP</h3>
+                <pre><code class="language-php">&lt;?php
+var_dump(filter_var("192.168.1.1", FILTER_VALIDATE_IP));       // valid IPv4
+var_dump(filter_var("::1", FILTER_VALIDATE_IP));                // valid IPv6
+var_dump(filter_var("999.999.999.999", FILTER_VALIDATE_IP));   // false
+
+// Validate only IPv4
+filter_var($ip, FILTER_VALIDATE_IP, ["flags" => FILTER_FLAG_IPV4]);
+
+// Validate only IPv6
+filter_var($ip, FILTER_VALIDATE_IP, ["flags" => FILTER_FLAG_IPV6]);
+
+// Reject private/reserved ranges
+filter_var($ip, FILTER_VALIDATE_IP, ["flags" => FILTER_FLAG_NO_PRIV_RANGE]);</code></pre>
+
+                <h3>FILTER_VALIDATE_BOOLEAN</h3>
+                <pre><code class="language-php">&lt;?php
+// Returns true, false, or null (if not a boolean-like value)
+var_dump(filter_var("true", FILTER_VALIDATE_BOOLEAN));    // true
+var_dump(filter_var("1", FILTER_VALIDATE_BOOLEAN));        // true
+var_dump(filter_var("yes", FILTER_VALIDATE_BOOLEAN));      // true
+var_dump(filter_var("on", FILTER_VALIDATE_BOOLEAN));       // true
+
+var_dump(filter_var("false", FILTER_VALIDATE_BOOLEAN));    // false
+var_dump(filter_var("0", FILTER_VALIDATE_BOOLEAN));        // false
+var_dump(filter_var("no", FILTER_VALIDATE_BOOLEAN));       // false
+var_dump(filter_var("off", FILTER_VALIDATE_BOOLEAN));      // false
+
+// With FILTER_NULL_ON_FAILURE — returns null instead of false for non-booleans
+var_dump(filter_var("maybe", FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
+// null</code></pre>
+
+                <h3>FILTER_VALIDATE_DOMAIN</h3>
+                <pre><code class="language-php">&lt;?php
+// PHP 7+ — validates domain names
+var_dump(filter_var("example.com", FILTER_VALIDATE_DOMAIN));      // "example.com"
+var_dump(filter_var("sub.example.co.uk", FILTER_VALIDATE_DOMAIN)); // valid
+var_dump(filter_var("-invalid.com", FILTER_VALIDATE_DOMAIN));      // false
+var_dump(filter_var("no spaces.com", FILTER_VALIDATE_DOMAIN));     // false</code></pre>
+
+                <h3>Quick Reference: Validation Filters</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Filter</th>
+                                <th>Validates</th>
+                                <th>Returns on Success</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>FILTER_VALIDATE_EMAIL</code></td>
+                                <td>Email address format</td>
+                                <td>The email string</td>
+                            </tr>
+                            <tr>
+                                <td><code>FILTER_VALIDATE_INT</code></td>
+                                <td>Integer (optional min/max range)</td>
+                                <td>The integer value</td>
+                            </tr>
+                            <tr>
+                                <td><code>FILTER_VALIDATE_FLOAT</code></td>
+                                <td>Floating-point number</td>
+                                <td>The float value</td>
+                            </tr>
+                            <tr>
+                                <td><code>FILTER_VALIDATE_URL</code></td>
+                                <td>URL with scheme</td>
+                                <td>The URL string</td>
+                            </tr>
+                            <tr>
+                                <td><code>FILTER_VALIDATE_IP</code></td>
+                                <td>IPv4 or IPv6 address</td>
+                                <td>The IP string</td>
+                            </tr>
+                            <tr>
+                                <td><code>FILTER_VALIDATE_BOOLEAN</code></td>
+                                <td>Boolean-like values</td>
+                                <td><code>true</code> or <code>false</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>FILTER_VALIDATE_DOMAIN</code></td>
+                                <td>Domain name</td>
+                                <td>The domain string</td>
+                            </tr>
+                            <tr>
+                                <td><code>FILTER_VALIDATE_MAC</code></td>
+                                <td>MAC address</td>
+                                <td>The MAC string</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 4: Sanitization Filters -->
+            <section id="section4" class="lesson-section">
+                <h2>filter_var() — Sanitization Filters</h2>
+
+                <p>Sanitization filters <strong>modify</strong> the input, stripping or encoding characters that could cause problems. Unlike validation, they always return a string — they don't return false.</p>
+
+                <h3>FILTER_SANITIZE_EMAIL</h3>
+                <pre><code class="language-php">&lt;?php
+// Removes characters not allowed in emails
+echo filter_var("alice@example.com", FILTER_SANITIZE_EMAIL);
+// "alice@example.com" (unchanged)
+
+echo filter_var("alice @example .com", FILTER_SANITIZE_EMAIL);
+// "alice@example.com" (spaces removed)
+
+echo filter_var("alice<script>@example.com", FILTER_SANITIZE_EMAIL);
+// "alicescript@example.com" (HTML stripped)</code></pre>
+
+                <h3>FILTER_SANITIZE_URL</h3>
+                <pre><code class="language-php">&lt;?php
+echo filter_var("https://example.com/path?q=hello world", FILTER_SANITIZE_URL);
+// "https://example.com/path?q=helloworld" (spaces removed)
+
+echo filter_var("https://example.com/<script>", FILTER_SANITIZE_URL);
+// "https://example.com/script" (stripped)</code></pre>
+
+                <h3>FILTER_SANITIZE_NUMBER_INT</h3>
+                <pre><code class="language-php">&lt;?php
+echo filter_var("Age: 25 years", FILTER_SANITIZE_NUMBER_INT);    // "25"
+echo filter_var("+1-555-123-4567", FILTER_SANITIZE_NUMBER_INT);  // "+15551234567"
+echo filter_var("$49.99", FILTER_SANITIZE_NUMBER_INT);            // "4999"
+echo filter_var("-42", FILTER_SANITIZE_NUMBER_INT);                // "-42"</code></pre>
+
+                <h3>FILTER_SANITIZE_NUMBER_FLOAT</h3>
+                <pre><code class="language-php">&lt;?php
+// Must specify FILTER_FLAG_ALLOW_FRACTION to keep the decimal point
+echo filter_var("$1,234.56", FILTER_SANITIZE_NUMBER_FLOAT,
+    ["flags" => FILTER_FLAG_ALLOW_FRACTION]);
+// "1234.56"
+
+echo filter_var("Price: €49.99!", FILTER_SANITIZE_NUMBER_FLOAT,
+    ["flags" => FILTER_FLAG_ALLOW_FRACTION]);
+// "49.99"</code></pre>
+
+                <h3>FILTER_SANITIZE_SPECIAL_CHARS</h3>
+                <pre><code class="language-php">&lt;?php
+// Encodes special characters — similar to htmlspecialchars()
+echo filter_var('<script>alert("xss")</script>', FILTER_SANITIZE_SPECIAL_CHARS);
+// "&amp;#60;script&amp;#62;alert(&amp;#34;xss&amp;#34;)&amp;#60;/script&amp;#62;"</code></pre>
+
+                <h3>FILTER_SANITIZE_ADD_SLASHES</h3>
+                <pre><code class="language-php">&lt;?php
+// Adds backslashes before quotes and backslash (like addslashes())
+echo filter_var('He said "hello"', FILTER_SANITIZE_ADD_SLASHES);
+// "He said \"hello\""</code></pre>
+
+                <h3>htmlspecialchars() — The Essential Sanitizer</h3>
+                <p>While <code>filter_var</code> has sanitization filters, <code>htmlspecialchars()</code> remains the most important function for output sanitization. Use it <strong>every time</strong> you display user data in HTML:</p>
+
+                <pre><code class="language-php">&lt;?php
+$userInput = '&lt;script&gt;alert("hacked")&lt;/script&gt;';
+
+// What htmlspecialchars converts:
+// &lt;  → &amp;lt;
+// &gt;  → &amp;gt;
+// "  → &amp;quot;
+// '  → &amp;#039;  (with ENT_QUOTES)
+// &amp;  → &amp;amp;
+
+echo htmlspecialchars($userInput, ENT_QUOTES, "UTF-8");
+// &amp;lt;script&amp;gt;alert(&amp;quot;hacked&amp;quot;)&amp;lt;/script&amp;gt;
+// Browser displays it as text, not as executable code</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 Two Contexts, Two Functions</h4>
+                    <p><strong>Input sanitization</strong> — Use <code>filter_var()</code> with <code>FILTER_SANITIZE_*</code> to clean data when you receive it.</p>
+                    <p><strong>Output sanitization</strong> — Use <code>htmlspecialchars()</code> when displaying data in HTML. This is your primary XSS defense.</p>
+                    <p>Many developers do both: sanitize on input AND escape on output. That's the safest approach.</p>
+                </div>
+
+                <h3>Sanitize + Validate Together</h3>
+                <p>The typical pattern is to sanitize first, then validate the cleaned result:</p>
+                <pre><code class="language-php">&lt;?php
+// Step 1: Get and trim the input
+$email = trim($_POST["email"] ?? "");
+
+// Step 2: Sanitize — remove illegal email characters
+$email = filter_var($email, FILTER_SANITIZE_EMAIL);
+
+// Step 3: Validate — is it a properly formatted email?
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors[] = "Please enter a valid email address.";
+}
+
+// Step 4: When displaying, always escape
+echo "Email: " . htmlspecialchars($email);</code></pre>
+            </section>
+
+            <!-- Section 5: filter_input -->
+            <section id="section5" class="lesson-section">
+                <h2>filter_input() — Direct from GET/POST</h2>
+
+                <p><code>filter_input()</code> reads a value directly from <code>$_GET</code>, <code>$_POST</code>, or other input sources and applies a filter in one step. It returns <code>null</code> if the key doesn't exist, <code>false</code> if validation fails, or the filtered value on success.</p>
+
+                <pre><code class="language-php">&lt;?php
+// Syntax: filter_input(INPUT_TYPE, "key", FILTER, options)
+
+// Read and validate an email from POST
+$email = filter_input(INPUT_POST, "email", FILTER_VALIDATE_EMAIL);
+
+if ($email === null) {
+    echo "Email field was not submitted.";
+} elseif ($email === false) {
+    echo "Invalid email format.";
+} else {
+    echo "Valid email: $email";
+}
+
+// Read and validate an integer from GET
+$page = filter_input(INPUT_GET, "page", FILTER_VALIDATE_INT, [
+    "options" => ["min_range" => 1, "default" => 1]
+]);
+
+// Read and sanitize a string from POST
+$name = filter_input(INPUT_POST, "name", FILTER_SANITIZE_SPECIAL_CHARS);</code></pre>
+
+                <h3>Input Type Constants</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Constant</th>
+                                <th>Reads From</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>INPUT_GET</code></td>
+                                <td><code>$_GET</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>INPUT_POST</code></td>
+                                <td><code>$_POST</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>INPUT_COOKIE</code></td>
+                                <td><code>$_COOKIE</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>INPUT_SERVER</code></td>
+                                <td><code>$_SERVER</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>INPUT_ENV</code></td>
+                                <td><code>$_ENV</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>filter_input vs. filter_var</h3>
+                <pre><code class="language-php">&lt;?php
+// These two approaches are equivalent:
+
+// Approach 1: filter_var (two steps)
+$email = $_POST["email"] ?? "";
+$email = filter_var($email, FILTER_VALIDATE_EMAIL);
+
+// Approach 2: filter_input (one step)
+$email = filter_input(INPUT_POST, "email", FILTER_VALIDATE_EMAIL);
+
+// filter_input is slightly cleaner for simple cases.
+// filter_var is more flexible — you can sanitize THEN validate.</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use Which</h4>
+                    <p>Use <strong><code>filter_input()</code></strong> for quick, single-step validation of GET/POST data — especially for simple fields like page numbers, IDs, and email addresses.</p>
+                    <p>Use <strong><code>filter_var()</code></strong> when you need to sanitize first and then validate, or when you're working with data that's already in a variable (not directly from a superglobal).</p>
+                </div>
+
+                <h3>filter_input_array() — Validate Multiple Fields at Once</h3>
+                <pre><code class="language-php">&lt;?php
+// Define filters for multiple POST fields at once
+$filters = [
+    "name"  => FILTER_SANITIZE_SPECIAL_CHARS,
+    "email" => FILTER_VALIDATE_EMAIL,
+    "age"   => [
+        "filter"  => FILTER_VALIDATE_INT,
+        "options" => ["min_range" => 13, "max_range" => 120],
+    ],
+    "url"   => FILTER_VALIDATE_URL,
+];
+
+// Apply all filters in one call
+$result = filter_input_array(INPUT_POST, $filters);
+
+// $result is an associative array:
+// [
+//     "name"  => "Alice" (sanitized),
+//     "email" => "alice@example.com" or false,
+//     "age"   => 25 or false,
+//     "url"   => "https://..." or false,
+// ]
+
+// Check each result
+if ($result["email"] === false) {
+    $errors[] = "Invalid email address.";
+}
+if ($result["age"] === false) {
+    $errors[] = "Age must be between 13 and 120.";
+}</code></pre>
+            </section>
+
+            <!-- Section 6: Custom Validation with Regex -->
+            <section id="section6" class="lesson-section">
+                <h2>Custom Validation with Regex</h2>
+
+                <p>PHP's built-in filters cover common cases, but sometimes you need custom patterns. That's where regular expressions from Lesson 10 come back into play.</p>
+
+                <h3>Common Custom Validations</h3>
+
+                <h4>Username (alphanumeric + underscore, 3–20 chars)</h4>
+                <pre><code class="language-php">&lt;?php
+function validate_username(string $username): bool {
+    return (bool) preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username);
+}
+
+// Test
+var_dump(validate_username("alice_123"));    // true
+var_dump(validate_username("ab"));           // false (too short)
+var_dump(validate_username("alice smith"));  // false (space)
+var_dump(validate_username("alice@bob"));    // false (@ not allowed)</code></pre>
+
+                <h4>Phone Number (US format)</h4>
+                <pre><code class="language-php">&lt;?php
+function validate_phone(string $phone): bool {
+    // Accept: 555-123-4567, (555) 123-4567, 5551234567, 555.123.4567
+    $cleaned = preg_replace('/[\s\-\.\(\)]/', '', $phone);
+    return (bool) preg_match('/^1?\d{10}$/', $cleaned);
+}
+
+function format_phone(string $phone): string {
+    $digits = preg_replace('/\D/', '', $phone);
+    if (strlen($digits) === 11 && $digits[0] === "1") {
+        $digits = substr($digits, 1); // Remove leading 1
+    }
+    return sprintf("(%s) %s-%s",
+        substr($digits, 0, 3),
+        substr($digits, 3, 3),
+        substr($digits, 6, 4)
+    );
+}
+
+echo format_phone("2025551234"); // "(202) 555-1234"</code></pre>
+
+                <h4>US ZIP Code</h4>
+                <pre><code class="language-php">&lt;?php
+function validate_zip(string $zip): bool {
+    return (bool) preg_match('/^\d{5}(-\d{4})?$/', $zip);
+}
+
+var_dump(validate_zip("89012"));      // true
+var_dump(validate_zip("89012-1234")); // true
+var_dump(validate_zip("8901"));       // false
+var_dump(validate_zip("ABCDE"));      // false</code></pre>
+
+                <h4>Strong Password</h4>
+                <pre><code class="language-php">&lt;?php
+function validate_password(string $password): array {
+    $errors = [];
+
+    if (strlen($password) < 8) {
+        $errors[] = "Must be at least 8 characters.";
+    }
+    if (!preg_match('/[A-Z]/', $password)) {
+        $errors[] = "Must contain at least one uppercase letter.";
+    }
+    if (!preg_match('/[a-z]/', $password)) {
+        $errors[] = "Must contain at least one lowercase letter.";
+    }
+    if (!preg_match('/\d/', $password)) {
+        $errors[] = "Must contain at least one digit.";
+    }
+    if (!preg_match('/[^a-zA-Z\d]/', $password)) {
+        $errors[] = "Must contain at least one special character.";
+    }
+
+    return $errors;
+}
+
+$pwErrors = validate_password("abc");
+// ["Must be at least 8 characters.", "Must contain at least one uppercase letter.",
+//  "Must contain at least one digit.", "Must contain at least one special character."]
+
+$pwErrors = validate_password("Str0ng!Pass");
+// [] (empty — all checks passed)</code></pre>
+
+                <h4>Hex Color Code</h4>
+                <pre><code class="language-php">&lt;?php
+function validate_hex_color(string $color): bool {
+    return (bool) preg_match('/^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $color);
+}
+
+var_dump(validate_hex_color("#FF00AA"));  // true
+var_dump(validate_hex_color("#F0A"));     // true (shorthand)
+var_dump(validate_hex_color("FF00AA"));   // true (without #)
+var_dump(validate_hex_color("#GGHHII"));  // false</code></pre>
+
+                <h3>Using FILTER_VALIDATE_REGEXP</h3>
+                <p>You can also use custom regex directly with <code>filter_var()</code>:</p>
+                <pre><code class="language-php">&lt;?php
+// Validate a product code like "PRD-12345"
+$code = "PRD-12345";
+$result = filter_var($code, FILTER_VALIDATE_REGEXP, [
+    "options" => ["regexp" => '/^[A-Z]{3}-\d{5}$/']
+]);
+
+if ($result === false) {
+    echo "Invalid product code format.";
+} else {
+    echo "Valid code: $result";
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Write Specific Error Messages</h4>
+                    <p>Instead of "Invalid input," tell the user exactly what's wrong: "Username must be 3–20 characters using only letters, numbers, and underscores." Specific messages help users fix their input without guessing.</p>
+                </div>
+            </section>
+
+            <!-- Section 7: Building a Validation Pattern -->
+            <section id="section7" class="lesson-section">
+                <h2>Building a Validation Pattern</h2>
+
+                <p>Let's put everything together into a reusable pattern for validating forms. This is a structure you'll use in virtually every PHP project.</p>
+
+                <h3>Complete Self-Processing Form with Validation</h3>
+                <pre><code class="language-php">&lt;?php
+// ============================================
+// 1. Initialize variables and error array
+// ============================================
+$name     = "";
+$email    = "";
+$age      = "";
+$website  = "";
+$password = "";
+$errors   = [];
+$success  = false;
+
+// ============================================
+// 2. Process form submission
+// ============================================
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    // --- Name ---
+    $name = trim($_POST["name"] ?? "");
+    if ($name === "") {
+        $errors["name"] = "Name is required.";
+    } elseif (strlen($name) &lt; 2 || strlen($name) &gt; 50) {
+        $errors["name"] = "Name must be 2–50 characters.";
+    } elseif (!preg_match('/^[a-zA-Z\s\'-]+$/', $name)) {
+        $errors["name"] = "Name can only contain letters, spaces, hyphens, and apostrophes.";
+    }
+
+    // --- Email ---
+    $email = trim($_POST["email"] ?? "");
+    $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+    if ($email === "") {
+        $errors["email"] = "Email is required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors["email"] = "Please enter a valid email address.";
+    }
+
+    // --- Age ---
+    $age = $_POST["age"] ?? "";
+    $ageValid = filter_var($age, FILTER_VALIDATE_INT, [
+        "options" => ["min_range" => 13, "max_range" => 120]
+    ]);
+    if ($age === "") {
+        $errors["age"] = "Age is required.";
+    } elseif ($ageValid === false) {
+        $errors["age"] = "Age must be a number between 13 and 120.";
+    } else {
+        $age = $ageValid; // Use the validated integer
+    }
+
+    // --- Website (optional) ---
+    $website = trim($_POST["website"] ?? "");
+    if ($website !== "") {
+        // Add https:// if no scheme provided
+        if (!preg_match('/^https?:\/\//', $website)) {
+            $website = "https://" . $website;
+        }
+        if (!filter_var($website, FILTER_VALIDATE_URL)) {
+            $errors["website"] = "Please enter a valid URL.";
+        }
+    }
+
+    // --- Password ---
+    $password = $_POST["password"] ?? "";
+    $pwErrors = validate_password($password); // Our function from above
+    if (!empty($pwErrors)) {
+        $errors["password"] = "Password: " . implode(" ", $pwErrors);
+    }
+
+    // ============================================
+    // 3. All valid? Process the data!
+    // ============================================
+    if (empty($errors)) {
+        // Hash the password, save to database, etc.
+        $success = true;
+    }
+}
+
+// ============================================
+// Helper: Check if a field has an error
+// ============================================
+function field_error(string $field, array $errors): string {
+    if (isset($errors[$field])) {
+        return '&lt;span class="error"&gt;' . htmlspecialchars($errors[$field]) . '&lt;/span&gt;';
+    }
+    return "";
+}
+
+function field_class(string $field, array $errors): string {
+    return isset($errors[$field]) ? 'class="input-error"' : '';
+}
+?&gt;</code></pre>
+
+                <p>And the HTML portion of the same file:</p>
+                <pre><code class="language-html">&lt;!-- In the HTML section of the same file --&gt;
+&lt;?php if ($success): ?&gt;
+    &lt;div class="alert success"&gt;
+        &lt;p&gt;Account created successfully! Welcome, &lt;?= htmlspecialchars($name) ?&gt;.&lt;/p&gt;
+    &lt;/div&gt;
+&lt;?php else: ?&gt;
+    &lt;form method="post" action="" novalidate&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="name"&gt;Name *&lt;/label&gt;
+            &lt;input type="text" id="name" name="name"
+                   value="&lt;?= htmlspecialchars($name) ?&gt;"
+                   &lt;?= field_class("name", $errors) ?&gt;&gt;
+            &lt;?= field_error("name", $errors) ?&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="email"&gt;Email *&lt;/label&gt;
+            &lt;input type="email" id="email" name="email"
+                   value="&lt;?= htmlspecialchars($email) ?&gt;"
+                   &lt;?= field_class("email", $errors) ?&gt;&gt;
+            &lt;?= field_error("email", $errors) ?&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="age"&gt;Age *&lt;/label&gt;
+            &lt;input type="number" id="age" name="age"
+                   value="&lt;?= htmlspecialchars($age) ?&gt;"
+                   &lt;?= field_class("age", $errors) ?&gt;&gt;
+            &lt;?= field_error("age", $errors) ?&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="website"&gt;Website (optional)&lt;/label&gt;
+            &lt;input type="url" id="website" name="website"
+                   value="&lt;?= htmlspecialchars($website) ?&gt;"
+                   &lt;?= field_class("website", $errors) ?&gt;&gt;
+            &lt;?= field_error("website", $errors) ?&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="password"&gt;Password *&lt;/label&gt;
+            &lt;input type="password" id="password" name="password"
+                   &lt;?= field_class("password", $errors) ?&gt;&gt;
+            &lt;?= field_error("password", $errors) ?&gt;
+            &lt;small&gt;Min 8 chars, must include uppercase, lowercase, digit, and special character.&lt;/small&gt;
+        &lt;/div&gt;
+
+        &lt;button type="submit"&gt;Create Account&lt;/button&gt;
+    &lt;/form&gt;
+&lt;?php endif; ?&gt;</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Key Patterns to Notice</h4>
+                    <ul>
+                        <li>Errors are stored in an associative array keyed by field name — so each field shows its own error</li>
+                        <li>Helper functions <code>field_error()</code> and <code>field_class()</code> keep the HTML clean</li>
+                        <li><code>novalidate</code> on the form disables browser validation for testing (remove in production)</li>
+                        <li>Passwords are never made sticky — don't echo passwords back into the form</li>
+                        <li>Optional fields validate only when they have a value</li>
+                    </ul>
+                </div>
+
+                <h3>Best Practices for Error Messages</h3>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bad Message</th>
+                                <th>Good Message</th>
+                                <th>Why</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>"Invalid input"</td>
+                                <td>"Name must be 2–50 characters"</td>
+                                <td>Tells the user exactly what to fix</td>
+                            </tr>
+                            <tr>
+                                <td>"Error in field 3"</td>
+                                <td>"Email: Please include an @ sign"</td>
+                                <td>Identifies the field by name</td>
+                            </tr>
+                            <tr>
+                                <td>"Bad email"</td>
+                                <td>"Please enter a valid email (e.g., name@example.com)"</td>
+                                <td>Shows the expected format</td>
+                            </tr>
+                            <tr>
+                                <td>"Password wrong"</td>
+                                <td>"Password must include at least one uppercase letter"</td>
+                                <td>Specifies which rule failed</td>
+                            </tr>
+                            <tr>
+                                <td>"Validation failed: FILTER_VALIDATE_INT"</td>
+                                <td>"Age must be a whole number between 13 and 120"</td>
+                                <td>Human language, not code constants</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <blockquote>
+                    <strong>💡 Tip:</strong> Never reveal technical details in error messages shown to users. "SQL syntax error near 'DROP TABLE'" tells attackers what you're vulnerable to. Log technical errors; show friendly messages.
+                </blockquote>
+            </section>
+
+            <!-- Section 8: Exercises -->
+            <section id="section8" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Validation Function Library</h3>
+                    <p><strong>Objective:</strong> Build a set of reusable validation functions.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create the following functions, each returning <code>true</code> on success or an error message string on failure:</li>
+                    </ol>
+                    <pre><code class="language-php">validate_required($value, $fieldName)    // Non-empty after trim
+validate_email($value)                   // Valid email
+validate_min_length($value, $min, $name) // Minimum string length
+validate_max_length($value, $max, $name) // Maximum string length
+validate_int_range($value, $min, $max, $name) // Integer in range
+validate_in_list($value, $allowed, $name)     // Value is in allowed list</code></pre>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Return <code>true</code> for valid, a string for invalid. The calling code checks: <code>if ($result !== true) { $errors[] = $result; }</code></p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+function validate_required(string $value, string $fieldName): string|true {
+    return trim($value) !== "" ? true : "$fieldName is required.";
+}
+
+function validate_email(string $value): string|true {
+    $value = trim($value);
+    if ($value === "") return "Email is required.";
+    $sanitized = filter_var($value, FILTER_SANITIZE_EMAIL);
+    return filter_var($sanitized, FILTER_VALIDATE_EMAIL)
+        ? true
+        : "Please enter a valid email address.";
+}
+
+function validate_min_length(string $value, int $min, string $name): string|true {
+    return strlen(trim($value)) >= $min
+        ? true
+        : "$name must be at least $min characters.";
+}
+
+function validate_max_length(string $value, int $max, string $name): string|true {
+    return strlen(trim($value)) &lt;= $max
+        ? true
+        : "$name must be no more than $max characters.";
+}
+
+function validate_int_range(string $value, int $min, int $max, string $name): string|true {
+    $result = filter_var($value, FILTER_VALIDATE_INT, [
+        "options" => ["min_range" => $min, "max_range" => $max]
+    ]);
+    return $result !== false ? true : "$name must be a number between $min and $max.";
+}
+
+function validate_in_list(string $value, array $allowed, string $name): string|true {
+    return in_array($value, $allowed, true)
+        ? true
+        : "$name must be one of: " . implode(", ", $allowed) . ".";
+}
+
+// Usage
+$errors = [];
+$checks = [
+    validate_required($_POST["name"] ?? "", "Name"),
+    validate_email($_POST["email"] ?? ""),
+    validate_min_length($_POST["name"] ?? "", 2, "Name"),
+    validate_int_range($_POST["age"] ?? "", 13, 120, "Age"),
+    validate_in_list($_POST["role"] ?? "", ["user", "editor", "admin"], "Role"),
+];
+
+foreach ($checks as $result) {
+    if ($result !== true) {
+        $errors[] = $result;
+    }
+}</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Contact Form with Full Validation</h3>
+                    <p><strong>Objective:</strong> Build a fully validated, sticky, self-processing contact form.</p>
+
+                    <h4>Requirements:</h4>
+                    <ul>
+                        <li>Fields: Name (required, 2–50 chars, letters/spaces only), Email (required, valid format), Phone (optional, US format), Subject (required, select dropdown), Message (required, 10–1000 chars)</li>
+                        <li>Per-field error messages displayed next to each input</li>
+                        <li>All fields are sticky (except password if you add one)</li>
+                        <li>Success message on valid submission</li>
+                        <li>Use both <code>filter_var()</code> and regex validation</li>
+                    </ul>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use the associative error array pattern: <code>$errors["name"] = "..."</code>. Create helper functions for displaying errors next to fields. Validate the phone only if it's not empty.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$name    = "";
+$email   = "";
+$phone   = "";
+$subject = "";
+$message = "";
+$errors  = [];
+$success = false;
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Sanitize
+    $name    = trim($_POST["name"] ?? "");
+    $email   = trim($_POST["email"] ?? "");
+    $email   = filter_var($email, FILTER_SANITIZE_EMAIL);
+    $phone   = trim($_POST["phone"] ?? "");
+    $subject = $_POST["subject"] ?? "";
+    $message = trim($_POST["message"] ?? "");
+
+    // Validate name
+    if ($name === "") {
+        $errors["name"] = "Name is required.";
+    } elseif (strlen($name) &lt; 2 || strlen($name) &gt; 50) {
+        $errors["name"] = "Name must be 2–50 characters.";
+    } elseif (!preg_match('/^[a-zA-Z\s\'-]+$/', $name)) {
+        $errors["name"] = "Name can only contain letters, spaces, hyphens, and apostrophes.";
+    }
+
+    // Validate email
+    if ($email === "") {
+        $errors["email"] = "Email is required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors["email"] = "Please enter a valid email (e.g., name@example.com).";
+    }
+
+    // Validate phone (optional)
+    if ($phone !== "") {
+        $phoneDigits = preg_replace('/\D/', '', $phone);
+        if (strlen($phoneDigits) &lt; 10 || strlen($phoneDigits) &gt; 11) {
+            $errors["phone"] = "Please enter a valid US phone number.";
+        }
+    }
+
+    // Validate subject
+    $validSubjects = ["general", "support", "billing", "feedback"];
+    if (!in_array($subject, $validSubjects)) {
+        $errors["subject"] = "Please select a subject.";
+    }
+
+    // Validate message
+    if ($message === "") {
+        $errors["message"] = "Message is required.";
+    } elseif (strlen($message) &lt; 10) {
+        $errors["message"] = "Message must be at least 10 characters.";
+    } elseif (strlen($message) &gt; 1000) {
+        $errors["message"] = "Message must be under 1000 characters.";
+    }
+
+    if (empty($errors)) {
+        $success = true;
+    }
+}
+
+function err(string $field): string {
+    global $errors;
+    return isset($errors[$field])
+        ? "&lt;span class='error'&gt;" . htmlspecialchars($errors[$field]) . "&lt;/span&gt;" : "";
+}
+?&gt;
+
+&lt;?php if ($success): ?&gt;
+    &lt;p class="success"&gt;Thanks, &lt;?= htmlspecialchars($name) ?&gt;! Your message has been received.&lt;/p&gt;
+&lt;?php else: ?&gt;
+    &lt;form method="post" action=""&gt;
+        &lt;label&gt;Name *&lt;br&gt;
+            &lt;input type="text" name="name" value="&lt;?= htmlspecialchars($name) ?&gt;"&gt;
+        &lt;/label&gt;&lt;?= err("name") ?&gt;&lt;br&gt;
+
+        &lt;label&gt;Email *&lt;br&gt;
+            &lt;input type="email" name="email" value="&lt;?= htmlspecialchars($email) ?&gt;"&gt;
+        &lt;/label&gt;&lt;?= err("email") ?&gt;&lt;br&gt;
+
+        &lt;label&gt;Phone (optional)&lt;br&gt;
+            &lt;input type="tel" name="phone" value="&lt;?= htmlspecialchars($phone) ?&gt;"&gt;
+        &lt;/label&gt;&lt;?= err("phone") ?&gt;&lt;br&gt;
+
+        &lt;label&gt;Subject *&lt;br&gt;
+            &lt;select name="subject"&gt;
+                &lt;option value=""&gt;-- Select --&lt;/option&gt;
+                &lt;?php foreach (["general"=&gt;"General","support"=&gt;"Support","billing"=&gt;"Billing","feedback"=&gt;"Feedback"] as $v=&gt;$l): ?&gt;
+                    &lt;option value="&lt;?=$v?&gt;" &lt;?=$subject===$v?"selected":""?&gt;&gt;&lt;?=$l?&gt;&lt;/option&gt;
+                &lt;?php endforeach; ?&gt;
+            &lt;/select&gt;
+        &lt;/label&gt;&lt;?= err("subject") ?&gt;&lt;br&gt;
+
+        &lt;label&gt;Message * (10–1000 chars)&lt;br&gt;
+            &lt;textarea name="message" rows="5"&gt;&lt;?= htmlspecialchars($message) ?&gt;&lt;/textarea&gt;
+        &lt;/label&gt;&lt;?= err("message") ?&gt;&lt;br&gt;
+
+        &lt;button type="submit"&gt;Send Message&lt;/button&gt;
+    &lt;/form&gt;
+&lt;?php endif; ?&gt;</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What's the difference between validation and sanitization?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="They serve different purposes — one checks, the other cleans.">
+                                A) They're the same thing — both make data safe
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Validation checks whether input meets your rules (returns pass/fail). Sanitization modifies input to remove dangerous characters (returns cleaned data). Use both: sanitize first, then validate.">
+                                B) Validation checks if data is correct; sanitization removes dangerous characters
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both are server-side operations in PHP. Client-side validation is a separate concern.">
+                                C) Validation is server-side; sanitization is client-side
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What does <code>filter_var("0", FILTER_VALIDATE_INT)</code> return?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="0 is a valid integer — filter_var returns it successfully.">
+                                A) false — zero is not a valid integer
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! filter_var returns the integer 0 because '0' IS a valid integer. This is why you must use === false for comparisons: if (!filter_var('0', ...)) would wrongly treat 0 as invalid because 0 is falsy.">
+                                B) The integer 0 — it's a valid integer
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="filter_var with FILTER_VALIDATE_INT returns an integer on success, not a string.">
+                                C) The string "0"
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> Why shouldn't you rely on HTML5 form validation alone?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="HTML5 validation works in all modern browsers. The problem isn't browser support.">
+                                A) It's not supported in modern browsers
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Users can bypass client-side validation by editing HTML in dev tools, disabling JavaScript, or submitting requests directly with tools like curl or Postman. Server-side validation in PHP is the only reliable gatekeeper.">
+                                B) Users can bypass it using developer tools or by sending requests directly
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="HTML5 validation is actually quite good for user experience. The issue is that it can be circumvented.">
+                                C) HTML5 validation has too many bugs to be useful
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What does <code>filter_input(INPUT_POST, "email", FILTER_VALIDATE_EMAIL)</code> return if the key doesn't exist?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="false means the key exists but the value failed validation.">
+                                A) false
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! filter_input returns null when the key doesn't exist at all, false when the key exists but fails validation, and the filtered value on success. This three-way distinction lets you tell the difference between 'not submitted' and 'submitted but invalid.'">
+                                B) null
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="filter_input doesn't return empty strings — it returns null for missing keys.">
+                                C) An empty string ""
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> When should you use <code>htmlspecialchars()</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="htmlspecialchars is for output sanitization, not input validation.">
+                                A) When reading data from $_POST
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="While database queries need protection, that's what prepared statements are for (Lesson 19).">
+                                B) Before inserting data into a database
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! htmlspecialchars() is an output-side defense. Use it every time you display user-supplied data in HTML — in page content, form values, attributes, etc. This prevents XSS by converting < > \" & into safe HTML entities.">
+                                C) When displaying user data in HTML output
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 9: Summary -->
+            <section id="section9" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Never trust user input</strong> — client-side validation is a UX convenience, server-side validation is a security requirement</li>
+                        <li><strong>Sanitize then validate</strong> — clean the data first, then check if it meets your rules</li>
+                        <li><strong><code>filter_var()</code></strong> handles both validation (<code>FILTER_VALIDATE_*</code>) and sanitization (<code>FILTER_SANITIZE_*</code>)</li>
+                        <li><strong>Key validation filters:</strong> <code>FILTER_VALIDATE_EMAIL</code>, <code>FILTER_VALIDATE_INT</code> (with min/max range), <code>FILTER_VALIDATE_URL</code>, <code>FILTER_VALIDATE_FLOAT</code>, <code>FILTER_VALIDATE_IP</code></li>
+                        <li><strong><code>filter_input()</code></strong> reads and filters GET/POST data in one step; returns <code>null</code> (missing), <code>false</code> (invalid), or the value (valid)</li>
+                        <li><strong>Use <code>=== false</code></strong> for filter comparisons — <code>0</code> and <code>""</code> are valid results that evaluate as falsy</li>
+                        <li><strong>Custom regex</strong> for patterns PHP doesn't cover: usernames, phone numbers, ZIP codes, product codes</li>
+                        <li><strong><code>htmlspecialchars()</code></strong> is your primary XSS defense — use it on all user data displayed in HTML</li>
+                        <li><strong>Specific error messages</strong> help users fix problems; never expose technical details to end users</li>
+                        <li><strong>Store errors by field name</strong> (<code>$errors["email"] = "..."</code>) so each field can show its own error</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/function.filter-var.php" target="_blank" rel="noopener">PHP Manual: filter_var()</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.filter-input.php" target="_blank" rel="noopener">PHP Manual: filter_input()</a></li>
+                    <li><a href="https://www.php.net/manual/en/filter.filters.validate.php" target="_blank" rel="noopener">PHP Manual: Validation Filters List</a></li>
+                    <li><a href="https://www.php.net/manual/en/filter.filters.sanitize.php" target="_blank" rel="noopener">PHP Manual: Sanitization Filters List</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.htmlspecialchars.php" target="_blank" rel="noopener">PHP Manual: htmlspecialchars()</a></li>
+                    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html" target="_blank" rel="noopener">OWASP Input Validation Cheat Sheet</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>You can now receive, validate, and sanitize user input safely. In <strong>Lesson 13: File Handling &amp; Includes</strong>, you'll learn to read and write files with PHP, organize your code with <code>include</code>/<code>require</code>, and build reusable components like headers and footers.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You now know how to build forms that reject bad data before it ever reaches your application. This is a skill you'll use in every PHP project.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_11.html" class="prev-lesson">← Previous: Working with Forms</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_13.html" class="next-lesson">Next: File Handling &amp; Includes →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

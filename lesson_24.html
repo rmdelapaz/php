@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Deploy your PHP application to a live server, learn Composer for dependency management, explore PHP frameworks like Laravel and Symfony, and plan your continued learning path.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Deployment, Next Steps &amp; Best Practices - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 7: Real-World Skills</a></li>
+            <li aria-current="page">Lesson 24: Deployment, Next Steps &amp; Best Practices</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🚀 Lesson 24: Deployment, Next Steps &amp; Best Practices</h1>
+                <p class="lead">You've built a complete foundation in PHP — from syntax basics to database-driven applications with security protections. Now it's time to take your work live. In this final lesson, you'll learn how to deploy a PHP application to a hosting provider, use Composer to manage dependencies, and chart a path forward into the PHP ecosystem with frameworks, APIs, and advanced tools.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Deploy a PHP application to a free or paid hosting provider</li>
+                        <li>Configure environment variables and production settings</li>
+                        <li>Install and use Composer for dependency management</li>
+                        <li>Understand the role of PHP frameworks and when to use them</li>
+                        <li>Build a basic REST API endpoint with PHP</li>
+                        <li>Plan your continued learning path in the PHP ecosystem</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 30 minutes</p>
+                    <p><strong>Prerequisites:</strong> All previous lessons</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">Preparing for Production</a></li>
+                        <li><a href="#section2" class="toc-link">Deployment Options</a></li>
+                        <li><a href="#section3" class="toc-link">Deploying to Shared Hosting</a></li>
+                        <li><a href="#section4" class="toc-link">Environment Variables</a></li>
+                        <li><a href="#section5" class="toc-link">Introduction to Composer</a></li>
+                        <li><a href="#section6" class="toc-link">Building a REST API</a></li>
+                        <li><a href="#section7" class="toc-link">PHP Frameworks</a></li>
+                        <li><a href="#section8" class="toc-link">Your Learning Roadmap</a></li>
+                        <li><a href="#section9" class="toc-link">Summary &amp; Course Wrap-Up</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Preparing for Production -->
+            <section id="section1" class="lesson-section">
+                <h2>Preparing for Production</h2>
+
+                <p>Before deploying, you need to switch from development mode to production mode. The differences are critical — development settings that help you debug can become security vulnerabilities in production.</p>
+
+                <h3>The Production Checklist</h3>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Setting</th>
+                                <th>Development</th>
+                                <th>Production</th>
+                                <th>Why</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>display_errors</code></td>
+                                <td><code>On</code></td>
+                                <td><code>Off</code></td>
+                                <td>Error messages expose file paths, SQL queries, and stack traces to attackers</td>
+                            </tr>
+                            <tr>
+                                <td><code>error_reporting</code></td>
+                                <td><code>E_ALL</code></td>
+                                <td><code>E_ALL</code></td>
+                                <td>Still report all errors — but log them, don't display them</td>
+                            </tr>
+                            <tr>
+                                <td><code>log_errors</code></td>
+                                <td><code>On</code></td>
+                                <td><code>On</code></td>
+                                <td>Write errors to a log file for later review</td>
+                            </tr>
+                            <tr>
+                                <td><code>error_log</code></td>
+                                <td>(default)</td>
+                                <td>Specific path</td>
+                                <td>Control where error logs are written</td>
+                            </tr>
+                            <tr>
+                                <td>Session cookies</td>
+                                <td>Default</td>
+                                <td><code>Secure</code>, <code>HttpOnly</code>, <code>SameSite</code></td>
+                                <td>Prevents cookie theft and CSRF (Lesson 23)</td>
+                            </tr>
+                            <tr>
+                                <td>Database credentials</td>
+                                <td>In config file</td>
+                                <td>In environment variables</td>
+                                <td>Keeps secrets out of your code repository</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Creating a Production php.ini Override</h3>
+
+                <p>On shared hosting, you may not have access to the main <code>php.ini</code>. You can create a <code>.user.ini</code> file in your project root to override settings:</p>
+
+                <pre><code class="language-php">; File: .user.ini (place in project root)
+; Production settings
+
+display_errors = Off
+log_errors = On
+error_reporting = E_ALL
+error_log = /home/youruser/logs/php_errors.log
+
+; Session security
+session.cookie_secure = On
+session.cookie_httponly = On
+session.cookie_samesite = Lax
+session.use_strict_mode = On
+
+; Upload limits (adjust as needed)
+upload_max_filesize = 10M
+post_max_size = 12M</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Never Commit Credentials</h4>
+                    <p>Database passwords, API keys, and other secrets should <strong>never</strong> appear in your code files. If you use Git, add config files with credentials to <code>.gitignore</code>. Use environment variables instead (covered in Section 4).</p>
+                </div>
+            </section>
+
+            <!-- Section 2: Deployment Options -->
+            <section id="section2" class="lesson-section">
+                <h2>Deployment Options</h2>
+
+                <p>PHP runs on nearly every hosting platform. Here's an overview of your options, from free to professional:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th>Cost</th>
+                                <th>Best For</th>
+                                <th>PHP + MySQL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>InfinityFree</strong></td>
+                                <td>Free</td>
+                                <td>Learning, portfolio projects</td>
+                                <td>Yes — PHP 8.x, MySQL, free subdomain + custom domain</td>
+                            </tr>
+                            <tr>
+                                <td><strong>000webhost</strong></td>
+                                <td>Free</td>
+                                <td>Small projects, testing</td>
+                                <td>Yes — PHP, MySQL, limited resources</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Shared Hosting</strong><br>(Hostinger, SiteGround, A2)</td>
+                                <td>$3–10/mo</td>
+                                <td>Personal sites, small business, WordPress</td>
+                                <td>Yes — cPanel, one-click installs, email</td>
+                            </tr>
+                            <tr>
+                                <td><strong>VPS</strong><br>(DigitalOcean, Linode, Vultr)</td>
+                                <td>$5–20/mo</td>
+                                <td>Full control, multiple apps, learning sysadmin</td>
+                                <td>Yes — you install and configure everything</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PaaS</strong><br>(Railway, Render, Laravel Forge)</td>
+                                <td>$5–25/mo</td>
+                                <td>Deploy from Git, managed infrastructure</td>
+                                <td>Yes — automatic deployments, managed databases</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cloud</strong><br>(AWS, Google Cloud, Azure)</td>
+                                <td>Pay-per-use</td>
+                                <td>Enterprise, high traffic, microservices</td>
+                                <td>Yes — fully managed services, auto-scaling</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ Recommendation for Learners</h4>
+                    <p>Start with <strong>InfinityFree</strong> (free) to deploy your first project and see it live. When you're ready for something more robust, try <strong>shared hosting</strong> ($3–5/month) for real projects, or a <strong>VPS</strong> ($5/month on DigitalOcean or Vultr) if you want to learn server administration. For modern deployment workflows, <strong>Railway</strong> or <strong>Render</strong> let you deploy directly from a Git repository.</p>
+                </div>
+            </section>
+
+            <!-- Section 3: Deploying -->
+            <section id="section3" class="lesson-section">
+                <h2>Deploying to Shared Hosting</h2>
+
+                <p>Most shared hosting uses cPanel with a file manager and FTP access. Here's the typical workflow:</p>
+
+                <div class="mermaid">
+                    flowchart LR
+                        LOCAL["💻 Local Dev<br>LAMP on WSL"] -->|"FTP / File Manager"| HOST["🌐 Shared Host<br>cPanel"]
+                        HOST --> DB["🗄️ Create MySQL DB<br>via phpMyAdmin"]
+                        HOST --> CONFIG["⚙️ Update Config<br>DB credentials"]
+                        HOST --> TEST["✅ Test Live Site"]
+                </div>
+
+                <h3>Step-by-Step Deployment</h3>
+
+                <h4>1. Sign Up and Access cPanel</h4>
+                <p>Create an account on your chosen host. You'll receive cPanel login credentials (usually at <code>yourdomain.com/cpanel</code> or <code>yourdomain.com:2083</code>).</p>
+
+                <h4>2. Create the MySQL Database</h4>
+                <ol>
+                    <li>In cPanel, go to <strong>MySQL Databases</strong></li>
+                    <li>Create a new database (e.g., <code>youruser_taskmanager</code>)</li>
+                    <li>Create a new database user with a strong password</li>
+                    <li>Add the user to the database with <strong>All Privileges</strong></li>
+                    <li>Open <strong>phpMyAdmin</strong> and run your <code>setup.sql</code> to create tables</li>
+                </ol>
+
+                <h4>3. Upload Your Files</h4>
+                <p>Use cPanel's <strong>File Manager</strong> or an FTP client like <a href="https://filezilla-project.org/" target="_blank" rel="noopener">FileZilla</a>:</p>
+                <ol>
+                    <li>Navigate to <code>public_html/</code> (or a subdirectory like <code>public_html/taskmanager/</code>)</li>
+                    <li>Upload all your PHP files and directories</li>
+                    <li>Set file permissions: <code>644</code> for files, <code>755</code> for directories</li>
+                    <li>Ensure the <code>uploads/</code> directory is writable: <code>755</code></li>
+                </ol>
+
+                <h4>4. Update Database Configuration</h4>
+                <pre><code class="language-php">&lt;?php
+// File: config/database.php (production version)
+
+return [
+    "host"   => "localhost",                    // Usually localhost on shared hosting
+    "dbname" => "youruser_taskmanager",         // Prefixed with your cPanel username
+    "user"   => "youruser_taskdb",              // The DB user you created
+    "pass"   => "your_strong_password_here",    // The password you set
+];</code></pre>
+
+                <h4>5. Test Everything</h4>
+                <ul>
+                    <li>Visit your site in the browser</li>
+                    <li>Test all CRUD operations</li>
+                    <li>Check that uploads work (correct permissions)</li>
+                    <li>Verify that errors are logged, not displayed</li>
+                    <li>Test on mobile</li>
+                </ul>
+
+                <div class="card card-accent">
+                    <h4>📖 Free Hosting with InfinityFree</h4>
+                    <p>InfinityFree provides free PHP + MySQL hosting with a custom subdomain (e.g., <code>yoursite.infinityfreeapp.com</code>). The process is similar to paid shared hosting: create a database in their panel, upload files via their file manager or FTP, and update your config. Limitations include no SSH access, limited bandwidth, and occasional downtime — but it's perfect for learning deployment.</p>
+                </div>
+            </section>
+
+            <!-- Section 4: Environment Variables -->
+            <section id="section4" class="lesson-section">
+                <h2>Environment Variables</h2>
+
+                <p>Hardcoding database credentials in your config file works for learning, but in the real world you want to keep secrets out of your codebase entirely. Environment variables solve this — they're set on the server, not in your code.</p>
+
+                <h3>Reading Environment Variables in PHP</h3>
+
+                <pre><code class="language-php">&lt;?php
+// File: config/database.php (environment-variable version)
+
+return [
+    "host"   => getenv("DB_HOST") ?: "localhost",
+    "dbname" => getenv("DB_NAME") ?: "task_manager",
+    "user"   => getenv("DB_USER") ?: "root",
+    "pass"   => getenv("DB_PASS") ?: "",
+];</code></pre>
+
+                <h3>Setting Environment Variables</h3>
+
+                <p>How you set them depends on your environment:</p>
+
+                <pre><code class="language-php"># Option 1: Apache (.htaccess or virtual host config)
+SetEnv DB_HOST "localhost"
+SetEnv DB_NAME "task_manager"
+SetEnv DB_USER "app_user"
+SetEnv DB_PASS "s3cur3_p@ssw0rd"
+
+# Option 2: Linux shell (for CLI scripts or cron jobs)
+export DB_HOST="localhost"
+export DB_NAME="task_manager"
+export DB_USER="app_user"
+export DB_PASS="s3cur3_p@ssw0rd"
+
+# Option 3: .env file (with a library like vlucas/phpdotenv — see Composer section)</code></pre>
+
+                <h3>Using .env Files with Composer</h3>
+
+                <p>The most popular approach in modern PHP is a <code>.env</code> file loaded by the <code>vlucas/phpdotenv</code> library:</p>
+
+                <pre><code class="language-php"># File: .env (in project root — NEVER commit this to Git!)
+
+DB_HOST=localhost
+DB_NAME=task_manager
+DB_USER=app_user
+DB_PASS=s3cur3_p@ssw0rd
+
+APP_ENV=production
+APP_DEBUG=false</code></pre>
+
+                <pre><code class="language-php">&lt;?php
+// Load .env variables (after installing phpdotenv via Composer)
+require __DIR__ . "/vendor/autoload.php";
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// Now access them with $_ENV or getenv()
+$dbHost = $_ENV["DB_HOST"];
+$dbName = $_ENV["DB_NAME"];</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Always Add .env to .gitignore</h4>
+                    <pre><code class="language-php"># File: .gitignore
+.env
+config/database.php   # If it contains credentials
+/vendor/              # Composer dependencies (reinstalled via composer install)
+/uploads/*            # User uploads
+!/uploads/.gitkeep    # Keep the directory in Git</code></pre>
+                    <p>Commit a <code>.env.example</code> file with placeholder values so other developers know which variables are needed.</p>
+                </div>
+            </section>
+
+            <!-- Section 5: Composer -->
+            <section id="section5" class="lesson-section">
+                <h2>Introduction to Composer</h2>
+
+                <p><strong>Composer</strong> is PHP's dependency manager — it's how you install and manage third-party libraries. Think of it as <code>npm</code> for PHP. Nearly every modern PHP project uses Composer, and understanding it is essential for working with frameworks.</p>
+
+                <h3>Installing Composer</h3>
+
+                <pre><code class="language-php"># On Ubuntu/WSL (your development environment):
+sudo apt update
+sudo apt install php-cli unzip
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+
+# Verify installation:
+composer --version
+# Output: Composer version 2.x.x 2025-xx-xx</code></pre>
+
+                <h3>Initializing a Project</h3>
+
+                <pre><code class="language-php"># Navigate to your project directory
+cd ~/projects/task-manager
+
+# Initialize Composer (creates composer.json)
+composer init
+
+# It will ask for:
+# - Package name (e.g., yourname/task-manager)
+# - Description
+# - Author
+# - Minimum stability
+# - License
+# - Dependencies (you can skip and add later)</code></pre>
+
+                <h3>Installing Packages</h3>
+
+                <pre><code class="language-php"># Install a package (e.g., phpdotenv for .env file support)
+composer require vlucas/phpdotenv
+
+# Install PHPMailer for email
+composer require phpmailer/phpmailer
+
+# Install a development-only tool (e.g., a testing framework)
+composer require --dev phpunit/phpunit</code></pre>
+
+                <p>Composer creates several files:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File/Directory</th>
+                                <th>Purpose</th>
+                                <th>Commit to Git?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>composer.json</code></td>
+                                <td>Lists your dependencies and their version constraints</td>
+                                <td>Yes</td>
+                            </tr>
+                            <tr>
+                                <td><code>composer.lock</code></td>
+                                <td>Records the exact versions installed (ensures consistency)</td>
+                                <td>Yes</td>
+                            </tr>
+                            <tr>
+                                <td><code>vendor/</code></td>
+                                <td>Contains all downloaded packages + the autoloader</td>
+                                <td>No — add to .gitignore</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Using the Autoloader</h3>
+
+                <p>Composer generates an autoloader that handles <code>require</code> statements for all installed packages. Include it once at the top of your application:</p>
+
+                <pre><code class="language-php">&lt;?php
+// Include Composer's autoloader — this is the ONLY require you need
+// for all Composer packages
+require __DIR__ . "/vendor/autoload.php";
+
+// Now you can use any installed package without manual requires
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+$mail = new PHPMailer(true);
+// ... configure and send email ...</code></pre>
+
+                <h3>Autoloading Your Own Classes</h3>
+
+                <p>You can also tell Composer to autoload your own classes using PSR-4:</p>
+
+                <pre><code class="language-php">{
+    "name": "yourname/task-manager",
+    "require": {
+        "vlucas/phpdotenv": "^5.5",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "classes/"
+        }
+    }
+}</code></pre>
+
+                <pre><code class="language-php"># After editing composer.json, regenerate the autoloader:
+composer dump-autoload</code></pre>
+
+                <pre><code class="language-php">&lt;?php
+// File: classes/TaskRepository.php
+namespace App;
+
+class TaskRepository {
+    // ... your existing code ...
+}
+
+// File: index.php
+require __DIR__ . "/vendor/autoload.php";
+
+use App\TaskRepository;
+
+$repo = new TaskRepository();
+// No more manual require_once statements!</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Essential Composer Commands</h4>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Command</th>
+                                    <th>What It Does</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>composer init</code></td>
+                                    <td>Create a new <code>composer.json</code> interactively</td>
+                                </tr>
+                                <tr>
+                                    <td><code>composer require package/name</code></td>
+                                    <td>Install a package and add it to <code>composer.json</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>composer install</code></td>
+                                    <td>Install all packages from <code>composer.lock</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>composer update</code></td>
+                                    <td>Update packages to latest versions within constraints</td>
+                                </tr>
+                                <tr>
+                                    <td><code>composer dump-autoload</code></td>
+                                    <td>Regenerate the autoloader (after changing autoload config)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>composer remove package/name</code></td>
+                                    <td>Remove a package</td>
+                                </tr>
+                                <tr>
+                                    <td><code>composer show</code></td>
+                                    <td>List all installed packages</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 6: REST API -->
+            <section id="section6" class="lesson-section">
+                <h2>Building a REST API</h2>
+
+                <p>So far, all your PHP pages return HTML. But modern web applications often need to return <strong>JSON data</strong> — for JavaScript frontends (React, Vue), mobile apps, or third-party integrations. A REST API does exactly this: it receives HTTP requests and returns structured JSON responses.</p>
+
+                <h3>A Simple JSON API Endpoint</h3>
+
+                <pre><code class="language-php">&lt;?php
+// File: api/tasks.php
+// A minimal REST API for tasks
+
+require_once __DIR__ . "/../classes/TaskRepository.php";
+
+// Set the response type to JSON
+header("Content-Type: application/json; charset=UTF-8");
+
+// Allow cross-origin requests (for JavaScript frontends on other domains)
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
+// Handle preflight OPTIONS requests
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+    http_response_code(204);
+    exit;
+}
+
+$repo = new TaskRepository();
+$method = $_SERVER["REQUEST_METHOD"];
+
+// Simple routing based on HTTP method and URL
+// GET /api/tasks.php       → list all tasks
+// GET /api/tasks.php?id=5  → get one task
+// POST /api/tasks.php      → create a task
+// DELETE /api/tasks.php?id=5 → delete a task
+
+try {
+    switch ($method) {
+        case "GET":
+            $id = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
+
+            if ($id) {
+                // Get a single task
+                $task = $repo->findById($id);
+                if ($task) {
+                    echo json_encode(["data" => $task]);
+                } else {
+                    http_response_code(404);
+                    echo json_encode(["error" => "Task not found"]);
+                }
+            } else {
+                // List all tasks
+                $status = $_GET["status"] ?? null;
+                $search = $_GET["q"] ?? null;
+                $tasks = $repo->findAll($status, $search);
+                echo json_encode(["data" => $tasks, "count" => count($tasks)]);
+            }
+            break;
+
+        case "POST":
+            // Read JSON body
+            $input = json_decode(file_get_contents("php://input"), true);
+
+            if (!$input || empty($input["title"])) {
+                http_response_code(400);
+                echo json_encode(["error" => "Title is required"]);
+                break;
+            }
+
+            $newId = $repo->create(
+                $input["title"],
+                $input["description"] ?? null,
+                $input["priority"] ?? "medium"
+            );
+
+            http_response_code(201);
+            echo json_encode([
+                "message" => "Task created",
+                "data"    => $repo->findById($newId),
+            ]);
+            break;
+
+        case "DELETE":
+            $id = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
+
+            if (!$id) {
+                http_response_code(400);
+                echo json_encode(["error" => "Valid task ID required"]);
+                break;
+            }
+
+            if ($repo->delete($id)) {
+                echo json_encode(["message" => "Task deleted"]);
+            } else {
+                http_response_code(404);
+                echo json_encode(["error" => "Task not found"]);
+            }
+            break;
+
+        default:
+            http_response_code(405);
+            echo json_encode(["error" => "Method not allowed"]);
+    }
+} catch (Exception $e) {
+    error_log("API error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["error" => "Internal server error"]);
+}</code></pre>
+
+                <h3>Testing the API</h3>
+
+                <pre><code class="language-php"># List all tasks
+curl http://localhost/task-manager/api/tasks.php
+
+# Get a single task
+curl http://localhost/task-manager/api/tasks.php?id=1
+
+# Create a task (send JSON in the body)
+curl -X POST http://localhost/task-manager/api/tasks.php \
+     -H "Content-Type: application/json" \
+     -d '{"title": "Learn REST APIs", "priority": "high"}'
+
+# Delete a task
+curl -X DELETE http://localhost/task-manager/api/tasks.php?id=5</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 Key API Concepts</h4>
+                    <ul>
+                        <li><strong><code>Content-Type: application/json</code></strong> — Tells the client the response is JSON, not HTML</li>
+                        <li><strong><code>http_response_code()</code></strong> — Sets the HTTP status code: 200 (OK), 201 (Created), 400 (Bad Request), 404 (Not Found), 500 (Server Error)</li>
+                        <li><strong><code>php://input</code></strong> — Reads the raw request body (for JSON POST data, since <code>$_POST</code> only works with form-encoded data)</li>
+                        <li><strong><code>json_encode()</code> / <code>json_decode()</code></strong> — Convert between PHP arrays and JSON strings</li>
+                        <li><strong>CORS headers</strong> — Required when a JavaScript frontend on a different domain calls your API</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 7: Frameworks -->
+            <section id="section7" class="lesson-section">
+                <h2>PHP Frameworks</h2>
+
+                <p>Everything in this course has been "vanilla" PHP — no frameworks, no libraries (except PDO). This was intentional: you need to understand how PHP works before a framework can help you. Now that you do, let's look at what frameworks offer and when to use them.</p>
+
+                <h3>What Frameworks Provide</h3>
+
+                <p>A framework gives you a pre-built structure and tools for common tasks so you can focus on your application's unique logic:</p>
+
+                <ul>
+                    <li><strong>Routing:</strong> Map URLs to controller functions (no more <code>if/switch</code> on <code>$_SERVER["REQUEST_METHOD"]</code>)</li>
+                    <li><strong>ORM (Object-Relational Mapping):</strong> Interact with the database using PHP objects instead of raw SQL</li>
+                    <li><strong>Templates:</strong> A templating engine with automatic escaping (no more manual <code>htmlspecialchars()</code>)</li>
+                    <li><strong>Authentication:</strong> Login, registration, password reset — built-in</li>
+                    <li><strong>CSRF protection:</strong> Automatic token generation and validation on all forms</li>
+                    <li><strong>Testing:</strong> Built-in support for unit and integration tests</li>
+                    <li><strong>CLI tools:</strong> Code generators, database migrations, task scheduling</li>
+                </ul>
+
+                <h3>The Major PHP Frameworks</h3>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Framework</th>
+                                <th>Philosophy</th>
+                                <th>Best For</th>
+                                <th>Learning Curve</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong><a href="https://laravel.com" target="_blank" rel="noopener">Laravel</a></strong></td>
+                                <td>Elegant, full-featured, "batteries included"</td>
+                                <td>Web apps, APIs, SaaS products — the most popular choice</td>
+                                <td>Moderate</td>
+                            </tr>
+                            <tr>
+                                <td><strong><a href="https://symfony.com" target="_blank" rel="noopener">Symfony</a></strong></td>
+                                <td>Modular, enterprise-grade, standards-based</td>
+                                <td>Large-scale enterprise applications, reusable components</td>
+                                <td>Steeper</td>
+                            </tr>
+                            <tr>
+                                <td><strong><a href="https://www.slimframework.com" target="_blank" rel="noopener">Slim</a></strong></td>
+                                <td>Minimal micro-framework</td>
+                                <td>REST APIs, small projects, learning MVC patterns</td>
+                                <td>Low</td>
+                            </tr>
+                            <tr>
+                                <td><strong><a href="https://codeigniter.com" target="_blank" rel="noopener">CodeIgniter</a></strong></td>
+                                <td>Lightweight, low configuration</td>
+                                <td>Simple web apps, shared hosting (small footprint)</td>
+                                <td>Low</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Laravel: A Taste</h3>
+
+                <p>To give you a sense of what framework code looks like, here's the Task Manager's list and create functionality in Laravel:</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: routes/web.php (Laravel routing)
+// Each line maps a URL + HTTP method to a controller method
+
+use App\Http\Controllers\TaskController;
+
+Route::get("/tasks", [TaskController::class, "index"]);       // List
+Route::get("/tasks/create", [TaskController::class, "create"]);// Show form
+Route::post("/tasks", [TaskController::class, "store"]);       // Save
+Route::get("/tasks/{task}/edit", [TaskController::class, "edit"]);
+Route::put("/tasks/{task}", [TaskController::class, "update"]);
+Route::delete("/tasks/{task}", [TaskController::class, "destroy"]);</code></pre>
+
+                <pre><code class="language-php">&lt;?php
+// File: app/Http/Controllers/TaskController.php
+
+namespace App\Http\Controllers;
+
+use App\Models\Task;
+use Illuminate\Http\Request;
+
+class TaskController extends Controller
+{
+    public function index(Request $request)
+    {
+        // Eloquent ORM — no raw SQL needed
+        $tasks = Task::query()
+            ->when($request->status, fn($q, $s) => $q->where("status", $s))
+            ->when($request->q, fn($q, $s) => $q->where("title", "like", "%$s%"))
+            ->orderByRaw("FIELD(priority, 'high', 'medium', 'low')")
+            ->get();
+
+        // Return a Blade template with the data
+        return view("tasks.index", compact("tasks"));
+    }
+
+    public function store(Request $request)
+    {
+        // Validation — one line, with automatic error handling
+        $validated = $request->validate([
+            "title"    => "required|max:255",
+            "priority" => "required|in:low,medium,high",
+        ]);
+
+        // Create the task (mass assignment with validated data)
+        Task::create($validated);
+
+        // Flash message + redirect (PRG) — built-in
+        return redirect("/tasks")->with("success", "Task created!");
+    }
+}</code></pre>
+
+                <p>Notice how many things you built manually in this course — routing, validation, flash messages, CSRF protection, database queries — are handled automatically by the framework. That's the power of a framework: it eliminates boilerplate. But you understand <em>what</em> it's doing under the hood because you built it yourself first.</p>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use a Framework</h4>
+                    <ul>
+                        <li><strong>Use a framework</strong> when building a real application that needs authentication, database interactions, form handling, and maintainability over time</li>
+                        <li><strong>Use vanilla PHP</strong> for small scripts, simple APIs, learning exercises, or when you need maximum control and minimal overhead</li>
+                        <li><strong>Start with Laravel</strong> if you're unsure — it has the largest community, best documentation, and most job listings</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 8: Learning Roadmap -->
+            <section id="section8" class="lesson-section">
+                <h2>Your Learning Roadmap</h2>
+
+                <p>You've completed PHP Foundations. Here's where to go next, organized by interest area:</p>
+
+                <div class="mermaid">
+                    flowchart TD
+                        PHP["✅ PHP Foundations<br>(This Course)"]
+                        PHP --> FW["🏗️ Frameworks<br>Laravel / Symfony"]
+                        PHP --> API["🔌 REST APIs<br>Slim / Laravel API"]
+                        PHP --> WP["📝 WordPress<br>Theme & Plugin Dev"]
+                        PHP --> ADV["🧠 Advanced PHP<br>Design Patterns, Testing"]
+
+                        FW --> FULL["🚀 Full-Stack Dev<br>Laravel + Vue/React"]
+                        API --> MICRO["⚡ Microservices<br>Docker, Queues"]
+                        WP --> WPEXT["🔧 WordPress Ecosystem<br>WooCommerce, Gutenberg"]
+                        ADV --> ARCH["🏛️ Architecture<br>DDD, CQRS, Event Sourcing"]
+                </div>
+
+                <h3>Path 1: Full-Stack Web Development</h3>
+                <div class="card card-info">
+                    <ol>
+                        <li><strong>Learn Laravel</strong> — Follow the official <a href="https://bootcamp.laravel.com" target="_blank" rel="noopener">Laravel Bootcamp</a> (free, hands-on)</li>
+                        <li><strong>Blade Templates</strong> — Laravel's templating engine with automatic XSS protection</li>
+                        <li><strong>Eloquent ORM</strong> — Database interactions with PHP objects instead of SQL</li>
+                        <li><strong>Laravel + Inertia.js + Vue/React</strong> — Modern SPA-like experience with server-side routing</li>
+                        <li><strong>Livewire</strong> — Build reactive UIs without writing JavaScript</li>
+                    </ol>
+                </div>
+
+                <h3>Path 2: API Development</h3>
+                <div class="card card-info">
+                    <ol>
+                        <li><strong>RESTful API design</strong> — Resource naming, HTTP methods, status codes, pagination</li>
+                        <li><strong>Authentication</strong> — JWT tokens, OAuth 2.0, Laravel Sanctum/Passport</li>
+                        <li><strong>API documentation</strong> — OpenAPI/Swagger specifications</li>
+                        <li><strong>Rate limiting &amp; caching</strong> — Protect and optimize your API</li>
+                        <li><strong>GraphQL</strong> — Alternative to REST for flexible data fetching</li>
+                    </ol>
+                </div>
+
+                <h3>Path 3: WordPress Development</h3>
+                <div class="card card-info">
+                    <ol>
+                        <li><strong>Theme development</strong> — The template hierarchy, the Loop, custom post types</li>
+                        <li><strong>Plugin development</strong> — Hooks (actions/filters), shortcodes, settings pages</li>
+                        <li><strong>WordPress REST API</strong> — Headless WordPress with a JavaScript frontend</li>
+                        <li><strong>WooCommerce</strong> — E-commerce development</li>
+                        <li><strong>Block development (Gutenberg)</strong> — Custom blocks with React</li>
+                    </ol>
+                    <p><em>The next course in this learning path — <strong>PHP &amp; WordPress</strong> — covers this in depth.</em></p>
+                </div>
+
+                <h3>Path 4: Advanced PHP</h3>
+                <div class="card card-info">
+                    <ol>
+                        <li><strong>Design patterns</strong> — Repository, Factory, Strategy, Observer, Dependency Injection</li>
+                        <li><strong>Testing</strong> — PHPUnit for unit tests, Pest for expressive testing, TDD workflow</li>
+                        <li><strong>PHP 8.x features</strong> — Enums, fibers, readonly properties, named arguments, attributes</li>
+                        <li><strong>Performance</strong> — OPcache, profiling with Xdebug, query optimization</li>
+                        <li><strong>DevOps</strong> — Docker, CI/CD pipelines, GitHub Actions, deployment automation</li>
+                    </ol>
+                </div>
+
+                <h3>Essential Tools to Learn</h3>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tool</th>
+                                <th>Purpose</th>
+                                <th>Priority</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Git</strong></td>
+                                <td>Version control — track changes, collaborate, deploy</td>
+                                <td>Essential</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Composer</strong></td>
+                                <td>Dependency management (covered in this lesson)</td>
+                                <td>Essential</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PHPUnit / Pest</strong></td>
+                                <td>Automated testing</td>
+                                <td>High</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Xdebug</strong></td>
+                                <td>Step-through debugging and profiling</td>
+                                <td>High</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Docker</strong></td>
+                                <td>Containerized development environments</td>
+                                <td>Medium</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Redis / Memcached</strong></td>
+                                <td>Caching and session storage</td>
+                                <td>Medium</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PHPStan / Psalm</strong></td>
+                                <td>Static analysis — catch bugs without running code</td>
+                                <td>Medium</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 9: Summary -->
+            <section id="section9" class="lesson-section">
+                <h2>Summary &amp; Course Wrap-Up</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Lesson 24 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Production settings:</strong> Turn off <code>display_errors</code>, enable <code>log_errors</code>, secure session cookies, and use environment variables for credentials.</li>
+                        <li><strong>Deployment:</strong> Start with free hosting (InfinityFree) for learning, then graduate to shared hosting or a VPS. Upload files, create the database, update config, and test everything.</li>
+                        <li><strong>Environment variables:</strong> Keep credentials out of your code using <code>getenv()</code>, <code>.env</code> files, or server configuration. Never commit secrets to Git.</li>
+                        <li><strong>Composer:</strong> PHP's package manager. Use <code>composer require</code> to install libraries, include <code>vendor/autoload.php</code> once, and use PSR-4 autoloading for your own classes.</li>
+                        <li><strong>REST APIs:</strong> Return JSON with <code>json_encode()</code>, use proper HTTP status codes, read JSON input from <code>php://input</code>, and add CORS headers for frontend access.</li>
+                        <li><strong>Frameworks:</strong> Laravel is the recommended next step — it automates routing, validation, CSRF, database queries, and more. Learn vanilla PHP first (you did!), then let frameworks handle the boilerplate.</li>
+                    </ul>
+                </div>
+
+                <h3>📚 What You've Accomplished</h3>
+
+                <p>Over 24 lessons, you've built a complete PHP foundation:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Module</th>
+                                <th>What You Learned</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>1: Getting Started</strong></td>
+                                <td>How PHP works, LAMP stack setup, syntax basics, variables, types</td>
+                            </tr>
+                            <tr>
+                                <td><strong>2: Core Language</strong></td>
+                                <td>Operators, control flow, loops, functions — the building blocks</td>
+                            </tr>
+                            <tr>
+                                <td><strong>3: Data Structures</strong></td>
+                                <td>Arrays, array functions, strings — manipulating data</td>
+                            </tr>
+                            <tr>
+                                <td><strong>4: Web Fundamentals</strong></td>
+                                <td>Forms, validation, file handling — processing user input</td>
+                            </tr>
+                            <tr>
+                                <td><strong>5: State &amp; OOP</strong></td>
+                                <td>Sessions, cookies, classes, inheritance — managing state and structure</td>
+                            </tr>
+                            <tr>
+                                <td><strong>6: Database Integration</strong></td>
+                                <td>PDO, prepared statements, CRUD, transactions — working with MySQL</td>
+                            </tr>
+                            <tr>
+                                <td><strong>7: Real-World Skills</strong></td>
+                                <td>File uploads, email, security (SQLi/XSS/CSRF), deployment — production readiness</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/" target="_blank" rel="noopener">PHP Official Manual</a> — The definitive reference for every function and feature</li>
+                    <li><a href="https://phptherightway.com/" target="_blank" rel="noopener">PHP: The Right Way</a> — Modern best practices and coding standards</li>
+                    <li><a href="https://laravel.com/docs" target="_blank" rel="noopener">Laravel Documentation</a> — Comprehensive framework docs with examples</li>
+                    <li><a href="https://bootcamp.laravel.com/" target="_blank" rel="noopener">Laravel Bootcamp</a> — Free, hands-on tutorial to learn Laravel</li>
+                    <li><a href="https://getcomposer.org/doc/" target="_blank" rel="noopener">Composer Documentation</a> — Complete guide to dependency management</li>
+                    <li><a href="https://www.php-fig.org/psr/" target="_blank" rel="noopener">PHP-FIG PSR Standards</a> — Coding standards used across the PHP ecosystem</li>
+                    <li><a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener">OWASP Top 10</a> — The most critical web security risks</li>
+                    <li><a href="https://laracasts.com/" target="_blank" rel="noopener">Laracasts</a> — Video tutorials for PHP and Laravel (free + paid)</li>
+                </ul>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉🎉🎉 Congratulations! You've Completed PHP Foundations! 🎉🎉🎉</h3>
+                    <p>You started with "What is PHP?" and now you can build secure, database-driven web applications with file uploads, email, CSRF protection, and proper deployment. That's a massive achievement.</p>
+                    <p>Every technique in this course — form handling, prepared statements, output escaping, the repository pattern, flash messages, PRG redirects — is used daily in professional PHP development. Whether you move on to Laravel, WordPress, or API development, you have the foundation to understand what's happening under the hood.</p>
+                    <p><strong>Keep building. Keep learning. You've got this.</strong></p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_23.html" class="prev-lesson">← Previous: Security Fundamentals</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="index.html" class="next-lesson">Course Complete! →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

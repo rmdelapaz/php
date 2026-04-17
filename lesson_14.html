@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn PHP superglobal arrays — $_SERVER, $_REQUEST, $_FILES, $_ENV, $_COOKIE, $_SESSION, and $GLOBALS — the built-in data PHP makes available on every request.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Superglobals - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 5: State &amp; OOP</a></li>
+            <li aria-current="page">Lesson 14: Superglobals</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🌐 Lesson 14: Superglobals</h1>
+                <p class="lead">Every time a browser sends a request to your PHP script, PHP automatically populates a set of special arrays with information about the request, the server, the environment, and more. These are <strong>superglobals</strong> — arrays that are accessible from anywhere in your code, in any scope, without needing <code>global</code> declarations.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Explain what superglobals are and why they're always in scope</li>
+                        <li>Use <code>$_SERVER</code> to access request metadata, paths, and client information</li>
+                        <li>Understand the relationship between <code>$_GET</code>, <code>$_POST</code>, and <code>$_REQUEST</code></li>
+                        <li>Inspect <code>$_FILES</code> for uploaded file information</li>
+                        <li>Access environment variables with <code>$_ENV</code> and <code>getenv()</code></li>
+                        <li>Preview <code>$_COOKIE</code> and <code>$_SESSION</code> (covered in depth in Lesson 15)</li>
+                        <li>Use <code>$GLOBALS</code> to reference global variables from any scope</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 40 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lessons 11–13 (forms, validation, file handling)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">What Are Superglobals?</a></li>
+                        <li><a href="#section2" class="toc-link">$_SERVER — Request &amp; Server Info</a></li>
+                        <li><a href="#section3" class="toc-link">$_GET, $_POST &amp; $_REQUEST</a></li>
+                        <li><a href="#section4" class="toc-link">$_FILES — Upload Data</a></li>
+                        <li><a href="#section5" class="toc-link">$_ENV — Environment Variables</a></li>
+                        <li><a href="#section6" class="toc-link">$_COOKIE &amp; $_SESSION (Preview)</a></li>
+                        <li><a href="#section7" class="toc-link">$GLOBALS — The Master Array</a></li>
+                        <li><a href="#section8" class="toc-link">Security Considerations</a></li>
+                        <li><a href="#section9" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section10" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: What Are Superglobals? -->
+            <section id="section1" class="lesson-section">
+                <h2>What Are Superglobals?</h2>
+
+                <p>In PHP, regular variables follow scope rules — a variable defined outside a function isn't visible inside it, and vice versa. <strong>Superglobals</strong> are the exception. They're built-in arrays that PHP populates automatically and that are accessible from <em>any</em> scope — global code, inside functions, inside class methods — without needing <code>global</code> declarations.</p>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>Superglobal:</strong> A pre-defined associative array in PHP that is automatically available in all scopes throughout a script. PHP creates and populates these arrays before your script runs.</p>
+                </div>
+
+                <h3>The Complete List of Superglobals</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Superglobal</th>
+                                <th>Contains</th>
+                                <th>Lesson Coverage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>$_SERVER</code></td>
+                                <td>Server and request information (paths, headers, method)</td>
+                                <td>This lesson (deep dive)</td>
+                            </tr>
+                            <tr>
+                                <td><code>$_GET</code></td>
+                                <td>URL query string parameters</td>
+                                <td>Lesson 11 (review here)</td>
+                            </tr>
+                            <tr>
+                                <td><code>$_POST</code></td>
+                                <td>Form data sent via POST method</td>
+                                <td>Lesson 11 (review here)</td>
+                            </tr>
+                            <tr>
+                                <td><code>$_REQUEST</code></td>
+                                <td>Combined GET + POST + COOKIE data</td>
+                                <td>This lesson</td>
+                            </tr>
+                            <tr>
+                                <td><code>$_FILES</code></td>
+                                <td>Uploaded file information</td>
+                                <td>This lesson (overview); Lesson 22 (full)</td>
+                            </tr>
+                            <tr>
+                                <td><code>$_ENV</code></td>
+                                <td>Environment variables</td>
+                                <td>This lesson</td>
+                            </tr>
+                            <tr>
+                                <td><code>$_COOKIE</code></td>
+                                <td>Cookies sent by the browser</td>
+                                <td>Preview here; Lesson 15 (full)</td>
+                            </tr>
+                            <tr>
+                                <td><code>$_SESSION</code></td>
+                                <td>Session data (server-side)</td>
+                                <td>Preview here; Lesson 15 (full)</td>
+                            </tr>
+                            <tr>
+                                <td><code>$GLOBALS</code></td>
+                                <td>All global variables</td>
+                                <td>This lesson</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Why "Super"?</h3>
+                <p>The "super" in superglobal means <em>beyond</em> normal global scope. Regular global variables require the <code>global</code> keyword to be accessed inside functions. Superglobals skip that step entirely:</p>
+
+                <pre><code class="language-php">&lt;?php
+$regularVar = "I'm a regular global variable";
+
+function showRegular() {
+    // echo $regularVar;  // Error! Not in scope
+    global $regularVar;    // Must declare it global first
+    echo $regularVar;      // Now it works
+}
+
+function showSuperglobal() {
+    // No "global" declaration needed!
+    echo $_SERVER["SERVER_NAME"];  // Just works
+    echo $_GET["page"] ?? "home";  // Just works
+}</code></pre>
+
+                <div class="mermaid">
+                    flowchart TD
+                        REQ["Browser Request"] --> PHP["PHP Engine"]
+                        PHP --> SG["Populates Superglobals"]
+                        SG --> S["$_SERVER"]
+                        SG --> G["$_GET"]
+                        SG --> P["$_POST"]
+                        SG --> F["$_FILES"]
+                        SG --> C["$_COOKIE"]
+                        SG --> E["$_ENV"]
+                        SG --> SCRIPT["Your Script Runs"]
+                        S --> SCRIPT
+                        G --> SCRIPT
+                        P --> SCRIPT
+                        F --> SCRIPT
+                        C --> SCRIPT
+                        E --> SCRIPT
+                        style REQ fill:#dbeafe,stroke:#3b82f6
+                        style SCRIPT fill:#dcfce7,stroke:#22c55e
+                        style SG fill:#fef3c7,stroke:#f59e0b
+                </div>
+            </section>
+
+            <!-- Section 2: $_SERVER -->
+            <section id="section2" class="lesson-section">
+                <h2>$_SERVER — Request &amp; Server Info</h2>
+
+                <p><code>$_SERVER</code> is the richest superglobal. It contains information about the server environment, the current request, headers, paths, and the client. You've already used a few of its keys (like <code>REQUEST_METHOD</code> in Lesson 11). Let's explore the full picture.</p>
+
+                <h3>Request Information</h3>
+                <pre><code class="language-php">&lt;?php
+// Which HTTP method was used?
+echo $_SERVER["REQUEST_METHOD"]; // "GET", "POST", "PUT", "DELETE", etc.
+
+// What URL path was requested?
+echo $_SERVER["REQUEST_URI"];    // "/products.php?id=42&sort=price"
+
+// Just the script path (no query string)
+echo $_SERVER["SCRIPT_NAME"];    // "/products.php"
+
+// The query string alone
+echo $_SERVER["QUERY_STRING"];   // "id=42&sort=price"
+
+// The protocol
+echo $_SERVER["SERVER_PROTOCOL"]; // "HTTP/1.1"
+
+// Was it HTTPS?
+$isSecure = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off")
+         || ($_SERVER["SERVER_PORT"] ?? 0) == 443;
+echo $isSecure ? "Secure" : "Not secure";</code></pre>
+
+                <h3>Server Information</h3>
+                <pre><code class="language-php">&lt;?php
+// The server's hostname
+echo $_SERVER["SERVER_NAME"];    // "localhost" or "example.com"
+
+// The port
+echo $_SERVER["SERVER_PORT"];    // "80", "443", "8080", etc.
+
+// Server software
+echo $_SERVER["SERVER_SOFTWARE"]; // "Apache/2.4.58 (Ubuntu)"
+
+// Document root (where web files live)
+echo $_SERVER["DOCUMENT_ROOT"];  // "/var/www/html"
+
+// Absolute filesystem path to this script
+echo $_SERVER["SCRIPT_FILENAME"]; // "/var/www/html/products.php"</code></pre>
+
+                <h3>Client Information</h3>
+                <pre><code class="language-php">&lt;?php
+// Client's IP address
+echo $_SERVER["REMOTE_ADDR"];    // "192.168.1.100" or "::1" for localhost
+
+// Client's port
+echo $_SERVER["REMOTE_PORT"];    // "54321"
+
+// User agent string (browser identification)
+echo $_SERVER["HTTP_USER_AGENT"];
+// "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ..."
+
+// Referring page (where the user came from)
+echo $_SERVER["HTTP_REFERER"] ?? "Direct visit";
+// "https://google.com/search?q=php+tutorials"
+
+// Accepted languages
+echo $_SERVER["HTTP_ACCEPT_LANGUAGE"];
+// "en-US,en;q=0.9,es;q=0.8"
+
+// Accepted content types
+echo $_SERVER["HTTP_ACCEPT"];
+// "text/html,application/xhtml+xml,..."</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Client Data Is User-Controlled</h4>
+                    <p>Values like <code>HTTP_USER_AGENT</code>, <code>HTTP_REFERER</code>, and <code>HTTP_ACCEPT_LANGUAGE</code> are sent by the browser and can be <strong>easily faked</strong>. Never trust them for security decisions. Always escape them before displaying them in HTML to prevent XSS attacks.</p>
+                </div>
+
+                <h3>The Most Useful $_SERVER Keys</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Key</th>
+                                <th>Example Value</th>
+                                <th>Common Use</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>REQUEST_METHOD</code></td>
+                                <td><code>"POST"</code></td>
+                                <td>Check if form was submitted</td>
+                            </tr>
+                            <tr>
+                                <td><code>REQUEST_URI</code></td>
+                                <td><code>"/page?id=5"</code></td>
+                                <td>Full URL path with query string</td>
+                            </tr>
+                            <tr>
+                                <td><code>SCRIPT_NAME</code></td>
+                                <td><code>"/page.php"</code></td>
+                                <td>Script path (no query string)</td>
+                            </tr>
+                            <tr>
+                                <td><code>PHP_SELF</code></td>
+                                <td><code>"/page.php"</code></td>
+                                <td>Self-referencing forms (escape it!)</td>
+                            </tr>
+                            <tr>
+                                <td><code>DOCUMENT_ROOT</code></td>
+                                <td><code>"/var/www/html"</code></td>
+                                <td>Building absolute file paths</td>
+                            </tr>
+                            <tr>
+                                <td><code>REMOTE_ADDR</code></td>
+                                <td><code>"192.168.1.50"</code></td>
+                                <td>Logging, rate limiting</td>
+                            </tr>
+                            <tr>
+                                <td><code>HTTP_USER_AGENT</code></td>
+                                <td><code>"Mozilla/5.0..."</code></td>
+                                <td>Analytics, browser detection</td>
+                            </tr>
+                            <tr>
+                                <td><code>HTTP_REFERER</code></td>
+                                <td><code>"https://google.com"</code></td>
+                                <td>Traffic source tracking</td>
+                            </tr>
+                            <tr>
+                                <td><code>SERVER_NAME</code></td>
+                                <td><code>"example.com"</code></td>
+                                <td>Building absolute URLs</td>
+                            </tr>
+                            <tr>
+                                <td><code>REQUEST_TIME</code></td>
+                                <td><code>1713400000</code></td>
+                                <td>Timestamp when request started</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Practical Example: Request Logger</h3>
+                <pre><code class="language-php">&lt;?php
+function log_request(): void {
+    $entry = [
+        "time"    => date("Y-m-d H:i:s", $_SERVER["REQUEST_TIME"]),
+        "method"  => $_SERVER["REQUEST_METHOD"],
+        "uri"     => $_SERVER["REQUEST_URI"],
+        "ip"      => $_SERVER["REMOTE_ADDR"],
+        "agent"   => $_SERVER["HTTP_USER_AGENT"] ?? "Unknown",
+        "referer" => $_SERVER["HTTP_REFERER"] ?? "Direct",
+    ];
+
+    $line = json_encode($entry) . "\n";
+    file_put_contents(__DIR__ . "/logs/access.log", $line, FILE_APPEND | LOCK_EX);
+}
+
+// Call at the top of every page
+log_request();</code></pre>
+
+                <h3>Practical Example: Simple URL Router</h3>
+                <pre><code class="language-php">&lt;?php
+// A basic router using $_SERVER["REQUEST_URI"]
+$uri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
+$uri = rtrim($uri, "/") ?: "/"; // Normalize trailing slash
+
+switch ($uri) {
+    case "/":
+        include "pages/home.php";
+        break;
+    case "/about":
+        include "pages/about.php";
+        break;
+    case "/contact":
+        include "pages/contact.php";
+        break;
+    default:
+        http_response_code(404);
+        include "pages/404.php";
+        break;
+}</code></pre>
+
+                <h3>Exploring $_SERVER — See Everything</h3>
+                <p>A quick way to see all available <code>$_SERVER</code> values on your system:</p>
+                <pre><code class="language-php">&lt;?php
+// Create a debug page to see all $_SERVER values
+echo "&lt;h2&gt;\$_SERVER Contents&lt;/h2&gt;";
+echo "&lt;table border='1'&gt;";
+echo "&lt;tr&gt;&lt;th&gt;Key&lt;/th&gt;&lt;th&gt;Value&lt;/th&gt;&lt;/tr&gt;";
+foreach ($_SERVER as $key => $value) {
+    echo "&lt;tr&gt;";
+    echo "&lt;td&gt;" . htmlspecialchars($key) . "&lt;/td&gt;";
+    echo "&lt;td&gt;" . htmlspecialchars($value) . "&lt;/td&gt;";
+    echo "&lt;/tr&gt;";
+}
+echo "&lt;/table&gt;";</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Try It Yourself</h4>
+                    <p>Create a file called <code>server_info.php</code> with the code above, then visit it in your browser. You'll see dozens of entries — some from Apache, some from PHP, some from the HTTP request. This is a great reference when you need to figure out which key holds the data you're looking for.</p>
+                </div>
+            </section>
+
+            <!-- Section 3: $_GET, $_POST & $_REQUEST -->
+            <section id="section3" class="lesson-section">
+                <h2>$_GET, $_POST &amp; $_REQUEST</h2>
+
+                <p>You already know <code>$_GET</code> and <code>$_POST</code> from Lesson 11. Let's review them briefly and introduce <code>$_REQUEST</code>.</p>
+
+                <h3>Quick Review</h3>
+                <pre><code class="language-php">&lt;?php
+// $_GET — data from the URL query string
+// URL: /search.php?q=php+tutorials&page=2
+echo $_GET["q"];     // "php tutorials"
+echo $_GET["page"];  // "2"
+
+// $_POST — data from form submissions with method="post"
+// &lt;form method="post"&gt;&lt;input name="email"&gt;...
+echo $_POST["email"]; // "user@example.com"
+
+// Always provide defaults to avoid undefined key warnings
+$search = $_GET["q"] ?? "";
+$page   = (int)($_GET["page"] ?? 1);
+$email  = $_POST["email"] ?? "";</code></pre>
+
+                <h3>$_REQUEST — The Combined Array</h3>
+                <p><code>$_REQUEST</code> merges data from <code>$_GET</code>, <code>$_POST</code>, and <code>$_COOKIE</code> into a single array. The merge order is controlled by the <code>request_order</code> PHP setting (default: <code>"GP"</code> — GET then POST, so POST overwrites GET on conflicts).</p>
+
+                <pre><code class="language-php">&lt;?php
+// URL: /page.php?source=google
+// POST body: source=form_submit
+
+echo $_GET["source"];     // "google"
+echo $_POST["source"];    // "form_submit"
+echo $_REQUEST["source"]; // "form_submit" (POST overwrites GET by default)
+
+// $_REQUEST is convenient but ambiguous — you don't know where the data came from
+// For clarity and security, prefer $_GET or $_POST directly</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Avoid $_REQUEST in Production</h4>
+                    <p>While <code>$_REQUEST</code> is convenient for quick prototyping, it mixes data sources and makes your code ambiguous. You can't tell whether a value came from the URL, a form submission, or a cookie. Stick to <code>$_GET</code> and <code>$_POST</code> for clarity and security.</p>
+                </div>
+
+                <h3>Checking the Request Method</h3>
+                <pre><code class="language-php">&lt;?php
+// The standard pattern for self-processing forms (from Lesson 11)
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Form was submitted — process the data
+    $name = trim($_POST["name"] ?? "");
+    // ...validate and process...
+}
+
+// You can also handle multiple methods
+$method = $_SERVER["REQUEST_METHOD"];
+switch ($method) {
+    case "GET":
+        // Display the page / resource
+        break;
+    case "POST":
+        // Create a new resource
+        break;
+    case "PUT":
+        // Update an existing resource (API routes)
+        break;
+    case "DELETE":
+        // Delete a resource (API routes)
+        break;
+}</code></pre>
+            </section>
+
+            <!-- Section 4: $_FILES -->
+            <section id="section4" class="lesson-section">
+                <h2>$_FILES — Upload Data</h2>
+
+                <p>When a form has <code>enctype="multipart/form-data"</code> and contains a file input, PHP populates <code>$_FILES</code> with information about each uploaded file. We'll cover file uploads in full detail in Lesson 22, but here's the essential overview.</p>
+
+                <h3>The $_FILES Structure</h3>
+                <pre><code class="language-php">&lt;?php
+// HTML: &lt;input type="file" name="avatar"&gt;
+
+// After upload, $_FILES["avatar"] contains:
+$_FILES["avatar"] = [
+    "name"     => "profile.jpg",     // Original filename from user's computer
+    "type"     => "image/jpeg",      // MIME type (reported by browser — don't trust!)
+    "tmp_name" => "/tmp/phpYX3a2b",  // Temporary path on server
+    "error"    => 0,                 // Error code (0 = success)
+    "size"     => 245890,            // Size in bytes
+];
+
+// For multiple files: &lt;input type="file" name="photos[]" multiple&gt;
+// $_FILES["photos"]["name"][0], $_FILES["photos"]["name"][1], etc.</code></pre>
+
+                <h3>Upload Error Codes</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Constant</th>
+                                <th>Value</th>
+                                <th>Meaning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>UPLOAD_ERR_OK</code></td>
+                                <td>0</td>
+                                <td>Upload succeeded</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_INI_SIZE</code></td>
+                                <td>1</td>
+                                <td>Exceeds <code>upload_max_filesize</code> in php.ini</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_FORM_SIZE</code></td>
+                                <td>2</td>
+                                <td>Exceeds <code>MAX_FILE_SIZE</code> in form</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_PARTIAL</code></td>
+                                <td>3</td>
+                                <td>Only partially uploaded</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_NO_FILE</code></td>
+                                <td>4</td>
+                                <td>No file was uploaded</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_NO_TMP_DIR</code></td>
+                                <td>6</td>
+                                <td>Missing temporary folder</td>
+                            </tr>
+                            <tr>
+                                <td><code>UPLOAD_ERR_CANT_WRITE</code></td>
+                                <td>7</td>
+                                <td>Failed to write to disk</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Basic Upload Check</h3>
+                <pre><code class="language-php">&lt;?php
+// Quick check: was a file uploaded successfully?
+if (isset($_FILES["avatar"]) && $_FILES["avatar"]["error"] === UPLOAD_ERR_OK) {
+    $tmpPath  = $_FILES["avatar"]["tmp_name"];
+    $origName = $_FILES["avatar"]["name"];
+    $size     = $_FILES["avatar"]["size"];
+
+    echo "Uploaded: $origName ($size bytes)\n";
+    echo "Temp location: $tmpPath\n";
+
+    // Move from temp to permanent location (covered fully in Lesson 22)
+    // move_uploaded_file($tmpPath, "uploads/" . basename($origName));
+} else {
+    echo "No file uploaded or an error occurred.\n";
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Coming in Lesson 22</h4>
+                    <p>We'll build a complete file upload system with MIME type validation, size limits, safe filename generation, and proper error handling. For now, just understand the structure of <code>$_FILES</code> so you recognize it when you see it.</p>
+                </div>
+            </section>
+
+            <!-- Section 5: $_ENV -->
+            <section id="section5" class="lesson-section">
+                <h2>$_ENV — Environment Variables</h2>
+
+                <p>Environment variables are key-value pairs set at the operating system or web server level. They're the standard way to configure applications without hardcoding sensitive values like database passwords, API keys, or feature flags into your source code.</p>
+
+                <h3>Accessing Environment Variables</h3>
+                <pre><code class="language-php">&lt;?php
+// Method 1: $_ENV superglobal
+// NOTE: $_ENV may be empty depending on your php.ini "variables_order" setting
+echo $_ENV["HOME"] ?? "Not set";     // "/home/www-data"
+echo $_ENV["PATH"] ?? "Not set";     // "/usr/local/bin:/usr/bin:..."
+
+// Method 2: getenv() — more reliable, works regardless of variables_order
+echo getenv("HOME");                 // "/home/www-data"
+echo getenv("DB_PASSWORD");          // "my_secret_password"
+
+// getenv returns false if the variable doesn't exist
+$apiKey = getenv("API_KEY");
+if ($apiKey === false) {
+    die("API_KEY environment variable is not set!");
+}
+
+// Method 3: $_SERVER may also contain environment variables
+// Apache often passes env vars through to $_SERVER
+echo $_SERVER["DB_HOST"] ?? "Not in \$_SERVER";</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 Why $_ENV Might Be Empty</h4>
+                    <p>PHP's <code>variables_order</code> setting in php.ini controls which superglobals get populated. The default is <code>"GPCS"</code> (GET, POST, Cookie, Server) — notice "E" (Environment) is often missing! Use <code>getenv()</code> instead for reliable access, or add "E" to your <code>variables_order</code>.</p>
+                </div>
+
+                <h3>Setting Environment Variables</h3>
+                <pre><code class="language-php">&lt;?php
+// Set env var for the current script's lifetime
+putenv("APP_MODE=development");
+echo getenv("APP_MODE"); // "development"
+
+// Common places to set env vars:
+// 1. Apache config: SetEnv DB_HOST localhost
+// 2. .htaccess: SetEnv APP_SECRET abc123
+// 3. CLI: DB_HOST=localhost php script.php
+// 4. Docker: ENV DB_HOST=localhost
+// 5. .env files (with a library like vlucas/phpdotenv)</code></pre>
+
+                <h3>Practical Example: Configuration with Environment Variables</h3>
+                <pre><code class="language-php">&lt;?php
+// config.php — load config from environment with safe defaults
+
+$config = [
+    "db" => [
+        "host"     => getenv("DB_HOST") ?: "localhost",
+        "name"     => getenv("DB_NAME") ?: "myapp",
+        "user"     => getenv("DB_USER") ?: "root",
+        "password" => getenv("DB_PASSWORD") ?: "",
+        "port"     => (int)(getenv("DB_PORT") ?: 3306),
+    ],
+    "app" => [
+        "name"    => getenv("APP_NAME") ?: "My App",
+        "debug"   => getenv("APP_DEBUG") === "true",
+        "url"     => getenv("APP_URL") ?: "http://localhost",
+    ],
+    "mail" => [
+        "host"     => getenv("MAIL_HOST") ?: "smtp.mailtrap.io",
+        "port"     => (int)(getenv("MAIL_PORT") ?: 587),
+        "username" => getenv("MAIL_USER") ?: "",
+        "password" => getenv("MAIL_PASS") ?: "",
+    ],
+];
+
+// Now use $config throughout your app
+// No passwords in source code!</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ The Twelve-Factor App Rule</h4>
+                    <p>The <a href="https://12factor.net/config" target="_blank" rel="noopener">Twelve-Factor App</a> methodology says: <em>store config in environment variables</em>. This keeps secrets out of your code, lets the same codebase run in development, staging, and production, and makes deployment easier. Every modern framework (Laravel, Symfony) follows this pattern.</p>
+                </div>
+            </section>
+
+            <!-- Section 6: $_COOKIE & $_SESSION Preview -->
+            <section id="section6" class="lesson-section">
+                <h2>$_COOKIE &amp; $_SESSION (Preview)</h2>
+
+                <p>These two superglobals manage user state across requests. They're covered in full in <strong>Lesson 15: Sessions &amp; Cookies</strong>, but here's a quick preview so you understand the landscape.</p>
+
+                <h3>$_COOKIE — Browser-Stored Data</h3>
+                <pre><code class="language-php">&lt;?php
+// Cookies are small pieces of data stored in the browser
+// The browser sends them with every request to your domain
+
+// Set a cookie (must happen before ANY output)
+setcookie("username", "alice", time() + 3600); // Expires in 1 hour
+
+// Read a cookie (available on the NEXT request, not the current one)
+echo $_COOKIE["username"] ?? "No username cookie";
+
+// $_COOKIE is populated from the Cookie: header in the HTTP request
+// It only contains cookies that the browser sent — NOT cookies you
+// just set with setcookie() on this same request</code></pre>
+
+                <h3>$_SESSION — Server-Stored Data</h3>
+                <pre><code class="language-php">&lt;?php
+// Sessions store data on the server, linked to the user via a session ID cookie
+session_start(); // Must call this before using $_SESSION
+
+// Store data
+$_SESSION["user_id"] = 42;
+$_SESSION["username"] = "alice";
+$_SESSION["role"] = "admin";
+
+// Read data (persists across page loads)
+echo $_SESSION["username"]; // "alice"
+
+// Check if user is logged in
+if (isset($_SESSION["user_id"])) {
+    echo "Welcome back, " . htmlspecialchars($_SESSION["username"]);
+} else {
+    echo "Please log in.";
+}</code></pre>
+
+                <h3>Cookie vs. Session — Quick Comparison</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>$_COOKIE</th>
+                                <th>$_SESSION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Stored Where</td>
+                                <td>Browser (client)</td>
+                                <td>Server (file or database)</td>
+                            </tr>
+                            <tr>
+                                <td>Size Limit</td>
+                                <td>~4 KB per cookie</td>
+                                <td>Limited by server resources</td>
+                            </tr>
+                            <tr>
+                                <td>Security</td>
+                                <td>User can read/modify</td>
+                                <td>User only has the session ID</td>
+                            </tr>
+                            <tr>
+                                <td>Lifetime</td>
+                                <td>Set via expiration date</td>
+                                <td>Until session expires or is destroyed</td>
+                            </tr>
+                            <tr>
+                                <td>Use Cases</td>
+                                <td>Preferences, "remember me"</td>
+                                <td>Login state, cart, user data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <blockquote>
+                    <strong>📍 Full Coverage in Lesson 15:</strong> We'll build a complete login/logout system with sessions, implement "remember me" with cookies, and cover all the security considerations (secure flags, httponly, session fixation, etc.).
+                </blockquote>
+            </section>
+
+            <!-- Section 7: $GLOBALS -->
+            <section id="section7" class="lesson-section">
+                <h2>$GLOBALS — The Master Array</h2>
+
+                <p><code>$GLOBALS</code> is a special superglobal that contains references to <em>every</em> variable in the global scope — including the other superglobals. It's the "master array" of all globally accessible variables.</p>
+
+                <pre><code class="language-php">&lt;?php
+$siteName = "PHP Foundations";
+$version  = "1.0";
+
+// Access global variables by name through $GLOBALS
+echo $GLOBALS["siteName"]; // "PHP Foundations"
+echo $GLOBALS["version"];  // "1.0"
+
+// $GLOBALS contains ALL superglobals too
+// $GLOBALS["_SERVER"] is the same as $_SERVER
+// $GLOBALS["_GET"] is the same as $_GET
+// (But you'd never access them this way — use the direct names)
+
+// Modify a global variable from inside a function
+function incrementCounter() {
+    $GLOBALS["counter"]++;
+    // Equivalent to:
+    // global $counter;
+    // $counter++;
+}
+
+$counter = 0;
+incrementCounter();
+incrementCounter();
+echo $counter; // 2</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Avoid $GLOBALS in Modern PHP</h4>
+                    <p><code>$GLOBALS</code> exists for historical reasons and edge cases, but using it creates hidden dependencies between functions and global state. Modern PHP favors <strong>dependency injection</strong> — passing data into functions as parameters rather than reaching into global state. We'll explore this pattern in the OOP lessons.</p>
+                </div>
+
+                <h3>When $GLOBALS Is Actually Useful</h3>
+                <pre><code class="language-php">&lt;?php
+// 1. Debugging — see all global variables at once
+echo "&lt;pre&gt;";
+print_r(array_keys($GLOBALS));
+echo "&lt;/pre&gt;";
+// ["_GET", "_POST", "_COOKIE", "_FILES", "_SERVER", "_ENV",
+//  "GLOBALS", "siteName", "version", "counter", ...]
+
+// 2. Dynamic variable access (rare)
+$varName = "siteName";
+echo $GLOBALS[$varName]; // "PHP Foundations"
+
+// 3. Library code that needs to register global state (legacy)
+// Modern code: avoid this pattern entirely</code></pre>
+            </section>
+
+            <!-- Section 8: Security -->
+            <section id="section8" class="lesson-section">
+                <h2>Security Considerations</h2>
+
+                <p>Superglobals carry user-supplied data — data from the URL, form submissions, cookies, and HTTP headers. <strong>All of this data is untrusted.</strong> Here are the key rules:</p>
+
+                <h3>Rule 1: Never Trust, Always Validate</h3>
+                <pre><code class="language-php">&lt;?php
+// BAD — using raw superglobal data
+$id = $_GET["id"];           // Could be "1; DROP TABLE users"
+$name = $_POST["name"];      // Could contain &lt;script&gt; tags
+
+// GOOD — validate and sanitize
+$id = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
+if ($id === false || $id === null) {
+    die("Invalid ID");
+}
+
+$name = trim($_POST["name"] ?? "");
+$name = htmlspecialchars($name, ENT_QUOTES, "UTF-8");</code></pre>
+
+                <h3>Rule 2: Escape Output</h3>
+                <pre><code class="language-php">&lt;?php
+// BAD — XSS vulnerability!
+echo "Welcome, " . $_GET["name"];
+// URL: ?name=&lt;script&gt;alert('hacked')&lt;/script&gt;
+
+// GOOD — escape for HTML context
+echo "Welcome, " . htmlspecialchars($_GET["name"] ?? "", ENT_QUOTES, "UTF-8");
+
+// Always use a helper function (from Lesson 13)
+function e(string $text): string {
+    return htmlspecialchars($text, ENT_QUOTES, "UTF-8");
+}
+echo "Welcome, " . e($_GET["name"] ?? "Guest");</code></pre>
+
+                <h3>Rule 3: Don't Expose $_SERVER to Users</h3>
+                <pre><code class="language-php">&lt;?php
+// BAD — leaks server internals
+echo "&lt;p&gt;Server: " . $_SERVER["SERVER_SOFTWARE"] . "&lt;/p&gt;";
+echo "&lt;p&gt;Path: " . $_SERVER["DOCUMENT_ROOT"] . "&lt;/p&gt;";
+phpinfo(); // NEVER leave this on a production server!
+
+// GOOD — only expose what users need
+// Keep phpinfo() files behind authentication or delete them after setup</code></pre>
+
+                <h3>Rule 4: Use PHP_SELF Safely</h3>
+                <pre><code class="language-php">&lt;?php
+// BAD — XSS through PHP_SELF injection
+echo '&lt;form action="' . $_SERVER["PHP_SELF"] . '"&gt;';
+// URL: /page.php/"><script>alert('xss')</script>
+
+// GOOD — escape it, or use SCRIPT_NAME, or hardcode
+echo '&lt;form action="' . htmlspecialchars($_SERVER["PHP_SELF"]) . '"&gt;';
+// or
+echo '&lt;form action="' . $_SERVER["SCRIPT_NAME"] . '"&gt;';
+// or (simplest and safest)
+echo '&lt;form action=""&gt;'; // Empty action = submit to current URL</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ The Golden Rule</h4>
+                    <p><strong>Validate input. Escape output.</strong> Every value from a superglobal is user input (even <code>$_SERVER</code> keys like <code>HTTP_USER_AGENT</code>). Validate it before processing, escape it before displaying. This two-step approach prevents the vast majority of web vulnerabilities.</p>
+                </div>
+            </section>
+
+            <!-- Section 9: Exercises -->
+            <section id="section9" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Server Info Dashboard</h3>
+                    <p><strong>Objective:</strong> Build a diagnostic page that displays organized server and request information.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create <code>server_dashboard.php</code></li>
+                        <li>Display sections for: Request Info, Server Info, Client Info, and PHP Info</li>
+                        <li>Under Request Info show: method, URI, query string, protocol, and whether HTTPS is active</li>
+                        <li>Under Server Info show: server name, port, software, document root, and PHP version (<code>phpversion()</code>)</li>
+                        <li>Under Client Info show: IP address, user agent, referer, and accepted languages</li>
+                        <li>Under PHP Info show: <code>memory_get_usage()</code> (formatted in KB), <code>PHP_OS</code>, and <code>php_sapi_name()</code></li>
+                        <li>Escape <strong>all</strong> output with <code>htmlspecialchars()</code></li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use the <code>e()</code> helper function from Lesson 13 to escape output. Format memory with <code>number_format(memory_get_usage() / 1024, 2)</code> for KB. Use the null coalescing operator (<code>??</code>) for optional values like <code>HTTP_REFERER</code>.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+function e(string $text): string {
+    return htmlspecialchars($text, ENT_QUOTES, "UTF-8");
+}
+
+$isSecure = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off")
+         || ($_SERVER["SERVER_PORT"] ?? 0) == 443;
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;Server Dashboard&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Server Info Dashboard&lt;/h1&gt;
+
+    &lt;h2&gt;Request Info&lt;/h2&gt;
+    &lt;table border="1"&gt;
+        &lt;tr&gt;&lt;td&gt;Method&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["REQUEST_METHOD"]) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;URI&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["REQUEST_URI"]) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;Query String&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["QUERY_STRING"] ?? "(none)") ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;Protocol&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["SERVER_PROTOCOL"]) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;HTTPS&lt;/td&gt;&lt;td&gt;&lt;?= $isSecure ? "Yes" : "No" ?&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+    &lt;h2&gt;Server Info&lt;/h2&gt;
+    &lt;table border="1"&gt;
+        &lt;tr&gt;&lt;td&gt;Server Name&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["SERVER_NAME"]) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;Port&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["SERVER_PORT"]) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;Software&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["SERVER_SOFTWARE"]) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;Document Root&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["DOCUMENT_ROOT"]) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;PHP Version&lt;/td&gt;&lt;td&gt;&lt;?= e(phpversion()) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+    &lt;h2&gt;Client Info&lt;/h2&gt;
+    &lt;table border="1"&gt;
+        &lt;tr&gt;&lt;td&gt;IP Address&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["REMOTE_ADDR"]) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;User Agent&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["HTTP_USER_AGENT"] ?? "Unknown") ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;Referer&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["HTTP_REFERER"] ?? "Direct visit") ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;Languages&lt;/td&gt;&lt;td&gt;&lt;?= e($_SERVER["HTTP_ACCEPT_LANGUAGE"] ?? "Not specified") ?&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+    &lt;h2&gt;PHP Info&lt;/h2&gt;
+    &lt;table border="1"&gt;
+        &lt;tr&gt;&lt;td&gt;Memory Usage&lt;/td&gt;&lt;td&gt;&lt;?= number_format(memory_get_usage() / 1024, 2) ?&gt; KB&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;OS&lt;/td&gt;&lt;td&gt;&lt;?= e(PHP_OS) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;SAPI&lt;/td&gt;&lt;td&gt;&lt;?= e(php_sapi_name()) ?&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Environment Config Loader</h3>
+                    <p><strong>Objective:</strong> Build a simple <code>.env</code> file loader that reads key-value pairs into environment variables.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a function <code>load_env(string $path): void</code> that reads a <code>.env</code> file</li>
+                        <li>Each line should be in the format <code>KEY=value</code></li>
+                        <li>Skip blank lines and lines starting with <code>#</code> (comments)</li>
+                        <li>Trim whitespace from keys and values</li>
+                        <li>Use <code>putenv()</code> to set each variable</li>
+                        <li>Test it by creating a <code>.env</code> file and loading it</li>
+                    </ol>
+
+                    <h4>Sample .env file:</h4>
+                    <pre><code class="language-text"># Database settings
+DB_HOST=localhost
+DB_NAME=myapp
+DB_USER=root
+DB_PASSWORD=secret123
+
+# App settings
+APP_NAME=My Cool App
+APP_DEBUG=true
+APP_URL=http://localhost:8080</code></pre>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use <code>file()</code> with <code>FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES</code> to read the file. Use <code>str_starts_with()</code> to check for comments. Use <code>explode("=", $line, 2)</code> to split on the first <code>=</code> only (values can contain <code>=</code> characters).</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+/**
+ * Load a .env file and set environment variables.
+ */
+function load_env(string $path): void {
+    if (!file_exists($path)) {
+        throw new RuntimeException(".env file not found: $path");
+    }
+
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+    foreach ($lines as $line) {
+        $line = trim($line);
+
+        // Skip comments
+        if (str_starts_with($line, "#")) {
+            continue;
+        }
+
+        // Must contain an = sign
+        if (!str_contains($line, "=")) {
+            continue;
+        }
+
+        // Split on the FIRST = only (value might contain =)
+        [$key, $value] = explode("=", $line, 2);
+        $key   = trim($key);
+        $value = trim($value);
+
+        // Remove surrounding quotes if present
+        if (
+            (str_starts_with($value, '"') && str_ends_with($value, '"')) ||
+            (str_starts_with($value, "'") && str_ends_with($value, "'"))
+        ) {
+            $value = substr($value, 1, -1);
+        }
+
+        // Set the environment variable
+        putenv("$key=$value");
+    }
+}
+
+// Usage
+load_env(__DIR__ . "/.env");
+
+echo getenv("DB_HOST");     // "localhost"
+echo getenv("APP_NAME");    // "My Cool App"
+echo getenv("APP_DEBUG");   // "true"
+
+// Build a config array from environment
+$config = [
+    "db_host" => getenv("DB_HOST"),
+    "db_name" => getenv("DB_NAME"),
+    "debug"   => getenv("APP_DEBUG") === "true",
+];
+print_r($config);</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What makes superglobals different from regular global variables?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Superglobals are arrays, but that's not what makes them special. Regular variables can be arrays too.">
+                                A) Superglobals are arrays; regular globals are not
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Regular global variables require the 'global' keyword to be accessed inside functions. Superglobals are accessible from any scope — functions, methods, nested code — without any special declaration.">
+                                B) Superglobals are accessible in all scopes without using the global keyword
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Superglobals can absolutely be modified. For example, you can add values to $_SESSION or unset values from $_GET.">
+                                C) Superglobals are read-only and cannot be modified
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> Which <code>$_SERVER</code> key tells you what HTTP method was used for the request?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="HTTP_METHOD doesn't exist. The key name follows PHP's naming convention.">
+                                A) $_SERVER["HTTP_METHOD"]
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! $_SERVER['REQUEST_METHOD'] contains the HTTP method as an uppercase string: 'GET', 'POST', 'PUT', 'DELETE', etc. This is the key you use in the self-processing form pattern.">
+                                B) $_SERVER["REQUEST_METHOD"]
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP_SELF contains the script filename, not the HTTP method.">
+                                C) $_SERVER["PHP_SELF"]
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> Why should you avoid using <code>$_REQUEST</code> in production code?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="$_REQUEST is not slower — it's just a merged array. The concern is about clarity and security.">
+                                A) It's slower than using $_GET or $_POST directly
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! $_REQUEST merges $_GET, $_POST, and $_COOKIE data together, so you can't tell where a value came from. A GET parameter could overwrite a POST value or vice versa, depending on the request_order setting. Using $_GET or $_POST directly makes your code's intent explicit.">
+                                B) It mixes data from GET, POST, and cookies, making it ambiguous where values came from
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="$_REQUEST is available in all PHP versions. It's discouraged for design reasons, not compatibility.">
+                                C) It's deprecated and will be removed in PHP 9
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What's the most reliable way to read environment variables in PHP?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="$_ENV depends on the 'variables_order' setting in php.ini. If 'E' isn't included (and it often isn't), $_ENV will be empty.">
+                                A) $_ENV["VAR_NAME"]
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! getenv() works regardless of PHP's variables_order configuration. It reads directly from the process environment, so it's the most reliable method. It returns false if the variable isn't set.">
+                                B) getenv("VAR_NAME")
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="$_SERVER may contain some environment variables (Apache passes them through), but this behavior is server-dependent and not guaranteed.">
+                                C) $_SERVER["VAR_NAME"]
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> Why is displaying raw <code>$_SERVER["PHP_SELF"]</code> in a form action a security risk?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! PHP_SELF can be manipulated by appending path info to the URL. For example, visiting /page.php/&quot;&gt;&lt;script&gt;alert('xss')&lt;/script&gt; injects script tags into the action attribute. Always escape it with htmlspecialchars() or use an empty action attribute instead.">
+                                A) An attacker can inject HTML/JavaScript through the URL, causing XSS
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP_SELF doesn't expose the server's filesystem path. It shows the URL path, which is already visible to the user.">
+                                B) It reveals the server's file system path to attackers
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP_SELF just contains a path string — it doesn't directly enable SQL injection.">
+                                C) It allows SQL injection through the form action
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Summary -->
+            <section id="section10" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Superglobals</strong> are built-in arrays available in all scopes without the <code>global</code> keyword</li>
+                        <li><strong><code>$_SERVER</code></strong> is the richest superglobal — request method, URI, headers, client IP, server paths, and more</li>
+                        <li><strong><code>$_GET</code></strong> holds URL query parameters; <strong><code>$_POST</code></strong> holds form data</li>
+                        <li><strong><code>$_REQUEST</code></strong> merges GET, POST, and COOKIE data — convenient but ambiguous; prefer the specific arrays</li>
+                        <li><strong><code>$_FILES</code></strong> holds uploaded file metadata (name, size, tmp path, error code)</li>
+                        <li><strong><code>$_ENV</code></strong> holds environment variables, but <code>getenv()</code> is more reliable</li>
+                        <li><strong><code>$_COOKIE</code></strong> holds browser-sent cookies; <strong><code>$_SESSION</code></strong> holds server-side session data (both covered in full in Lesson 15)</li>
+                        <li><strong><code>$GLOBALS</code></strong> contains all global variables — useful for debugging, but avoid in production code</li>
+                        <li><strong>Security:</strong> All superglobal data is user-controlled — <em>validate input, escape output</em></li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/language.variables.superglobals.php" target="_blank" rel="noopener">PHP Manual: Superglobals</a></li>
+                    <li><a href="https://www.php.net/manual/en/reserved.variables.server.php" target="_blank" rel="noopener">PHP Manual: $_SERVER</a></li>
+                    <li><a href="https://www.php.net/manual/en/reserved.variables.files.php" target="_blank" rel="noopener">PHP Manual: $_FILES</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.getenv.php" target="_blank" rel="noopener">PHP Manual: getenv()</a></li>
+                    <li><a href="https://12factor.net/config" target="_blank" rel="noopener">The Twelve-Factor App: Config</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Now that you know the full landscape of superglobals, it's time to put two of them to serious work. In <strong>Lesson 15: Sessions &amp; Cookies</strong>, we'll build a complete login/logout system using <code>$_SESSION</code> and <code>$_COOKIE</code>, implement "remember me" functionality, and cover all the security best practices for managing user state.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You now have a comprehensive understanding of PHP's superglobal system — the built-in data layer that powers every PHP web application. Onward to sessions and cookies!</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_13.html" class="prev-lesson">← Previous: File Handling &amp; Includes</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_15.html" class="next-lesson">Next: Sessions &amp; Cookies →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

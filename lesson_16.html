@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn object-oriented PHP — classes, objects, properties, methods, constructors, visibility modifiers, static members, constants, and magic methods.">
+    <meta name="author" content="Ray De La Paz">
+    <title>OOP — Classes &amp; Objects - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 5: State &amp; OOP</a></li>
+            <li aria-current="page">Lesson 16: OOP — Classes &amp; Objects</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🏗️ Lesson 16: OOP — Classes &amp; Objects</h1>
+                <p class="lead">Up to now, you've written <strong>procedural</strong> PHP — functions and variables organized in files. Object-Oriented Programming (OOP) takes a different approach: you bundle related data and behavior into <strong>classes</strong>, then create <strong>objects</strong> from those classes. OOP is the foundation of modern PHP frameworks and the way professional PHP code is written today.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Explain the difference between procedural and object-oriented programming</li>
+                        <li>Define classes with properties and methods</li>
+                        <li>Create objects (instances) from classes using <code>new</code></li>
+                        <li>Use <code>$this</code> to access the current object inside methods</li>
+                        <li>Write constructors with <code>__construct()</code> and constructor promotion</li>
+                        <li>Control access with visibility modifiers: <code>public</code>, <code>protected</code>, <code>private</code></li>
+                        <li>Use <code>static</code> properties, methods, and class constants</li>
+                        <li>Work with common magic methods like <code>__toString()</code></li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 50 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 7 (Functions), Lessons 8–9 (Arrays)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">Why OOP?</a></li>
+                        <li><a href="#section2" class="toc-link">Classes &amp; Objects Basics</a></li>
+                        <li><a href="#section3" class="toc-link">Properties &amp; $this</a></li>
+                        <li><a href="#section4" class="toc-link">Methods</a></li>
+                        <li><a href="#section5" class="toc-link">Constructors</a></li>
+                        <li><a href="#section6" class="toc-link">Visibility: public, protected, private</a></li>
+                        <li><a href="#section7" class="toc-link">Static Members &amp; Constants</a></li>
+                        <li><a href="#section8" class="toc-link">Magic Methods</a></li>
+                        <li><a href="#section9" class="toc-link">Putting It All Together</a></li>
+                        <li><a href="#section10" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section11" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Why OOP? -->
+            <section id="section1" class="lesson-section">
+                <h2>Why OOP?</h2>
+
+                <p>In procedural code, data and the functions that operate on it are separate. As projects grow, this leads to problems: related functions scattered across files, data passed through long parameter lists, naming collisions, and difficulty understanding which functions work with which data.</p>
+
+                <h3>Procedural vs. OOP</h3>
+                <pre><code class="language-php">&lt;?php
+// === PROCEDURAL APPROACH ===
+// Data is an array, functions are separate
+$user = [
+    "name"  => "Alice",
+    "email" => "alice@example.com",
+    "role"  => "admin",
+];
+
+function get_user_display_name(array $user): string {
+    return $user["name"] . " (" . $user["role"] . ")";
+}
+
+function can_user_edit(array $user): bool {
+    return $user["role"] === "admin" || $user["role"] === "editor";
+}
+
+echo get_user_display_name($user);
+echo can_user_edit($user) ? "Can edit" : "Read only";
+
+
+// === OOP APPROACH ===
+// Data and behavior live together
+class User {
+    public function __construct(
+        public string $name,
+        public string $email,
+        public string $role,
+    ) {}
+
+    public function getDisplayName(): string {
+        return $this->name . " (" . $this->role . ")";
+    }
+
+    public function canEdit(): bool {
+        return $this->role === "admin" || $this->role === "editor";
+    }
+}
+
+$user = new User("Alice", "alice@example.com", "admin");
+echo $user->getDisplayName();
+echo $user->canEdit() ? "Can edit" : "Read only";</code></pre>
+
+                <p>The OOP version bundles data (<code>$name</code>, <code>$email</code>, <code>$role</code>) with the functions that use it (<code>getDisplayName()</code>, <code>canEdit()</code>). The object carries everything it needs — no more passing arrays around and hoping the right keys exist.</p>
+
+                <div class="card card-accent">
+                    <h4>📖 Key Terms</h4>
+                    <p><strong>Class:</strong> A blueprint or template that defines properties (data) and methods (behavior). Think of it as a cookie cutter.</p>
+                    <p><strong>Object:</strong> A specific instance created from a class. Think of it as one cookie cut from the cutter. Each object has its own copy of the data.</p>
+                    <p><strong>Instance:</strong> Another word for object. "Creating an instance" = "creating an object."</p>
+                </div>
+
+                <div class="mermaid">
+                    classDiagram
+                        class User {
+                            +string name
+                            +string email
+                            +string role
+                            +getDisplayName() string
+                            +canEdit() bool
+                        }
+                        note for User "This is the CLASS (blueprint)"
+                </div>
+            </section>
+
+            <!-- Section 2: Classes & Objects Basics -->
+            <section id="section2" class="lesson-section">
+                <h2>Classes &amp; Objects Basics</h2>
+
+                <h3>Defining a Class</h3>
+                <pre><code class="language-php">&lt;?php
+// Class names use PascalCase (UpperCamelCase) by convention
+class Product {
+    // Properties (data)
+    public string $name;
+    public float $price;
+    public int $stock;
+
+    // Methods (behavior) — we'll add these soon
+}
+
+// That's it! You've defined a class.
+// No product exists yet — this is just the blueprint.</code></pre>
+
+                <h3>Creating Objects with <code>new</code></h3>
+                <pre><code class="language-php">&lt;?php
+// Create objects (instances) from the class
+$widget = new Product();
+$widget->name  = "Widget";
+$widget->price = 12.99;
+$widget->stock = 150;
+
+$gadget = new Product();
+$gadget->name  = "Gadget";
+$gadget->price = 49.99;
+$gadget->stock = 30;
+
+// Each object is independent — changing one doesn't affect the other
+$widget->price = 14.99;
+echo $gadget->price; // Still 49.99
+
+// Access properties with the arrow operator ->
+echo $widget->name;  // "Widget"
+echo $widget->price; // 14.99
+
+// Check the type
+var_dump($widget instanceof Product); // true
+echo get_class($widget);              // "Product"</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ The Arrow Operator <code>-></code></h4>
+                    <p>In PHP, you access an object's properties and methods with <code>-></code> (the arrow operator). It's PHP's equivalent of the dot operator in languages like JavaScript (<code>object.property</code>) or Python (<code>object.property</code>). So <code>$widget->name</code> means "the <code>name</code> property of the <code>$widget</code> object."</p>
+                </div>
+            </section>
+
+            <!-- Section 3: Properties & $this -->
+            <section id="section3" class="lesson-section">
+                <h2>Properties &amp; $this</h2>
+
+                <h3>Declaring Properties</h3>
+                <pre><code class="language-php">&lt;?php
+class Task {
+    // Typed properties (PHP 7.4+) — recommended
+    public string $title;
+    public string $description = "";    // Default value
+    public bool $completed = false;     // Default value
+    public ?string $dueDate = null;     // Nullable type
+
+    // Untyped properties (older style — still works but less safe)
+    // public $title;
+    // public $completed = false;
+}</code></pre>
+
+                <h3>$this — The Current Object</h3>
+                <p>Inside a method, <code>$this</code> refers to the <em>current object</em> — the specific instance the method was called on. It's how an object accesses its own properties and methods.</p>
+
+                <pre><code class="language-php">&lt;?php
+class Task {
+    public string $title;
+    public bool $completed = false;
+
+    public function complete(): void {
+        // $this refers to whichever Task object called this method
+        $this->completed = true;
+    }
+
+    public function describe(): string {
+        $status = $this->completed ? "✅" : "⬜";
+        return "$status {$this->title}";
+    }
+}
+
+$task1 = new Task();
+$task1->title = "Learn OOP";
+
+$task2 = new Task();
+$task2->title = "Build CRUD app";
+
+// When $task1->complete() runs, $this === $task1
+$task1->complete();
+
+echo $task1->describe(); // "✅ Learn OOP"
+echo $task2->describe(); // "⬜ Build CRUD app"</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Don't Forget <code>$this-></code></h4>
+                    <p>A common mistake is writing <code>$title</code> inside a method instead of <code>$this->title</code>. Without <code>$this</code>, PHP treats it as a local variable — not the object's property. If you get "undefined variable" errors inside methods, check that you're using <code>$this-></code>.</p>
+                </div>
+            </section>
+
+            <!-- Section 4: Methods -->
+            <section id="section4" class="lesson-section">
+                <h2>Methods</h2>
+
+                <p>Methods are functions that belong to a class. They can access the object's properties via <code>$this</code>, accept parameters, return values, and call other methods on the same object.</p>
+
+                <h3>Defining Methods</h3>
+                <pre><code class="language-php">&lt;?php
+class BankAccount {
+    public string $owner;
+    public float $balance = 0.0;
+
+    /**
+     * Deposit money into the account.
+     */
+    public function deposit(float $amount): void {
+        if ($amount <= 0) {
+            throw new InvalidArgumentException("Deposit amount must be positive.");
+        }
+        $this->balance += $amount;
+    }
+
+    /**
+     * Withdraw money from the account.
+     */
+    public function withdraw(float $amount): void {
+        if ($amount <= 0) {
+            throw new InvalidArgumentException("Withdrawal amount must be positive.");
+        }
+        if ($amount > $this->balance) {
+            throw new RuntimeException("Insufficient funds.");
+        }
+        $this->balance -= $amount;
+    }
+
+    /**
+     * Get a formatted balance string.
+     */
+    public function getFormattedBalance(): string {
+        return "$" . number_format($this->balance, 2);
+    }
+
+    /**
+     * Transfer money to another account.
+     */
+    public function transferTo(BankAccount $recipient, float $amount): void {
+        $this->withdraw($amount);        // Take from this account
+        $recipient->deposit($amount);     // Give to recipient
+    }
+}
+
+// Usage
+$alice = new BankAccount();
+$alice->owner = "Alice";
+$alice->deposit(1000);
+
+$bob = new BankAccount();
+$bob->owner = "Bob";
+$bob->deposit(500);
+
+$alice->transferTo($bob, 200);
+
+echo $alice->getFormattedBalance(); // "$800.00"
+echo $bob->getFormattedBalance();   // "$700.00"</code></pre>
+
+                <h3>Method Chaining (Fluent Interface)</h3>
+                <p>By returning <code>$this</code> from methods, you can chain multiple method calls together:</p>
+                <pre><code class="language-php">&lt;?php
+class QueryBuilder {
+    private string $table = "";
+    private array $conditions = [];
+    private ?int $limitVal = null;
+    private string $orderBy = "";
+
+    public function from(string $table): self {
+        $this->table = $table;
+        return $this; // Return the object itself for chaining
+    }
+
+    public function where(string $condition): self {
+        $this->conditions[] = $condition;
+        return $this;
+    }
+
+    public function limit(int $limit): self {
+        $this->limitVal = $limit;
+        return $this;
+    }
+
+    public function orderBy(string $column, string $direction = "ASC"): self {
+        $this->orderBy = "$column $direction";
+        return $this;
+    }
+
+    public function toSQL(): string {
+        $sql = "SELECT * FROM {$this->table}";
+        if (!empty($this->conditions)) {
+            $sql .= " WHERE " . implode(" AND ", $this->conditions);
+        }
+        if ($this->orderBy) {
+            $sql .= " ORDER BY {$this->orderBy}";
+        }
+        if ($this->limitVal !== null) {
+            $sql .= " LIMIT {$this->limitVal}";
+        }
+        return $sql;
+    }
+}
+
+// Method chaining in action
+$query = (new QueryBuilder())
+    ->from("products")
+    ->where("price > 10")
+    ->where("stock > 0")
+    ->orderBy("price", "DESC")
+    ->limit(20)
+    ->toSQL();
+
+echo $query;
+// SELECT * FROM products WHERE price > 10 AND stock > 0 ORDER BY price DESC LIMIT 20</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Return Type <code>self</code></h4>
+                    <p>When a method returns <code>$this</code> for chaining, use the return type <code>self</code> (or <code>static</code> in inheritance scenarios). This tells PHP and your IDE that the method returns an instance of the same class.</p>
+                </div>
+            </section>
+
+            <!-- Section 5: Constructors -->
+            <section id="section5" class="lesson-section">
+                <h2>Constructors</h2>
+
+                <p>Setting properties one by one after creating an object is tedious and error-prone. A <strong>constructor</strong> is a special method that runs automatically when you create an object with <code>new</code>, allowing you to set up the object in one step.</p>
+
+                <h3>The __construct Method</h3>
+                <pre><code class="language-php">&lt;?php
+class Product {
+    public string $name;
+    public float $price;
+    public int $stock;
+
+    // Constructor — runs when you call new Product(...)
+    public function __construct(string $name, float $price, int $stock = 0) {
+        $this->name  = $name;
+        $this->price = $price;
+        $this->stock = $stock;
+    }
+
+    public function describe(): string {
+        return "{$this->name}: \${$this->price} ({$this->stock} in stock)";
+    }
+}
+
+// Now you can create fully initialized objects in one line
+$widget = new Product("Widget", 12.99, 150);
+$gadget = new Product("Gadget", 49.99);     // stock defaults to 0
+
+echo $widget->describe(); // "Widget: $12.99 (150 in stock)"
+echo $gadget->describe(); // "Gadget: $49.99 (0 in stock)"</code></pre>
+
+                <h3>Constructor Promotion (PHP 8.0+)</h3>
+                <p>Writing <code>$this->name = $name</code> for every parameter is repetitive. PHP 8 introduced <strong>constructor promotion</strong> — add a visibility modifier to the constructor parameter, and PHP creates the property and assigns it automatically:</p>
+
+                <pre><code class="language-php">&lt;?php
+// BEFORE: Traditional constructor (verbose)
+class ProductOld {
+    public string $name;
+    public float $price;
+    public int $stock;
+
+    public function __construct(string $name, float $price, int $stock = 0) {
+        $this->name  = $name;
+        $this->price = $price;
+        $this->stock = $stock;
+    }
+}
+
+// AFTER: Constructor promotion (concise — PHP 8+)
+class Product {
+    public function __construct(
+        public string $name,
+        public float $price,
+        public int $stock = 0,
+    ) {
+        // No body needed! PHP creates properties automatically
+        // But you CAN add validation or other logic here:
+        if ($price < 0) {
+            throw new InvalidArgumentException("Price cannot be negative.");
+        }
+    }
+}
+
+// Usage is identical
+$widget = new Product("Widget", 12.99, 150);
+echo $widget->name;  // "Widget"
+echo $widget->price; // 12.99</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 How Constructor Promotion Works</h4>
+                    <p>When you write <code>public string $name</code> as a constructor parameter (with a visibility modifier), PHP automatically:</p>
+                    <ol>
+                        <li>Creates a property <code>$this->name</code> with the same type</li>
+                        <li>Assigns the parameter value to it</li>
+                    </ol>
+                    <p>It's pure syntactic sugar — the result is identical to the traditional approach. You can mix promoted and non-promoted parameters in the same constructor.</p>
+                </div>
+
+                <h3>Constructor with Validation</h3>
+                <pre><code class="language-php">&lt;?php
+class User {
+    public function __construct(
+        public readonly string $name,   // readonly = can't change after creation
+        public readonly string $email,
+        public string $role = "user",
+    ) {
+        // Validation runs after promotion assigns values
+        if (empty($this->name)) {
+            throw new InvalidArgumentException("Name cannot be empty.");
+        }
+        if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException("Invalid email: $this->email");
+        }
+        if (!in_array($this->role, ["user", "editor", "admin"])) {
+            throw new InvalidArgumentException("Invalid role: $this->role");
+        }
+    }
+}
+
+// Valid
+$user = new User("Alice", "alice@example.com", "admin");
+
+// Throws InvalidArgumentException: "Invalid email: not-an-email"
+// $bad = new User("Bob", "not-an-email");</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ readonly Properties (PHP 8.1+)</h4>
+                    <p>The <code>readonly</code> modifier means a property can only be set once (in the constructor). After that, any attempt to change it throws an error. This is great for data that should never change — user IDs, creation dates, email addresses, etc.</p>
+                </div>
+            </section>
+
+            <!-- Section 6: Visibility -->
+            <section id="section6" class="lesson-section">
+                <h2>Visibility: public, protected, private</h2>
+
+                <p>Visibility modifiers control who can access a property or method. This is <strong>encapsulation</strong> — hiding internal details and exposing only what external code needs.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Modifier</th>
+                                <th>Access From</th>
+                                <th>Use When</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>public</code></td>
+                                <td>Anywhere (inside class, child classes, outside)</td>
+                                <td>The method/property is part of the class's public API</td>
+                            </tr>
+                            <tr>
+                                <td><code>protected</code></td>
+                                <td>Inside class + child classes only</td>
+                                <td>Internal logic that subclasses might need to override</td>
+                            </tr>
+                            <tr>
+                                <td><code>private</code></td>
+                                <td>Inside the same class only</td>
+                                <td>Internal implementation details no one else should touch</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+class BankAccount {
+    // Public — anyone can read the owner's name
+    public string $owner;
+
+    // Private — only this class can access the balance directly
+    private float $balance = 0.0;
+
+    // Private — internal transaction log
+    private array $transactions = [];
+
+    public function __construct(string $owner, float $initialDeposit = 0.0) {
+        $this->owner = $owner;
+        if ($initialDeposit > 0) {
+            $this->deposit($initialDeposit);
+        }
+    }
+
+    // Public — the controlled way to add money
+    public function deposit(float $amount): void {
+        if ($amount <= 0) {
+            throw new InvalidArgumentException("Amount must be positive.");
+        }
+        $this->balance += $amount;
+        $this->logTransaction("deposit", $amount);
+    }
+
+    // Public — the controlled way to remove money
+    public function withdraw(float $amount): void {
+        if ($amount <= 0) {
+            throw new InvalidArgumentException("Amount must be positive.");
+        }
+        if ($amount > $this->balance) {
+            throw new RuntimeException("Insufficient funds.");
+        }
+        $this->balance -= $amount;
+        $this->logTransaction("withdrawal", $amount);
+    }
+
+    // Public — read the balance (but can't set it directly)
+    public function getBalance(): float {
+        return $this->balance;
+    }
+
+    // Public — get transaction history
+    public function getTransactions(): array {
+        return $this->transactions;
+    }
+
+    // Private — internal helper, no one outside needs this
+    private function logTransaction(string $type, float $amount): void {
+        $this->transactions[] = [
+            "type"   => $type,
+            "amount" => $amount,
+            "date"   => date("Y-m-d H:i:s"),
+            "balance_after" => $this->balance,
+        ];
+    }
+}
+
+$acct = new BankAccount("Alice", 1000);
+$acct->deposit(500);
+$acct->withdraw(200);
+
+echo $acct->getBalance();    // 1300.00 ✅
+echo $acct->owner;           // "Alice" ✅
+
+// $acct->balance = 999999;  // Error! balance is private ❌
+// $acct->logTransaction();  // Error! logTransaction is private ❌</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 Why Encapsulation Matters</h4>
+                    <p>If <code>$balance</code> were public, any code anywhere could do <code>$acct->balance = 999999</code> — bypassing all validation. By making it private and exposing <code>deposit()</code>, <code>withdraw()</code>, and <code>getBalance()</code>, you guarantee that every balance change goes through validation and gets logged. This is the core promise of encapsulation: <strong>the object controls its own state</strong>.</p>
+                </div>
+
+                <h3>Getters and Setters</h3>
+                <pre><code class="language-php">&lt;?php
+class Temperature {
+    private float $celsius;
+
+    public function __construct(float $celsius) {
+        $this->setCelsius($celsius);
+    }
+
+    // Getter — read the value
+    public function getCelsius(): float {
+        return $this->celsius;
+    }
+
+    // Setter — write with validation
+    public function setCelsius(float $celsius): void {
+        if ($celsius < -273.15) {
+            throw new InvalidArgumentException("Below absolute zero!");
+        }
+        $this->celsius = $celsius;
+    }
+
+    // Computed getter — derived from the stored value
+    public function getFahrenheit(): float {
+        return ($this->celsius * 9 / 5) + 32;
+    }
+
+    public function setFahrenheit(float $fahrenheit): void {
+        $this->setCelsius(($fahrenheit - 32) * 5 / 9);
+    }
+}
+
+$temp = new Temperature(100);
+echo $temp->getCelsius();    // 100
+echo $temp->getFahrenheit(); // 212
+
+$temp->setFahrenheit(72);
+echo $temp->getCelsius();    // 22.222...</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use Getters/Setters</h4>
+                    <p>Use <strong>getters/setters</strong> when you need validation, computation, or side effects when reading/writing a property. For simple data objects where direct access is fine, <code>public</code> properties (or <code>public readonly</code>) are simpler and perfectly acceptable. Don't add getters/setters "just because" — they should serve a purpose.</p>
+                </div>
+            </section>
+
+            <!-- Section 7: Static Members & Constants -->
+            <section id="section7" class="lesson-section">
+                <h2>Static Members &amp; Constants</h2>
+
+                <p>Regular properties and methods belong to a specific <em>object</em>. <strong>Static</strong> members belong to the <em>class itself</em> — they exist without creating any object.</p>
+
+                <h3>Static Properties</h3>
+                <pre><code class="language-php">&lt;?php
+class Counter {
+    // Static property — shared by ALL instances (one copy for the whole class)
+    private static int $count = 0;
+
+    // Regular property — each instance has its own copy
+    public string $name;
+
+    public function __construct(string $name) {
+        $this->name = $name;
+        self::$count++;  // Increment the shared counter
+    }
+
+    // Static method — called on the class, not on an object
+    public static function getCount(): int {
+        return self::$count;
+    }
+}
+
+echo Counter::getCount(); // 0 — no objects created yet
+
+$a = new Counter("First");
+$b = new Counter("Second");
+$c = new Counter("Third");
+
+echo Counter::getCount(); // 3 — three objects created
+// The count is shared — it doesn't belong to $a, $b, or $c</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ self:: vs. $this-></h4>
+                    <p>Use <code>$this->property</code> for regular (instance) members and <code>self::$property</code> for static members. Note the <code>$</code> prefix on static property names: <code>self::$count</code> not <code>self::count</code>. Static methods cannot use <code>$this</code> because there's no object instance.</p>
+                </div>
+
+                <h3>Static Methods</h3>
+                <pre><code class="language-php">&lt;?php
+class MathHelper {
+    // Static methods work without creating an object
+    public static function clamp(float $value, float $min, float $max): float {
+        return max($min, min($max, $value));
+    }
+
+    public static function percentage(float $part, float $total): float {
+        if ($total == 0) return 0;
+        return ($part / $total) * 100;
+    }
+
+    public static function randomFloat(float $min, float $max): float {
+        return $min + mt_rand() / mt_getrandmax() * ($max - $min);
+    }
+}
+
+// Call directly on the class — no object needed
+echo MathHelper::clamp(150, 0, 100);        // 100
+echo MathHelper::percentage(75, 200);        // 37.5
+echo MathHelper::randomFloat(1.0, 10.0);     // 6.283...</code></pre>
+
+                <h3>Named Constructors (Static Factory Methods)</h3>
+                <pre><code class="language-php">&lt;?php
+class Color {
+    public function __construct(
+        public readonly int $red,
+        public readonly int $green,
+        public readonly int $blue,
+    ) {}
+
+    // Static factory methods — alternative ways to create objects
+    public static function fromHex(string $hex): self {
+        $hex = ltrim($hex, "#");
+        return new self(
+            hexdec(substr($hex, 0, 2)),
+            hexdec(substr($hex, 2, 2)),
+            hexdec(substr($hex, 4, 2)),
+        );
+    }
+
+    public static function red(): self {
+        return new self(255, 0, 0);
+    }
+
+    public static function white(): self {
+        return new self(255, 255, 255);
+    }
+
+    public function toHex(): string {
+        return sprintf("#%02x%02x%02x", $this->red, $this->green, $this->blue);
+    }
+}
+
+// Multiple ways to create a Color object
+$c1 = new Color(100, 150, 200);
+$c2 = Color::fromHex("#6495ED");  // Named constructor
+$c3 = Color::red();                // Preset
+
+echo $c2->toHex(); // "#6495ed"</code></pre>
+
+                <h3>Class Constants</h3>
+                <pre><code class="language-php">&lt;?php
+class HttpStatus {
+    // Constants — values that never change
+    public const OK = 200;
+    public const CREATED = 201;
+    public const NOT_FOUND = 404;
+    public const INTERNAL_ERROR = 500;
+
+    // Constants can be any scalar type
+    public const MESSAGES = [
+        200 => "OK",
+        201 => "Created",
+        404 => "Not Found",
+        500 => "Internal Server Error",
+    ];
+
+    public static function getMessage(int $code): string {
+        return self::MESSAGES[$code] ?? "Unknown Status";
+    }
+}
+
+// Access with :: (no $ prefix for constants)
+echo HttpStatus::OK;                     // 200
+echo HttpStatus::getMessage(404);        // "Not Found"
+
+// Use in conditionals
+if ($responseCode === HttpStatus::NOT_FOUND) {
+    echo "Page not found!";
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Constants vs. Static Properties</h4>
+                    <p><strong>Constants</strong> (<code>const</code>) are values that <em>never change</em> — HTTP codes, config keys, mathematical values. They can't be modified at runtime.</p>
+                    <p><strong>Static properties</strong> (<code>static</code>) are shared mutable state — counters, caches, registries. They can be changed but are shared across all instances.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Magic Methods -->
+            <section id="section8" class="lesson-section">
+                <h2>Magic Methods</h2>
+
+                <p>PHP defines several special methods that start with double underscores (<code>__</code>). These are called <strong>magic methods</strong> because PHP calls them automatically in specific situations. You've already met <code>__construct()</code>. Here are the most useful ones.</p>
+
+                <h3>__toString() — String Representation</h3>
+                <pre><code class="language-php">&lt;?php
+class Product {
+    public function __construct(
+        public string $name,
+        public float $price,
+    ) {}
+
+    // Called when the object is used as a string
+    public function __toString(): string {
+        return "{$this->name} (\${$this->price})";
+    }
+}
+
+$widget = new Product("Widget", 12.99);
+
+// __toString is called automatically:
+echo $widget;                    // "Widget ($12.99)"
+echo "Product: $widget";         // "Product: Widget ($12.99)"
+echo "Product: " . $widget;      // "Product: Widget ($12.99)"</code></pre>
+
+                <h3>__destruct() — Cleanup</h3>
+                <pre><code class="language-php">&lt;?php
+class FileWriter {
+    private $handle;
+
+    public function __construct(string $path) {
+        $this->handle = fopen($path, "a");
+        if ($this->handle === false) {
+            throw new RuntimeException("Cannot open file: $path");
+        }
+    }
+
+    public function write(string $line): void {
+        fwrite($this->handle, $line . "\n");
+    }
+
+    // Called automatically when the object is destroyed
+    public function __destruct() {
+        if ($this->handle) {
+            fclose($this->handle);
+        }
+    }
+}
+
+$log = new FileWriter("app.log");
+$log->write("Application started");
+$log->write("Processing request");
+// When $log goes out of scope or the script ends,
+// __destruct runs and closes the file handle</code></pre>
+
+                <h3>__debugInfo() — Custom var_dump Output</h3>
+                <pre><code class="language-php">&lt;?php
+class DatabaseConnection {
+    public function __construct(
+        private string $host,
+        private string $user,
+        private string $password, // Sensitive!
+        private string $database,
+    ) {}
+
+    // Control what var_dump shows (hide sensitive data)
+    public function __debugInfo(): array {
+        return [
+            "host"     => $this->host,
+            "user"     => $this->user,
+            "password" => "********",  // Don't expose the real password!
+            "database" => $this->database,
+        ];
+    }
+}
+
+$db = new DatabaseConnection("localhost", "root", "super_secret", "myapp");
+var_dump($db);
+// Shows password as "********" instead of the real value</code></pre>
+
+                <h3>Common Magic Methods Reference</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Called When</th>
+                                <th>Common Use</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>__construct()</code></td>
+                                <td>Object is created with <code>new</code></td>
+                                <td>Initialize properties, validate data</td>
+                            </tr>
+                            <tr>
+                                <td><code>__destruct()</code></td>
+                                <td>Object is destroyed</td>
+                                <td>Close files, connections, cleanup</td>
+                            </tr>
+                            <tr>
+                                <td><code>__toString()</code></td>
+                                <td>Object is used as a string</td>
+                                <td>Display, logging, debugging</td>
+                            </tr>
+                            <tr>
+                                <td><code>__debugInfo()</code></td>
+                                <td><code>var_dump()</code> is called on object</td>
+                                <td>Hide sensitive data, format debug output</td>
+                            </tr>
+                            <tr>
+                                <td><code>__get($name)</code></td>
+                                <td>Reading an inaccessible property</td>
+                                <td>Dynamic properties, lazy loading</td>
+                            </tr>
+                            <tr>
+                                <td><code>__set($name, $val)</code></td>
+                                <td>Writing an inaccessible property</td>
+                                <td>Validation, virtual properties</td>
+                            </tr>
+                            <tr>
+                                <td><code>__isset($name)</code></td>
+                                <td><code>isset()</code> on inaccessible property</td>
+                                <td>Support <code>isset()</code>/<code>empty()</code> checks</td>
+                            </tr>
+                            <tr>
+                                <td><code>__clone()</code></td>
+                                <td>Object is cloned with <code>clone</code></td>
+                                <td>Deep copy nested objects</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 9: Putting It Together -->
+            <section id="section9" class="lesson-section">
+                <h2>Putting It All Together</h2>
+
+                <p>Let's build a complete, practical class that uses everything from this lesson.</p>
+
+                <h3>A TodoList Class</h3>
+                <pre><code class="language-php">&lt;?php
+class TodoItem {
+    public function __construct(
+        public readonly string $id,
+        public string $title,
+        public bool $completed = false,
+        public readonly string $createdAt = "",
+    ) {
+        // Generate values if not provided
+        if ($this->id === "") {
+            // Use reflection workaround for readonly in constructor
+        }
+    }
+
+    public function __toString(): string {
+        $icon = $this->completed ? "✅" : "⬜";
+        return "$icon {$this->title}";
+    }
+}
+
+class TodoList {
+    /** @var TodoItem[] */
+    private array $items = [];
+    private static int $nextId = 1;
+    private string $dataFile;
+
+    public const MAX_ITEMS = 100;
+
+    public function __construct(string $dataFile = "todos.json") {
+        $this->dataFile = $dataFile;
+        $this->load();
+    }
+
+    // --- Public API ---
+
+    public function add(string $title): TodoItem {
+        if (count($this->items) >= self::MAX_ITEMS) {
+            throw new OverflowException("Maximum of " . self::MAX_ITEMS . " items reached.");
+        }
+
+        $item = new TodoItem(
+            id: (string)self::$nextId++,
+            title: trim($title),
+            createdAt: date("Y-m-d H:i:s"),
+        );
+        $this->items[$item->id] = $item;
+        $this->save();
+        return $item;
+    }
+
+    public function complete(string $id): void {
+        $item = $this->findOrFail($id);
+        $item->completed = true;
+        $this->save();
+    }
+
+    public function remove(string $id): void {
+        $this->findOrFail($id); // Ensure it exists
+        unset($this->items[$id]);
+        $this->save();
+    }
+
+    public function getAll(): array {
+        return array_values($this->items);
+    }
+
+    public function getPending(): array {
+        return array_values(array_filter(
+            $this->items,
+            fn(TodoItem $item) => !$item->completed
+        ));
+    }
+
+    public function getCompleted(): array {
+        return array_values(array_filter(
+            $this->items,
+            fn(TodoItem $item) => $item->completed
+        ));
+    }
+
+    public function count(): int {
+        return count($this->items);
+    }
+
+    public function countPending(): int {
+        return count($this->getPending());
+    }
+
+    public static function getMaxItems(): int {
+        return self::MAX_ITEMS;
+    }
+
+    // --- Private helpers ---
+
+    private function findOrFail(string $id): TodoItem {
+        if (!isset($this->items[$id])) {
+            throw new InvalidArgumentException("Todo item not found: $id");
+        }
+        return $this->items[$id];
+    }
+
+    private function save(): void {
+        $data = array_map(fn(TodoItem $item) => [
+            "id"        => $item->id,
+            "title"     => $item->title,
+            "completed" => $item->completed,
+            "createdAt" => $item->createdAt,
+        ], $this->items);
+
+        file_put_contents(
+            $this->dataFile,
+            json_encode(array_values($data), JSON_PRETTY_PRINT),
+            LOCK_EX
+        );
+    }
+
+    private function load(): void {
+        if (!file_exists($this->dataFile)) return;
+
+        $json = file_get_contents($this->dataFile);
+        $data = json_decode($json, true) ?? [];
+
+        foreach ($data as $row) {
+            $item = new TodoItem(
+                id: $row["id"],
+                title: $row["title"],
+                completed: $row["completed"],
+                createdAt: $row["createdAt"],
+            );
+            $this->items[$item->id] = $item;
+            self::$nextId = max(self::$nextId, (int)$item->id + 1);
+        }
+    }
+}
+
+// === Usage ===
+$todos = new TodoList("data/my_todos.json");
+
+$item1 = $todos->add("Learn PHP OOP");
+$item2 = $todos->add("Build a CRUD app");
+$item3 = $todos->add("Deploy to production");
+
+$todos->complete($item1->id);
+
+echo "Total: {$todos->count()}\n";
+echo "Pending: {$todos->countPending()}\n\n";
+
+foreach ($todos->getAll() as $item) {
+    echo "$item\n"; // __toString is called
+}
+// ✅ Learn PHP OOP
+// ⬜ Build a CRUD app
+// ⬜ Deploy to production</code></pre>
+
+                <div class="mermaid">
+                    classDiagram
+                        class TodoItem {
+                            +readonly string id
+                            +string title
+                            +bool completed
+                            +readonly string createdAt
+                            +__toString() string
+                        }
+                        class TodoList {
+                            -TodoItem[] items
+                            -static int nextId
+                            -string dataFile
+                            +const MAX_ITEMS = 100
+                            +add(title) TodoItem
+                            +complete(id) void
+                            +remove(id) void
+                            +getAll() array
+                            +getPending() array
+                            +getCompleted() array
+                            +count() int
+                            +countPending() int
+                            -findOrFail(id) TodoItem
+                            -save() void
+                            -load() void
+                        }
+                        TodoList "1" *-- "*" TodoItem : contains
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ Notice the Patterns</h4>
+                    <ul>
+                        <li><strong>Encapsulation:</strong> <code>$items</code> is private — external code uses <code>add()</code>, <code>complete()</code>, <code>remove()</code></li>
+                        <li><strong>Constructor promotion:</strong> <code>TodoItem</code> uses promoted properties for conciseness</li>
+                        <li><strong>Static members:</strong> <code>$nextId</code> tracks IDs across all instances; <code>MAX_ITEMS</code> is a class constant</li>
+                        <li><strong>Private helpers:</strong> <code>save()</code>, <code>load()</code>, <code>findOrFail()</code> are implementation details</li>
+                        <li><strong>Magic methods:</strong> <code>__toString()</code> on TodoItem for clean display</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 10: Exercises -->
+            <section id="section10" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Rectangle Class</h3>
+                    <p><strong>Objective:</strong> Build a <code>Rectangle</code> class with calculated properties and validation.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a <code>Rectangle</code> class with <code>width</code> and <code>height</code> (both float, private)</li>
+                        <li>Constructor that validates both are positive numbers</li>
+                        <li>Getters: <code>getWidth()</code>, <code>getHeight()</code></li>
+                        <li>Computed methods: <code>getArea()</code>, <code>getPerimeter()</code>, <code>isSquare()</code></li>
+                        <li>A <code>scale(float $factor)</code> method that multiplies both dimensions</li>
+                        <li>A <code>__toString()</code> that returns "Rectangle(w×h)"</li>
+                        <li>A static factory method <code>square(float $size)</code> that creates a square</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>A square is just a rectangle where width equals height. For <code>isSquare()</code>, compare with a small epsilon (e.g., <code>abs($this->width - $this->height) < 0.0001</code>) to handle floating point imprecision.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+class Rectangle {
+    private float $width;
+    private float $height;
+
+    public function __construct(float $width, float $height) {
+        if ($width <= 0 || $height <= 0) {
+            throw new InvalidArgumentException("Dimensions must be positive.");
+        }
+        $this->width = $width;
+        $this->height = $height;
+    }
+
+    public function getWidth(): float { return $this->width; }
+    public function getHeight(): float { return $this->height; }
+
+    public function getArea(): float {
+        return $this->width * $this->height;
+    }
+
+    public function getPerimeter(): float {
+        return 2 * ($this->width + $this->height);
+    }
+
+    public function isSquare(): bool {
+        return abs($this->width - $this->height) < 0.0001;
+    }
+
+    public function scale(float $factor): void {
+        if ($factor <= 0) {
+            throw new InvalidArgumentException("Scale factor must be positive.");
+        }
+        $this->width *= $factor;
+        $this->height *= $factor;
+    }
+
+    public function __toString(): string {
+        return "Rectangle({$this->width}×{$this->height})";
+    }
+
+    public static function square(float $size): self {
+        return new self($size, $size);
+    }
+}
+
+// Test it
+$rect = new Rectangle(10, 5);
+echo $rect;                  // "Rectangle(10×5)"
+echo $rect->getArea();       // 50
+echo $rect->getPerimeter();  // 30
+echo $rect->isSquare();      // false
+
+$rect->scale(2);
+echo $rect;                  // "Rectangle(20×10)"
+
+$sq = Rectangle::square(7);
+echo $sq;                    // "Rectangle(7×7)"
+echo $sq->isSquare();        // true</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Inventory System</h3>
+                    <p><strong>Objective:</strong> Build an <code>Inventory</code> class that manages a collection of products.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a <code>Product</code> class with: name (string), price (float), stock (int) — use constructor promotion</li>
+                        <li>Add a <code>getTotalValue()</code> method (price × stock)</li>
+                        <li>Create an <code>Inventory</code> class that stores an array of Product objects</li>
+                        <li>Add methods: <code>addProduct(Product)</code>, <code>removeProduct(string $name)</code>, <code>findProduct(string $name): ?Product</code></li>
+                        <li>Add methods: <code>getTotalValue()</code> (sum of all products), <code>getLowStock(int $threshold = 10): array</code></li>
+                        <li>Add a static counter that tracks total Product instances created</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Store products in an associative array keyed by name for easy lookup and removal. Use <code>array_filter</code> for <code>getLowStock()</code>. The static counter should be a <code>private static int</code> incremented in <code>Product::__construct()</code>.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+class Product {
+    private static int $instanceCount = 0;
+
+    public function __construct(
+        public readonly string $name,
+        public float $price,
+        public int $stock = 0,
+    ) {
+        if ($price < 0) throw new InvalidArgumentException("Price must be non-negative.");
+        if ($stock < 0) throw new InvalidArgumentException("Stock must be non-negative.");
+        self::$instanceCount++;
+    }
+
+    public function getTotalValue(): float {
+        return $this->price * $this->stock;
+    }
+
+    public function __toString(): string {
+        return sprintf("%s: $%.2f (%d in stock)", $this->name, $this->price, $this->stock);
+    }
+
+    public static function getInstanceCount(): int {
+        return self::$instanceCount;
+    }
+}
+
+class Inventory {
+    /** @var array&lt;string, Product&gt; */
+    private array $products = [];
+
+    public function addProduct(Product $product): void {
+        $this->products[$product->name] = $product;
+    }
+
+    public function removeProduct(string $name): void {
+        if (!isset($this->products[$name])) {
+            throw new InvalidArgumentException("Product not found: $name");
+        }
+        unset($this->products[$name]);
+    }
+
+    public function findProduct(string $name): ?Product {
+        return $this->products[$name] ?? null;
+    }
+
+    public function getTotalValue(): float {
+        return array_sum(array_map(
+            fn(Product $p) => $p->getTotalValue(),
+            $this->products
+        ));
+    }
+
+    public function getLowStock(int $threshold = 10): array {
+        return array_values(array_filter(
+            $this->products,
+            fn(Product $p) => $p->stock < $threshold
+        ));
+    }
+
+    public function count(): int {
+        return count($this->products);
+    }
+}
+
+// Test
+$inv = new Inventory();
+$inv->addProduct(new Product("Widget", 12.99, 150));
+$inv->addProduct(new Product("Gadget", 49.99, 5));
+$inv->addProduct(new Product("Doohickey", 8.50, 200));
+$inv->addProduct(new Product("Thingamajig", 99.99, 3));
+
+echo "Products: {$inv->count()}\n";
+echo "Total value: $" . number_format($inv->getTotalValue(), 2) . "\n";
+
+echo "\nLow stock:\n";
+foreach ($inv->getLowStock() as $p) {
+    echo "  $p\n";
+}
+
+echo "\nTotal Product instances created: " . Product::getInstanceCount();</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What does <code>$this</code> refer to inside a class method?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="$this doesn't refer to the class itself — that would be 'self'. $this refers to a specific instance.">
+                                A) The class definition
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! $this is a reference to the current object — the specific instance that the method was called on. If you have $user1->getName() and $user2->getName(), $this refers to $user1 in the first call and $user2 in the second.">
+                                B) The current object instance that the method was called on
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="$this is only available inside non-static methods, not globally. It has nothing to do with global scope.">
+                                C) The global scope
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What is constructor promotion in PHP 8?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! By adding a visibility modifier (public, protected, private) to a constructor parameter, PHP automatically creates the corresponding property and assigns the parameter's value to it. This eliminates the boilerplate of declaring properties separately and writing $this->x = $x for each one.">
+                                A) Adding a visibility modifier to constructor parameters to auto-create and assign properties
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Constructors in PHP are always named __construct. Named constructors are actually static factory methods — a different pattern entirely.">
+                                B) Automatically naming constructors based on the class name
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP doesn't have constructor overloading. Each class has one __construct method. You can use default parameters for flexibility.">
+                                C) Having multiple constructors in one class
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> If a property is <code>private</code>, who can access it?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="That's 'protected'. Private is more restrictive — not even child classes can access it.">
+                                A) The class and its child classes
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Private members are only accessible within the class that defines them. Not child classes, not external code — only the same class. Other instances of the same class CAN access each other's private members (this is useful for comparison methods).">
+                                B) Only the class that defines it
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="That's 'public'. Private restricts access to only inside the defining class.">
+                                C) Any code that has a reference to the object
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> How do you access a static property inside its class?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="$this->property is for instance (non-static) properties. $this doesn't exist in static context.">
+                                A) <code>$this->property</code>
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Static members use self:: with a $ prefix on the property name: self::$count, self::$instances. For static methods or constants, it's self::methodName() or self::CONSTANT (no $ for constants). The keyword 'static::' also works and is preferred in inheritance scenarios.">
+                                B) <code>self::$property</code>
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Constants use self::CONSTANT_NAME (no $). Static properties need the $ prefix: self::$property.">
+                                C) <code>self::property</code> (without the $)
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> When is <code>__toString()</code> called?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="That's __construct(). __toString() has nothing to do with object creation.">
+                                A) When the object is created with new
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="That's __destruct(). __toString() is about string conversion, not cleanup.">
+                                B) When the object is destroyed
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! __toString() is called whenever PHP needs to convert an object to a string: using it in echo, print, string concatenation, or string interpolation. It must return a string.">
+                                C) When the object is used in a string context (echo, concatenation, interpolation)
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 11: Summary -->
+            <section id="section11" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Classes</strong> are blueprints; <strong>objects</strong> are instances created with <code>new</code></li>
+                        <li><strong>Properties</strong> hold data; <strong>methods</strong> define behavior — accessed with <code>-></code></li>
+                        <li><strong><code>$this</code></strong> refers to the current object instance inside methods</li>
+                        <li><strong><code>__construct()</code></strong> initializes objects; <strong>constructor promotion</strong> (PHP 8) reduces boilerplate</li>
+                        <li><strong><code>readonly</code></strong> properties (PHP 8.1) can only be set once in the constructor</li>
+                        <li><strong>Visibility:</strong> <code>public</code> (anywhere), <code>protected</code> (class + children), <code>private</code> (same class only)</li>
+                        <li><strong>Encapsulation:</strong> make properties private, expose controlled access through methods</li>
+                        <li><strong><code>static</code></strong> members belong to the class, not instances — accessed with <code>::</code></li>
+                        <li><strong><code>const</code></strong> defines immutable class values; <strong>static factory methods</strong> provide alternative constructors</li>
+                        <li><strong>Magic methods</strong> like <code>__toString()</code>, <code>__destruct()</code>, <code>__debugInfo()</code> are called automatically by PHP</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/language.oop5.php" target="_blank" rel="noopener">PHP Manual: Classes and Objects</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.oop5.decon.php" target="_blank" rel="noopener">PHP Manual: Constructors and Destructors</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.oop5.visibility.php" target="_blank" rel="noopener">PHP Manual: Visibility</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.oop5.static.php" target="_blank" rel="noopener">PHP Manual: Static Properties and Methods</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.oop5.magic.php" target="_blank" rel="noopener">PHP Manual: Magic Methods</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Now that you can build classes and objects, <strong>Lesson 17: OOP — Inheritance, Interfaces &amp; Traits</strong> will show you how to <em>extend</em> classes, define shared contracts with interfaces, and mix in reusable behavior with traits. These tools let you build flexible, maintainable class hierarchies.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've learned the fundamentals of object-oriented PHP! You can now create classes with properties, methods, constructors, visibility control, and static members — the building blocks of every modern PHP application.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_15.html" class="prev-lesson">← Previous: Sessions &amp; Cookies</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_17.html" class="next-lesson">Next: OOP — Inheritance, Interfaces &amp; Traits →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

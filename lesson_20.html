@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Master INSERT, UPDATE, and DELETE with PDO, use transactions for multi-step operations, get the last inserted ID, and explore advanced fetch styles.">
+    <meta name="author" content="Ray De La Paz">
+    <title>PDO — CRUD, Transactions &amp; Fetch Styles - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 6: Database Integration</a></li>
+            <li aria-current="page">Lesson 20: PDO — CRUD, Transactions &amp; Fetch Styles</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🔄 Lesson 20: PDO — CRUD, Transactions &amp; Fetch Styles</h1>
+                <p class="lead">In the previous lesson, you connected PHP to MySQL and learned to read data with prepared statements. Now it's time to complete the picture: <strong>Create, Update, and Delete</strong> records with PDO, wrap multi-step operations in <strong>transactions</strong> so they succeed or fail as a unit, and master the remaining <strong>fetch styles</strong> that make your code cleaner. By the end of this lesson, you'll have every PDO skill you need to build the full CRUD app in Lesson 21.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Insert rows with <code>prepare()</code> + <code>execute()</code> and retrieve the new ID with <code>lastInsertId()</code></li>
+                        <li>Update and delete rows safely using prepared statements</li>
+                        <li>Use <code>rowCount()</code> to check how many rows were affected</li>
+                        <li>Wrap multi-step operations in transactions with <code>beginTransaction()</code>, <code>commit()</code>, and <code>rollback()</code></li>
+                        <li>Choose the right fetch style for each situation (<code>FETCH_CLASS</code>, <code>FETCH_GROUP</code>, <code>FETCH_KEY_PAIR</code>, and more)</li>
+                        <li>Build helper methods that simplify common CRUD patterns</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 50 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 19 (PDO — Connecting &amp; Prepared Statements)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">CRUD Overview</a></li>
+                        <li><a href="#section2" class="toc-link">INSERT — Creating Records</a></li>
+                        <li><a href="#section3" class="toc-link">UPDATE — Modifying Records</a></li>
+                        <li><a href="#section4" class="toc-link">DELETE — Removing Records</a></li>
+                        <li><a href="#section5" class="toc-link">Transactions</a></li>
+                        <li><a href="#section6" class="toc-link">Advanced Fetch Styles</a></li>
+                        <li><a href="#section7" class="toc-link">CRUD Helper Methods</a></li>
+                        <li><a href="#section8" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section9" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: CRUD Overview -->
+            <section id="section1" class="lesson-section">
+                <h2>CRUD Overview</h2>
+
+                <p><strong>CRUD</strong> stands for <strong>Create, Read, Update, Delete</strong> — the four fundamental operations for any database-driven application. In Lesson 19 you mastered the <strong>R</strong> (Read). This lesson covers the remaining three.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operation</th>
+                                <th>SQL</th>
+                                <th>PDO Method</th>
+                                <th>Returns</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>C</strong>reate</td>
+                                <td><code>INSERT INTO</code></td>
+                                <td><code>prepare()</code> + <code>execute()</code></td>
+                                <td><code>lastInsertId()</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>R</strong>ead</td>
+                                <td><code>SELECT</code></td>
+                                <td><code>prepare()</code> + <code>execute()</code></td>
+                                <td><code>fetch()</code> / <code>fetchAll()</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>U</strong>pdate</td>
+                                <td><code>UPDATE</code></td>
+                                <td><code>prepare()</code> + <code>execute()</code></td>
+                                <td><code>rowCount()</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>D</strong>elete</td>
+                                <td><code>DELETE FROM</code></td>
+                                <td><code>prepare()</code> + <code>execute()</code></td>
+                                <td><code>rowCount()</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mermaid">
+                    flowchart LR
+                        C["CREATE<br>INSERT INTO"] --> DB[(Database)]
+                        R["READ<br>SELECT"] --> DB
+                        U["UPDATE<br>UPDATE SET"] --> DB
+                        D["DELETE<br>DELETE FROM"] --> DB
+                        DB --> C1["lastInsertId()"]
+                        DB --> R1["fetch() / fetchAll()"]
+                        DB --> U1["rowCount()"]
+                        DB --> D1["rowCount()"]
+                </div>
+
+                <p>Every write operation follows the same three-step pattern you already know: <strong>prepare → execute → check result</strong>. The only new pieces are <code>lastInsertId()</code> for inserts and <code>rowCount()</code> for updates and deletes.</p>
+
+                <div class="card card-accent">
+                    <h4>📖 Setup Reminder</h4>
+                    <p>All examples in this lesson assume you have the <code>Database</code> class from Lesson 19 or a PDO connection with the recommended options (<code>ERRMODE_EXCEPTION</code>, <code>FETCH_ASSOC</code>, <code>EMULATE_PREPARES = false</code>). If you need a quick refresher, revisit the "Reusable Database Class" section in Lesson 19.</p>
+                </div>
+            </section>
+
+            <!-- Section 2: INSERT -->
+            <section id="section2" class="lesson-section">
+                <h2>INSERT — Creating Records</h2>
+
+                <h3>Basic INSERT</h3>
+                <pre><code class="language-php">&lt;?php
+require_once "Database.php";
+$pdo = Database::getConnection();
+
+// Insert a single row
+$stmt = $pdo->prepare(
+    "INSERT INTO users (name, email, role) VALUES (:name, :email, :role)"
+);
+
+$stmt->execute([
+    "name"  => "Diana Prince",
+    "email" => "diana@example.com",
+    "role"  => "editor",
+]);
+
+echo "User created!";</code></pre>
+
+                <h3>Getting the New ID with lastInsertId()</h3>
+                <p>After an INSERT into a table with an <code>AUTO_INCREMENT</code> primary key, you almost always need the new row's ID — to redirect to it, log it, or insert related data.</p>
+
+                <pre><code class="language-php">&lt;?php
+$stmt = $pdo->prepare(
+    "INSERT INTO users (name, email) VALUES (:name, :email)"
+);
+$stmt->execute([
+    "name"  => "Clark Kent",
+    "email" => "clark@dailyplanet.com",
+]);
+
+// Get the AUTO_INCREMENT ID of the row we just inserted
+$newId = $pdo->lastInsertId();
+
+echo "New user ID: $newId";
+// → "New user ID: 47"
+
+// Common pattern: redirect to the new record
+// header("Location: user.php?id=$newId");
+// exit;</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ lastInsertId() Belongs to the Connection, Not the Statement</h4>
+                    <p>Call <code>$pdo->lastInsertId()</code>, not <code>$stmt->lastInsertId()</code>. It returns the last auto-increment ID generated on <em>this</em> connection — so it's safe even if other users are inserting rows simultaneously. Each connection tracks its own last ID independently.</p>
+                </div>
+
+                <h3>Inserting Multiple Rows</h3>
+                <pre><code class="language-php">&lt;?php
+// Prepare once, execute many times — efficient batch insert
+$stmt = $pdo->prepare(
+    "INSERT INTO products (name, price, category) VALUES (:name, :price, :category)"
+);
+
+$products = [
+    ["name" => "Wireless Mouse",    "price" => 29.99, "category" => "Electronics"],
+    ["name" => "USB-C Hub",         "price" => 49.99, "category" => "Electronics"],
+    ["name" => "Standing Desk Mat", "price" => 39.99, "category" => "Office"],
+    ["name" => "Mechanical Keyboard","price" => 89.99, "category" => "Electronics"],
+];
+
+$insertedIds = [];
+foreach ($products as $product) {
+    $stmt->execute($product);
+    $insertedIds[] = $pdo->lastInsertId();
+}
+
+echo count($insertedIds) . " products inserted.\n";
+echo "IDs: " . implode(", ", $insertedIds);
+// → "4 products inserted."
+// → "IDs: 1, 2, 3, 4"</code></pre>
+
+                <h3>INSERT with ON DUPLICATE KEY UPDATE</h3>
+                <p>Sometimes you want to insert a row, but if it already exists (based on a unique key), update it instead. MySQL's <code>ON DUPLICATE KEY UPDATE</code> handles this in a single query — no need to check-then-insert.</p>
+
+                <pre><code class="language-php">&lt;?php
+// "Upsert" — insert or update if the email already exists
+// Assumes: UNIQUE KEY on the email column
+$stmt = $pdo->prepare("
+    INSERT INTO users (name, email, role)
+    VALUES (:name, :email, :role)
+    ON DUPLICATE KEY UPDATE
+        name = VALUES(name),
+        role = VALUES(role)
+");
+
+$stmt->execute([
+    "name"  => "Diana Prince",
+    "email" => "diana@example.com",  // If this email exists → UPDATE
+    "role"  => "admin",
+]);
+
+// rowCount() returns:
+// 1 → new row inserted
+// 2 → existing row updated
+$action = $stmt->rowCount() === 1 ? "inserted" : "updated";
+echo "User $action.";</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ INSERT Checklist</h4>
+                    <ul>
+                        <li>Always use prepared statements — never concatenate values into SQL</li>
+                        <li>Call <code>$pdo->lastInsertId()</code> right after the INSERT if you need the new ID</li>
+                        <li>For batch inserts, prepare once and execute in a loop</li>
+                        <li>Validate and sanitize data <em>before</em> the INSERT — the database is your last line of defense, not your first</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 3: UPDATE -->
+            <section id="section3" class="lesson-section">
+                <h2>UPDATE — Modifying Records</h2>
+
+                <h3>Basic UPDATE</h3>
+                <pre><code class="language-php">&lt;?php
+// Update a single record by ID
+$stmt = $pdo->prepare(
+    "UPDATE users SET name = :name, email = :email WHERE id = :id"
+);
+
+$stmt->execute([
+    "name"  => "Diana of Themyscira",
+    "email" => "diana@amazons.org",
+    "id"    => 42,
+]);
+
+// How many rows were actually changed?
+$affected = $stmt->rowCount();
+echo "$affected row(s) updated.";</code></pre>
+
+                <h3>rowCount() — Checking Affected Rows</h3>
+                <p>After an UPDATE or DELETE, <code>rowCount()</code> tells you how many rows were actually modified. This is essential for giving the user meaningful feedback.</p>
+
+                <pre><code class="language-php">&lt;?php
+$stmt = $pdo->prepare("UPDATE users SET role = :role WHERE id = :id");
+$stmt->execute(["role" => "admin", "id" => 42]);
+
+$affected = $stmt->rowCount();
+
+if ($affected === 0) {
+    echo "No changes made. The user may not exist or already has this role.";
+} else {
+    echo "User updated successfully.";
+}</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 rowCount() Counts Changed Rows, Not Matched Rows</h4>
+                    <p>With MySQL and <code>EMULATE_PREPARES = false</code> (our recommended setting), <code>rowCount()</code> returns the number of rows that were actually <em>changed</em>. If you UPDATE a user's name to the value it already has, <code>rowCount()</code> returns <code>0</code> — the row matched the WHERE clause but nothing changed. This is usually what you want, but be aware of it when checking "did the row exist?"</p>
+                    <p>If you need to know whether a row <em>matched</em> regardless of whether it changed, do a SELECT first or check <code>lastInsertId()</code> behavior on upserts.</p>
+                </div>
+
+                <h3>Conditional Updates</h3>
+                <pre><code class="language-php">&lt;?php
+// Update multiple columns conditionally
+$stmt = $pdo->prepare("
+    UPDATE products
+    SET price = :price, updated_at = NOW()
+    WHERE id = :id AND price != :price
+");
+$stmt->execute(["price" => 34.99, "id" => 7]);
+
+// Bulk update — deactivate users who haven't logged in this year
+$stmt = $pdo->prepare(
+    "UPDATE users SET active = 0 WHERE last_login < :cutoff AND active = 1"
+);
+$stmt->execute(["cutoff" => "2026-01-01"]);
+
+$deactivated = $stmt->rowCount();
+echo "$deactivated inactive accounts deactivated.";</code></pre>
+
+                <h3>UPDATE with LIMIT</h3>
+                <pre><code class="language-php">&lt;?php
+// Process a batch of pending orders (useful for cron jobs)
+$stmt = $pdo->prepare("
+    UPDATE orders
+    SET status = 'processing', processed_at = NOW()
+    WHERE status = 'pending'
+    ORDER BY created_at ASC
+    LIMIT :batch_size
+");
+$stmt->bindValue(":batch_size", 50, PDO::PARAM_INT);
+$stmt->execute();
+
+echo $stmt->rowCount() . " orders moved to processing.";</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Always Include a WHERE Clause</h4>
+                    <p>An UPDATE without WHERE modifies <strong>every row</strong> in the table. This is almost never what you want. Before running an UPDATE, double-check that you have a WHERE clause that narrows the scope correctly. The same applies to DELETE.</p>
+                </div>
+            </section>
+
+            <!-- Section 4: DELETE -->
+            <section id="section4" class="lesson-section">
+                <h2>DELETE — Removing Records</h2>
+
+                <h3>Basic DELETE</h3>
+                <pre><code class="language-php">&lt;?php
+// Delete a single record by ID
+$stmt = $pdo->prepare("DELETE FROM users WHERE id = :id");
+$stmt->execute(["id" => 42]);
+
+$deleted = $stmt->rowCount();
+
+if ($deleted === 0) {
+    echo "User not found — nothing deleted.";
+} else {
+    echo "User deleted successfully.";
+}</code></pre>
+
+                <h3>Delete with Confirmation Pattern</h3>
+                <p>In real applications, you'll often want to verify the record exists before deleting — and potentially return its data so you can display a confirmation message.</p>
+
+                <pre><code class="language-php">&lt;?php
+function deleteUser(PDO $pdo, int $id): ?array {
+    // Step 1: Fetch the user first (so we can confirm what was deleted)
+    $stmt = $pdo->prepare("SELECT id, name, email FROM users WHERE id = ?");
+    $stmt->execute([$id]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        return null; // User doesn't exist
+    }
+
+    // Step 2: Delete the user
+    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+    $stmt->execute([$id]);
+
+    return $user; // Return the deleted user's data
+}
+
+// Usage
+$deleted = deleteUser($pdo, 42);
+
+if ($deleted) {
+    echo "Deleted user: {$deleted['name']} ({$deleted['email']})";
+} else {
+    echo "User not found.";
+}</code></pre>
+
+                <h3>Soft Delete vs. Hard Delete</h3>
+                <p>Many applications don't actually delete records — they mark them as deleted instead. This preserves data for auditing, recovery, and referential integrity.</p>
+
+                <pre><code class="language-php">&lt;?php
+// Hard delete — row is gone forever
+$pdo->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
+
+// Soft delete — row is hidden but still in the database
+$pdo->prepare(
+    "UPDATE users SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL"
+)->execute([$id]);
+
+// When querying, exclude soft-deleted records:
+$stmt = $pdo->query("SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name");
+$activeUsers = $stmt->fetchAll();
+
+// To "restore" a soft-deleted record:
+$pdo->prepare(
+    "UPDATE users SET deleted_at = NULL WHERE id = ?"
+)->execute([$id]);</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Soft Delete</h4>
+                    <ul>
+                        <li><strong>User accounts</strong> — users may want to reactivate later</li>
+                        <li><strong>Orders/invoices</strong> — financial records often can't legally be deleted</li>
+                        <li><strong>Content with relationships</strong> — comments, posts that other records reference</li>
+                    </ul>
+                    <p><strong>Hard delete</strong> is fine for: session data, temporary files, log entries older than retention period, and anything with no business value.</p>
+                </div>
+
+                <h3>Cleanup Queries</h3>
+                <pre><code class="language-php">&lt;?php
+// Delete expired sessions
+$stmt = $pdo->prepare("DELETE FROM sessions WHERE expires_at < NOW()");
+$stmt->execute();
+echo $stmt->rowCount() . " expired sessions removed.";
+
+// Delete old logs (keep last 90 days)
+$stmt = $pdo->prepare(
+    "DELETE FROM logs WHERE created_at < DATE_SUB(NOW(), INTERVAL :days DAY)"
+);
+$stmt->bindValue(":days", 90, PDO::PARAM_INT);
+$stmt->execute();
+echo $stmt->rowCount() . " old log entries purged.";
+
+// TRUNCATE — delete ALL rows instantly (resets AUTO_INCREMENT)
+// Use with extreme caution — no WHERE clause, no undo
+$pdo->exec("TRUNCATE TABLE temp_imports");</code></pre>
+            </section>
+
+            <!-- Section 5: Transactions -->
+            <section id="section5" class="lesson-section">
+                <h2>Transactions</h2>
+
+                <p>A <strong>transaction</strong> groups multiple SQL statements into a single all-or-nothing operation. Either <em>every</em> statement succeeds and the changes are saved (<strong>commit</strong>), or <em>any</em> failure rolls back all changes as if nothing happened (<strong>rollback</strong>). This guarantees data consistency.</p>
+
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant PHP
+                        participant MySQL
+                        PHP->>MySQL: beginTransaction()
+                        PHP->>MySQL: INSERT INTO orders ...
+                        PHP->>MySQL: UPDATE inventory SET stock = stock - 1 ...
+                        PHP->>MySQL: INSERT INTO order_items ...
+                        alt All succeed
+                            PHP->>MySQL: commit()
+                            MySQL-->>PHP: ✅ All changes saved
+                        else Any failure
+                            PHP->>MySQL: rollback()
+                            MySQL-->>PHP: ❌ All changes undone
+                        end
+                </div>
+
+                <h3>Why Transactions Matter</h3>
+                <p>Without transactions, if your code inserts an order but crashes before updating the inventory, you have an order with no stock deduction — your data is inconsistent. Transactions prevent this class of bugs entirely.</p>
+
+                <div class="card card-accent">
+                    <h4>📖 ACID Properties</h4>
+                    <p>Transactions follow the <strong>ACID</strong> principles (covered in <a href="https://rays-mysql.netlify.app/" target="_blank">MySQL Foundations</a>):</p>
+                    <ul>
+                        <li><strong>Atomicity</strong> — All or nothing. Every statement in the transaction either commits or rolls back together.</li>
+                        <li><strong>Consistency</strong> — The database moves from one valid state to another. Constraints are enforced.</li>
+                        <li><strong>Isolation</strong> — Other connections don't see your uncommitted changes.</li>
+                        <li><strong>Durability</strong> — Once committed, the changes survive server crashes.</li>
+                    </ul>
+                </div>
+
+                <h3>Basic Transaction</h3>
+                <pre><code class="language-php">&lt;?php
+try {
+    // Step 1: Start the transaction
+    $pdo->beginTransaction();
+
+    // Step 2: Run multiple statements
+    $stmt = $pdo->prepare(
+        "INSERT INTO orders (user_id, total) VALUES (:user_id, :total)"
+    );
+    $stmt->execute(["user_id" => 1, "total" => 59.98]);
+    $orderId = $pdo->lastInsertId();
+
+    $stmt = $pdo->prepare(
+        "INSERT INTO order_items (order_id, product_id, quantity, price)
+         VALUES (:order_id, :product_id, :quantity, :price)"
+    );
+    $stmt->execute([
+        "order_id"   => $orderId,
+        "product_id" => 101,
+        "quantity"    => 2,
+        "price"       => 29.99,
+    ]);
+
+    $stmt = $pdo->prepare(
+        "UPDATE products SET stock = stock - :qty WHERE id = :id AND stock >= :qty"
+    );
+    $stmt->execute(["qty" => 2, "id" => 101]);
+
+    // Check that the stock was actually deducted
+    if ($stmt->rowCount() === 0) {
+        throw new RuntimeException("Insufficient stock for product 101");
+    }
+
+    // Step 3: Everything succeeded — commit!
+    $pdo->commit();
+    echo "Order #$orderId placed successfully!";
+
+} catch (Exception $e) {
+    // Step 4: Something went wrong — roll back everything
+    $pdo->rollBack();
+    echo "Order failed: " . $e->getMessage();
+    // The INSERT into orders and order_items are both undone
+}</code></pre>
+
+                <h3>Transaction with Multiple Items</h3>
+                <pre><code class="language-php">&lt;?php
+function placeOrder(PDO $pdo, int $userId, array $items): int {
+    try {
+        $pdo->beginTransaction();
+
+        // Calculate total
+        $total = array_sum(array_map(
+            fn($item) => $item["price"] * $item["quantity"],
+            $items
+        ));
+
+        // Create order
+        $stmt = $pdo->prepare(
+            "INSERT INTO orders (user_id, total, status) VALUES (?, ?, 'pending')"
+        );
+        $stmt->execute([$userId, $total]);
+        $orderId = $pdo->lastInsertId();
+
+        // Insert line items and deduct stock
+        $insertItem = $pdo->prepare(
+            "INSERT INTO order_items (order_id, product_id, quantity, price)
+             VALUES (:oid, :pid, :qty, :price)"
+        );
+
+        $deductStock = $pdo->prepare(
+            "UPDATE products SET stock = stock - :qty
+             WHERE id = :pid AND stock >= :qty"
+        );
+
+        foreach ($items as $item) {
+            // Add line item
+            $insertItem->execute([
+                "oid"   => $orderId,
+                "pid"   => $item["product_id"],
+                "qty"   => $item["quantity"],
+                "price" => $item["price"],
+            ]);
+
+            // Deduct stock — fails if not enough
+            $deductStock->execute([
+                "qty" => $item["quantity"],
+                "pid" => $item["product_id"],
+            ]);
+
+            if ($deductStock->rowCount() === 0) {
+                throw new RuntimeException(
+                    "Insufficient stock for product #{$item['product_id']}"
+                );
+            }
+        }
+
+        $pdo->commit();
+        return $orderId;
+
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        throw $e; // Re-throw so the caller knows it failed
+    }
+}
+
+// Usage
+try {
+    $orderId = placeOrder($pdo, userId: 1, items: [
+        ["product_id" => 101, "quantity" => 2, "price" => 29.99],
+        ["product_id" => 205, "quantity" => 1, "price" => 49.99],
+    ]);
+    echo "Order #$orderId placed!";
+} catch (RuntimeException $e) {
+    echo "Could not place order: " . $e->getMessage();
+}</code></pre>
+
+                <h3>Money Transfer — Classic Transaction Example</h3>
+                <pre><code class="language-php">&lt;?php
+function transferFunds(PDO $pdo, int $fromId, int $toId, float $amount): void {
+    if ($amount <= 0) {
+        throw new InvalidArgumentException("Amount must be positive");
+    }
+
+    try {
+        $pdo->beginTransaction();
+
+        // Deduct from sender
+        $stmt = $pdo->prepare(
+            "UPDATE accounts SET balance = balance - :amount
+             WHERE id = :id AND balance >= :amount"
+        );
+        $stmt->execute(["amount" => $amount, "id" => $fromId]);
+
+        if ($stmt->rowCount() === 0) {
+            throw new RuntimeException("Insufficient funds");
+        }
+
+        // Credit to receiver
+        $stmt = $pdo->prepare(
+            "UPDATE accounts SET balance = balance + :amount WHERE id = :id"
+        );
+        $stmt->execute(["amount" => $amount, "id" => $toId]);
+
+        if ($stmt->rowCount() === 0) {
+            throw new RuntimeException("Recipient account not found");
+        }
+
+        // Log the transfer
+        $stmt = $pdo->prepare(
+            "INSERT INTO transfers (from_id, to_id, amount) VALUES (?, ?, ?)"
+        );
+        $stmt->execute([$fromId, $toId, $amount]);
+
+        $pdo->commit();
+
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+}
+
+// Usage
+try {
+    transferFunds($pdo, fromId: 1, toId: 2, amount: 150.00);
+    echo "Transfer complete!";
+} catch (Exception $e) {
+    echo "Transfer failed: " . $e->getMessage();
+}</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Transaction Rules</h4>
+                    <ul>
+                        <li><strong>Always pair</strong> <code>beginTransaction()</code> with either <code>commit()</code> or <code>rollBack()</code> — never leave a transaction open.</li>
+                        <li><strong>Keep transactions short.</strong> Long-running transactions lock rows and hurt performance. Do your validation <em>before</em> starting the transaction.</li>
+                        <li><strong>DDL auto-commits.</strong> MySQL automatically commits if you run <code>CREATE TABLE</code>, <code>ALTER TABLE</code>, <code>DROP TABLE</code>, etc. inside a transaction — those can't be rolled back.</li>
+                        <li><strong>Nested transactions aren't supported</strong> by MySQL. Calling <code>beginTransaction()</code> inside an active transaction throws an exception.</li>
+                    </ul>
+                </div>
+
+                <h3>Checking Transaction State</h3>
+                <pre><code class="language-php">&lt;?php
+// Check if we're currently inside a transaction
+if ($pdo->inTransaction()) {
+    echo "Transaction is active";
+} else {
+    echo "No active transaction";
+}
+
+// Useful for defensive programming in shared code:
+function ensureTransaction(PDO $pdo): void {
+    if (!$pdo->inTransaction()) {
+        throw new LogicException("This method must be called within a transaction");
+    }
+}</code></pre>
+            </section>
+
+            <!-- Section 6: Advanced Fetch Styles -->
+            <section id="section6" class="lesson-section">
+                <h2>Advanced Fetch Styles</h2>
+
+                <p>In Lesson 19 you used <code>FETCH_ASSOC</code> (our default), <code>FETCH_OBJ</code>, and <code>FETCH_COLUMN</code>. Let's explore more fetch modes that can simplify your code significantly.</p>
+
+                <h3>FETCH_CLASS — Map Rows to Objects</h3>
+                <p>Instead of working with raw arrays, you can map database rows directly to class instances. The column values are assigned to properties with matching names.</p>
+
+                <pre><code class="language-php">&lt;?php
+class Product {
+    public int $id;
+    public string $name;
+    public float $price;
+    public string $category;
+    public ?string $created_at;
+
+    public function getFormattedPrice(): string {
+        return "$" . number_format($this->price, 2);
+    }
+
+    public function isExpensive(): bool {
+        return $this->price > 100;
+    }
+}
+
+$stmt = $pdo->query("SELECT * FROM products ORDER BY name");
+$products = $stmt->fetchAll(PDO::FETCH_CLASS, Product::class);
+
+foreach ($products as $product) {
+    echo "{$product->name}: {$product->getFormattedPrice()}";
+    if ($product->isExpensive()) {
+        echo " 💰";
+    }
+    echo "\n";
+}
+// "Mechanical Keyboard: $89.99"
+// "Standing Desk: $299.99 💰"
+// "USB-C Hub: $49.99"</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 How FETCH_CLASS Works</h4>
+                    <p>PDO assigns column values to properties <em>before</em> calling the constructor. This means the constructor receives an object that already has its data. If you need to transform data in the constructor, the properties will already be populated.</p>
+                    <p>Use <code>PDO::FETCH_PROPS_LATE</code> combined with <code>FETCH_CLASS</code> if you want the constructor to run <em>before</em> properties are assigned.</p>
+                </div>
+
+                <h3>FETCH_KEY_PAIR — Two Columns as Key =&gt; Value</h3>
+                <p>Perfect for building lookup arrays, dropdown menus, and configuration maps from the database.</p>
+
+                <pre><code class="language-php">&lt;?php
+// Build a category dropdown: id => name
+$stmt = $pdo->query("SELECT id, name FROM categories ORDER BY name");
+$categories = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+// [1 => "Electronics", 2 => "Office", 3 => "Clothing"]
+
+// Generate HTML &lt;select&gt;
+echo '&lt;select name="category_id"&gt;';
+foreach ($categories as $id => $name) {
+    echo "&lt;option value=\"$id\"&gt;" . htmlspecialchars($name) . "&lt;/option&gt;";
+}
+echo '&lt;/select&gt;';
+
+// Also great for config tables
+$stmt = $pdo->query("SELECT setting_key, setting_value FROM settings");
+$config = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+// ["site_name" => "My App", "max_uploads" => "10", "theme" => "dark"]
+
+$siteName = $config["site_name"] ?? "Default";</code></pre>
+
+                <h3>FETCH_UNIQUE — Full Rows Keyed by First Column</h3>
+                <pre><code class="language-php">&lt;?php
+// Key rows by user ID for quick lookup
+$stmt = $pdo->query("SELECT id, name, email, role FROM users");
+$usersById = $stmt->fetchAll(PDO::FETCH_UNIQUE);
+// [
+//   1 => ["name" => "Alice", "email" => "alice@...", "role" => "admin"],
+//   2 => ["name" => "Bob",   "email" => "bob@...",   "role" => "user"],
+// ]
+
+// Direct access by ID — no need to loop!
+if (isset($usersById[42])) {
+    echo "User 42: {$usersById[42]['name']}";
+}</code></pre>
+
+                <h3>FETCH_GROUP — Group Rows by First Column</h3>
+                <pre><code class="language-php">&lt;?php
+// Group products by category
+$stmt = $pdo->query(
+    "SELECT category, id, name, price FROM products ORDER BY category, name"
+);
+$grouped = $stmt->fetchAll(PDO::FETCH_GROUP);
+// [
+//   "Electronics" => [
+//       ["id" => 1, "name" => "Mouse", "price" => 29.99],
+//       ["id" => 4, "name" => "Keyboard", "price" => 89.99],
+//   ],
+//   "Office" => [
+//       ["id" => 3, "name" => "Desk Mat", "price" => 39.99],
+//   ],
+// ]
+
+// Display grouped results
+foreach ($grouped as $category => $products) {
+    echo "&lt;h3&gt;" . htmlspecialchars($category) . " (" . count($products) . ")&lt;/h3&gt;";
+    foreach ($products as $product) {
+        echo "  - {$product['name']}: \${$product['price']}\n";
+    }
+}
+
+// Group users by role
+$stmt = $pdo->query("SELECT role, name, email FROM users ORDER BY role, name");
+$byRole = $stmt->fetchAll(PDO::FETCH_GROUP);
+// ["admin" => [...], "editor" => [...], "user" => [...]]</code></pre>
+
+                <h3>FETCH_GROUP + FETCH_COLUMN — Grouped Single Values</h3>
+                <pre><code class="language-php">&lt;?php
+// Get just the names grouped by category
+$stmt = $pdo->query("SELECT category, name FROM products ORDER BY category, name");
+$namesByCategory = $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_COLUMN);
+// [
+//   "Electronics" => ["Keyboard", "Mouse", "USB-C Hub"],
+//   "Office"      => ["Desk Mat", "Standing Desk"],
+// ]
+
+// Get email addresses grouped by role
+$stmt = $pdo->query("SELECT role, email FROM users ORDER BY role");
+$emailsByRole = $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_COLUMN);
+// ["admin" => ["alice@...", "diana@..."], "user" => ["bob@...", "charlie@..."]]</code></pre>
+
+                <h3>Fetch Style Quick Reference</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fetch Style</th>
+                                <th>Returns</th>
+                                <th>Best For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>FETCH_ASSOC</code></td>
+                                <td><code>["col" =&gt; "val"]</code></td>
+                                <td>General purpose (default)</td>
+                            </tr>
+                            <tr>
+                                <td><code>FETCH_OBJ</code></td>
+                                <td><code>$row-&gt;col</code></td>
+                                <td>Object-style access without a class</td>
+                            </tr>
+                            <tr>
+                                <td><code>FETCH_CLASS</code></td>
+                                <td>Instances of your class</td>
+                                <td>Domain objects with methods</td>
+                            </tr>
+                            <tr>
+                                <td><code>FETCH_COLUMN</code></td>
+                                <td>Flat array of one column</td>
+                                <td>Lists of IDs, emails, names</td>
+                            </tr>
+                            <tr>
+                                <td><code>FETCH_KEY_PAIR</code></td>
+                                <td><code>[key =&gt; value]</code></td>
+                                <td>Dropdowns, config, lookups</td>
+                            </tr>
+                            <tr>
+                                <td><code>FETCH_UNIQUE</code></td>
+                                <td>Rows keyed by first column</td>
+                                <td>ID-based lookups</td>
+                            </tr>
+                            <tr>
+                                <td><code>FETCH_GROUP</code></td>
+                                <td>Rows grouped by first column</td>
+                                <td>Category views, reports</td>
+                            </tr>
+                            <tr>
+                                <td><code>FETCH_NUM</code></td>
+                                <td><code>[0 =&gt; "val"]</code></td>
+                                <td>When column names aren't needed</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 7: CRUD Helper Methods -->
+            <section id="section7" class="lesson-section">
+                <h2>CRUD Helper Methods</h2>
+
+                <p>Let's extend the <code>Database</code> class from Lesson 19 with convenience methods for common CRUD operations. These reduce boilerplate and make your code more expressive.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: Database.php (extended from Lesson 19)
+
+class Database {
+    private static ?PDO $instance = null;
+
+    private const DEFAULT_OPTIONS = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+
+    private function __construct() {}
+    private function __clone() {}
+
+    public static function getConnection(): PDO {
+        if (self::$instance === null) {
+            $host   = $_ENV["DB_HOST"]   ?? "localhost";
+            $dbname = $_ENV["DB_NAME"]   ?? "php_course";
+            $user   = $_ENV["DB_USER"]   ?? "root";
+            $pass   = $_ENV["DB_PASS"]   ?? "";
+            $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
+
+            try {
+                self::$instance = new PDO($dsn, $user, $pass, self::DEFAULT_OPTIONS);
+            } catch (PDOException $e) {
+                error_log("DB connection failed: " . $e->getMessage());
+                throw new RuntimeException("Database unavailable", 0, $e);
+            }
+        }
+        return self::$instance;
+    }
+
+    /** Prepare and execute a query. */
+    public static function run(string $sql, array $params = []): PDOStatement {
+        $stmt = self::getConnection()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt;
+    }
+
+    /** Fetch a single row or null. */
+    public static function findOne(string $sql, array $params = []): ?array {
+        $row = self::run($sql, $params)->fetch();
+        return $row ?: null;
+    }
+
+    /** Fetch all rows. */
+    public static function findAll(string $sql, array $params = []): array {
+        return self::run($sql, $params)->fetchAll();
+    }
+
+    /** Fetch a single column value. */
+    public static function value(string $sql, array $params = []): mixed {
+        return self::run($sql, $params)->fetchColumn();
+    }
+
+    /** INSERT a row and return the new ID. */
+    public static function insert(string $table, array $data): string {
+        $columns = implode(", ", array_keys($data));
+        $placeholders = implode(", ", array_map(fn($k) => ":$k", array_keys($data)));
+
+        self::run("INSERT INTO $table ($columns) VALUES ($placeholders)", $data);
+        return self::getConnection()->lastInsertId();
+    }
+
+    /** UPDATE rows and return the number of affected rows. */
+    public static function update(string $table, array $data, string $where, array $whereParams = []): int {
+        $set = implode(", ", array_map(fn($k) => "$k = :$k", array_keys($data)));
+
+        return self::run(
+            "UPDATE $table SET $set WHERE $where",
+            array_merge($data, $whereParams)
+        )->rowCount();
+    }
+
+    /** DELETE rows and return the number of affected rows. */
+    public static function delete(string $table, string $where, array $params = []): int {
+        return self::run("DELETE FROM $table WHERE $where", $params)->rowCount();
+    }
+
+    /** Execute a callback inside a transaction. */
+    public static function transaction(callable $callback): mixed {
+        $pdo = self::getConnection();
+        $pdo->beginTransaction();
+        try {
+            $result = $callback($pdo);
+            $pdo->commit();
+            return $result;
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    public static function close(): void {
+        self::$instance = null;
+    }
+}</code></pre>
+
+                <h3>Using the Extended Database Class</h3>
+                <pre><code class="language-php">&lt;?php
+require_once "Database.php";
+
+// ---- CREATE ----
+$userId = Database::insert("users", [
+    "name"  => "Bruce Wayne",
+    "email" => "bruce@wayne.com",
+    "role"  => "admin",
+]);
+echo "New user ID: $userId\n";
+
+// ---- READ ----
+$user = Database::findOne("SELECT * FROM users WHERE id = ?", [$userId]);
+echo "Found: {$user['name']}\n";
+
+$admins = Database::findAll(
+    "SELECT * FROM users WHERE role = ? ORDER BY name",
+    ["admin"]
+);
+echo count($admins) . " admins found.\n";
+
+$totalUsers = Database::value("SELECT COUNT(*) FROM users");
+echo "Total: $totalUsers users\n";
+
+// ---- UPDATE ----
+$changed = Database::update(
+    "users",
+    ["name" => "Batman", "role" => "hero"],
+    "id = :where_id",
+    ["where_id" => $userId]
+);
+echo "$changed row(s) updated.\n";
+
+// ---- DELETE ----
+$deleted = Database::delete("users", "id = ?", [$userId]);
+echo "$deleted row(s) deleted.\n";
+
+// ---- TRANSACTION ----
+$orderId = Database::transaction(function (PDO $pdo) {
+    $stmt = $pdo->prepare("INSERT INTO orders (user_id, total) VALUES (?, ?)");
+    $stmt->execute([1, 99.99]);
+    $orderId = $pdo->lastInsertId();
+
+    $stmt = $pdo->prepare(
+        "INSERT INTO order_items (order_id, product_id, quantity) VALUES (?, ?, ?)"
+    );
+    $stmt->execute([$orderId, 101, 2]);
+
+    return $orderId;
+});
+echo "Order #$orderId placed in a transaction.\n";</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Benefits of Helper Methods</h4>
+                    <ul>
+                        <li><strong>Less boilerplate</strong> — <code>Database::insert("users", $data)</code> replaces 4 lines of prepare/execute/lastInsertId</li>
+                        <li><strong>Consistent patterns</strong> — every INSERT goes through the same code path</li>
+                        <li><strong>Safer transactions</strong> — the <code>transaction()</code> method guarantees commit or rollback</li>
+                        <li><strong>Easy to extend</strong> — add logging, caching, or validation in one place</li>
+                    </ul>
+                </div>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Table Names in Helper Methods</h4>
+                    <p>The <code>insert()</code>, <code>update()</code>, and <code>delete()</code> helpers insert the table name directly into the SQL — not as a parameter (you can't parameterize table names in prepared statements). This means you should <strong>never pass user input as a table name</strong>. These helpers are for internal use with hardcoded table names only. If you need to accept a table name from user input, validate it against a whitelist first.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Exercises -->
+            <section id="section8" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Complete CRUD Operations</h3>
+                    <p><strong>Objective:</strong> Practice INSERT, UPDATE, and DELETE with PDO.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a <code>tasks</code> table with columns: <code>id</code> (INT AUTO_INCREMENT PRIMARY KEY), <code>title</code> (VARCHAR 255 NOT NULL), <code>description</code> (TEXT), <code>status</code> (ENUM 'pending','in_progress','done' DEFAULT 'pending'), <code>created_at</code> (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)</li>
+                        <li>Insert 5 tasks using a prepared statement in a loop; collect all new IDs</li>
+                        <li>Update the status of the first task to 'in_progress' and print rowCount</li>
+                        <li>Update the status of the last task to 'done'</li>
+                        <li>Delete all tasks with status 'done' and print how many were removed</li>
+                        <li>Fetch and display the remaining tasks</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use <code>$pdo->lastInsertId()</code> inside the loop to collect IDs. For the ENUM column, just insert the string value ('pending', 'in_progress', or 'done') — MySQL handles the validation. Remember to use <code>$stmt->rowCount()</code> after UPDATE and DELETE to check affected rows.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$dsn = "mysql:host=localhost;dbname=php_course;charset=utf8mb4";
+$pdo = new PDO($dsn, "root", "", [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+]);
+
+// 1. Create table
+$pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status ENUM('pending','in_progress','done') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+echo "Table ready.\n\n";
+
+// 2. Insert 5 tasks
+$stmt = $pdo->prepare(
+    "INSERT INTO tasks (title, description) VALUES (:title, :desc)"
+);
+
+$tasks = [
+    ["title" => "Set up project",      "desc" => "Initialize repo and install deps"],
+    ["title" => "Design database",     "desc" => "Create ER diagram and schema"],
+    ["title" => "Build user auth",     "desc" => "Login, register, logout"],
+    ["title" => "Create dashboard",    "desc" => "Main app interface"],
+    ["title" => "Write documentation", "desc" => "README and API docs"],
+];
+
+$ids = [];
+foreach ($tasks as $task) {
+    $stmt->execute($task);
+    $ids[] = $pdo->lastInsertId();
+}
+echo "Inserted " . count($ids) . " tasks. IDs: " . implode(", ", $ids) . "\n\n";
+
+// 3. Update first task to 'in_progress'
+$stmt = $pdo->prepare("UPDATE tasks SET status = ? WHERE id = ?");
+$stmt->execute(["in_progress", $ids[0]]);
+echo "Updated task #{$ids[0]}: {$stmt->rowCount()} row(s) changed.\n";
+
+// 4. Update last task to 'done'
+$stmt->execute(["done", end($ids)]);
+echo "Updated task #" . end($ids) . ": {$stmt->rowCount()} row(s) changed.\n\n";
+
+// 5. Delete tasks with status 'done'
+$stmt = $pdo->prepare("DELETE FROM tasks WHERE status = ?");
+$stmt->execute(["done"]);
+echo "Deleted {$stmt->rowCount()} completed task(s).\n\n";
+
+// 6. Fetch remaining tasks
+$remaining = $pdo->query("SELECT id, title, status FROM tasks ORDER BY id")->fetchAll();
+echo "Remaining tasks:\n";
+foreach ($remaining as $task) {
+    echo "  #{$task['id']} [{$task['status']}] {$task['title']}\n";
+}</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Transaction — Inventory Transfer</h3>
+                    <p><strong>Objective:</strong> Use transactions to move stock between two warehouse locations safely.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a <code>warehouse_stock</code> table: <code>id</code>, <code>warehouse</code> (VARCHAR 50), <code>product_id</code> (INT), <code>quantity</code> (INT)</li>
+                        <li>Insert sample data: Warehouse A has 100 units of product 1; Warehouse B has 20 units of product 1</li>
+                        <li>Write a <code>transferStock()</code> function that moves a given quantity from one warehouse to another inside a transaction</li>
+                        <li>The function should fail (rollback) if the source warehouse doesn't have enough stock</li>
+                        <li>Test with a valid transfer (move 30 from A to B) and an invalid one (move 200 from A to B)</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use <code>UPDATE warehouse_stock SET quantity = quantity - :qty WHERE warehouse = :wh AND product_id = :pid AND quantity >= :qty</code> for the deduction. If <code>rowCount()</code> is 0, the stock was insufficient — throw an exception to trigger rollback.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$dsn = "mysql:host=localhost;dbname=php_course;charset=utf8mb4";
+$pdo = new PDO($dsn, "root", "", [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+]);
+
+// Setup
+$pdo->exec("DROP TABLE IF EXISTS warehouse_stock");
+$pdo->exec("CREATE TABLE warehouse_stock (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    warehouse VARCHAR(50) NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 0,
+    UNIQUE KEY (warehouse, product_id)
+)");
+
+$stmt = $pdo->prepare(
+    "INSERT INTO warehouse_stock (warehouse, product_id, quantity) VALUES (?, ?, ?)"
+);
+$stmt->execute(["Warehouse A", 1, 100]);
+$stmt->execute(["Warehouse B", 1, 20]);
+echo "Setup complete: A=100, B=20\n\n";
+
+// Transfer function
+function transferStock(PDO $pdo, string $from, string $to, int $productId, int $qty): void {
+    if ($qty <= 0) {
+        throw new InvalidArgumentException("Quantity must be positive");
+    }
+
+    try {
+        $pdo->beginTransaction();
+
+        // Deduct from source
+        $stmt = $pdo->prepare(
+            "UPDATE warehouse_stock SET quantity = quantity - :qty
+             WHERE warehouse = :wh AND product_id = :pid AND quantity >= :qty"
+        );
+        $stmt->execute(["qty" => $qty, "wh" => $from, "pid" => $productId]);
+
+        if ($stmt->rowCount() === 0) {
+            throw new RuntimeException(
+                "Insufficient stock in $from (need $qty)"
+            );
+        }
+
+        // Add to destination
+        $stmt = $pdo->prepare(
+            "UPDATE warehouse_stock SET quantity = quantity + :qty
+             WHERE warehouse = :wh AND product_id = :pid"
+        );
+        $stmt->execute(["qty" => $qty, "wh" => $to, "pid" => $productId]);
+
+        if ($stmt->rowCount() === 0) {
+            throw new RuntimeException("Destination $to not found");
+        }
+
+        $pdo->commit();
+        echo "Transferred $qty units from $from to $to.\n";
+
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+}
+
+// Test valid transfer
+try {
+    transferStock($pdo, "Warehouse A", "Warehouse B", 1, 30);
+} catch (Exception $e) {
+    echo "FAILED: " . $e->getMessage() . "\n";
+}
+
+// Check stock
+$stock = $pdo->query(
+    "SELECT warehouse, quantity FROM warehouse_stock WHERE product_id = 1 ORDER BY warehouse"
+)->fetchAll();
+foreach ($stock as $row) {
+    echo "  {$row['warehouse']}: {$row['quantity']} units\n";
+}
+echo "\n";
+
+// Test invalid transfer (should fail)
+try {
+    transferStock($pdo, "Warehouse A", "Warehouse B", 1, 200);
+} catch (Exception $e) {
+    echo "FAILED (expected): " . $e->getMessage() . "\n";
+}
+
+// Verify stock unchanged after failed transfer
+$stock = $pdo->query(
+    "SELECT warehouse, quantity FROM warehouse_stock WHERE product_id = 1 ORDER BY warehouse"
+)->fetchAll();
+foreach ($stock as $row) {
+    echo "  {$row['warehouse']}: {$row['quantity']} units\n";
+}</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> After an INSERT, how do you get the new auto-increment ID?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="rowCount() tells you the number of affected rows, not the ID. After an INSERT it would return 1, not the new ID.">
+                                A) <code>$stmt->rowCount()</code>
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! lastInsertId() is called on the PDO connection object (not the statement) and returns the last AUTO_INCREMENT value generated on this connection. Call it immediately after the INSERT.">
+                                B) <code>$pdo->lastInsertId()</code>
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="fetchColumn() retrieves data from a SELECT result set. An INSERT doesn't produce a result set to fetch from.">
+                                C) <code>$stmt->fetchColumn()</code>
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What happens if an exception is thrown inside a transaction without a rollback?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Without an explicit commit(), uncommitted changes are not saved. But the behavior depends on what happens to the connection.">
+                                A) The changes are automatically committed
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! If the script ends (or the connection closes) while a transaction is active and uncommitted, PDO/MySQL automatically rolls back the changes. However, you should ALWAYS explicitly call rollBack() in your catch block — relying on implicit rollback is sloppy and can cause issues if the connection is reused.">
+                                B) The changes are rolled back when the connection closes, but you should always call rollBack() explicitly
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="An unhandled exception will crash the script, but the database connection cleanup will still roll back uncommitted transactions.">
+                                C) The database is left in a corrupted state
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> Which fetch style returns rows grouped by the first column?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="FETCH_KEY_PAIR maps two columns as key => value. It doesn't group multiple rows under the same key.">
+                                A) <code>PDO::FETCH_KEY_PAIR</code>
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="FETCH_UNIQUE keys full rows by the first column, but only keeps ONE row per key (the last one). It doesn't group multiple rows.">
+                                B) <code>PDO::FETCH_UNIQUE</code>
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! FETCH_GROUP returns an array where keys are the values from the first column and values are arrays of all matching rows. Perfect for grouping products by category, users by role, etc.">
+                                C) <code>PDO::FETCH_GROUP</code>
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What does <code>rowCount()</code> return after an UPDATE that matches 5 rows but none of them actually changed?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! With EMULATE_PREPARES = false (our recommended setting), MySQL's native driver reports the number of rows that actually CHANGED, not just matched. If you set a column to the value it already has, rowCount() returns 0. This is typically the desired behavior since no data actually changed.">
+                                A) <code>0</code> — because no rows were actually modified
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="That would be the case with emulated prepares or some other database drivers, but with our settings (EMULATE_PREPARES = false on MySQL), only actually changed rows are counted.">
+                                B) <code>5</code> — because 5 rows matched the WHERE clause
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="rowCount() always returns an integer (0 or more). It doesn't return false for UPDATEs.">
+                                C) <code>false</code> — because the operation had no effect
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What's the difference between a soft delete and a hard delete?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Both types can be done with PDO. The difference is about the SQL operation, not the PHP interface.">
+                                A) Soft delete uses <code>PDO::prepare()</code> while hard delete uses <code>PDO::exec()</code>
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! A soft delete sets a flag (like deleted_at = NOW()) so the row stays in the database but is excluded from normal queries. A hard delete (DELETE FROM) permanently removes the row. Soft deletes allow recovery and preserve audit trails. Hard deletes are appropriate for temporary or non-critical data.">
+                                B) Soft delete marks a row as deleted (UPDATE); hard delete removes the row (DELETE FROM)
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Transactions control atomicity of multi-step operations. Soft vs. hard delete is about whether data is permanently removed or just flagged.">
+                                C) Soft delete doesn't use a transaction; hard delete requires one
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 9: Summary -->
+            <section id="section9" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>INSERT:</strong> Use <code>prepare()</code> + <code>execute()</code>. Get the new ID with <code>$pdo->lastInsertId()</code>. For batch inserts, prepare once and execute in a loop.</li>
+                        <li><strong>UPDATE:</strong> Always include a WHERE clause. Use <code>$stmt->rowCount()</code> to check how many rows were actually changed.</li>
+                        <li><strong>DELETE:</strong> Consider soft delete (UPDATE with a <code>deleted_at</code> column) vs. hard delete (DELETE FROM) based on business needs.</li>
+                        <li><strong>Transactions:</strong> <code>beginTransaction()</code> → run queries → <code>commit()</code> on success or <code>rollBack()</code> on failure. All changes are atomic — they succeed or fail as a unit.</li>
+                        <li><strong>The transaction pattern:</strong> Wrap in try/catch, commit in try, rollback in catch. Keep transactions short.</li>
+                        <li><strong>Fetch styles:</strong> <code>FETCH_CLASS</code> for domain objects, <code>FETCH_KEY_PAIR</code> for lookups, <code>FETCH_UNIQUE</code> for ID-keyed rows, <code>FETCH_GROUP</code> for categorized data.</li>
+                        <li><strong>Helper methods:</strong> Build convenience methods around the prepare/execute pattern to reduce boilerplate and enforce consistency.</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/pdo.transactions.php" target="_blank" rel="noopener">PHP Manual: PDO Transactions</a></li>
+                    <li><a href="https://www.php.net/manual/en/pdo.lastinsertid.php" target="_blank" rel="noopener">PHP Manual: PDO::lastInsertId</a></li>
+                    <li><a href="https://www.php.net/manual/en/pdostatement.rowcount.php" target="_blank" rel="noopener">PHP Manual: PDOStatement::rowCount</a></li>
+                    <li><a href="https://www.php.net/manual/en/pdostatement.fetchall.php" target="_blank" rel="noopener">PHP Manual: PDOStatement::fetchAll (all fetch modes)</a></li>
+                    <li><a href="https://phpdelusions.net/pdo" target="_blank" rel="noopener">PHP Delusions: PDO Tutorial</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>You now have every PDO skill you need. In <strong>Lesson 21: Building a CRUD App</strong>, you'll put it all together — building a complete task manager application with a form for creating tasks, a list view, inline editing, deletion with confirmation, and search. It's the culmination of everything from Modules 4, 5, and 6.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've mastered all four CRUD operations, transactions, and advanced fetch styles. You can now build, modify, and safely manage data in any PHP application. Time to put it all together in Lesson 21!</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_19.html" class="prev-lesson">← Previous: PDO — Connecting &amp; Prepared Statements</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_21.html" class="next-lesson">Next: Building a CRUD App →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

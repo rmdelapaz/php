@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn what PHP is, how it powers the web, and why it remains one of the most widely used server-side languages.">
+    <meta name="author" content="Ray De La Paz">
+    <title>What Is PHP? - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <!-- Mermaid — initialized by course-enhancements.js for theme awareness -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <!-- Progress indicator -->
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 1: Getting Started</a></li>
+            <li aria-current="page">Lesson 1: What Is PHP?</li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <div class="container">
+            <!-- Lesson Header -->
+            <header>
+                <h1>🐘 Lesson 1: What Is PHP?</h1>
+                <p class="lead">PHP is the invisible engine behind the majority of the web. Before you write a single line of code, let's understand what PHP is, how it works, and why it's been a powerhouse for over two decades.</p>
+
+                <!-- Learning objectives -->
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Explain what PHP is and what "server-side" means</li>
+                        <li>Distinguish between client-side and server-side code execution</li>
+                        <li>Describe the HTTP request/response cycle and PHP's role in it</li>
+                        <li>Identify real-world platforms and use cases powered by PHP</li>
+                        <li>Trace PHP's history from a personal project to a global language</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 30 minutes</p>
+                    <p><strong>Prerequisites:</strong> Basic familiarity with HTML (helpful but not required)</p>
+                </div>
+            </header>
+
+            <!-- Table of Contents -->
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">What Is PHP?</a></li>
+                        <li><a href="#section2" class="toc-link">Client-Side vs. Server-Side</a></li>
+                        <li><a href="#section3" class="toc-link">How PHP Works: The Request/Response Cycle</a></li>
+                        <li><a href="#section4" class="toc-link">What Can You Build with PHP?</a></li>
+                        <li><a href="#section5" class="toc-link">A Brief History of PHP</a></li>
+                        <li><a href="#section6" class="toc-link">PHP Today: Myths vs. Reality</a></li>
+                        <li><a href="#section7" class="toc-link">Knowledge Check</a></li>
+                        <li><a href="#section8" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: What Is PHP? -->
+            <section id="section1" class="lesson-section">
+                <h2>What Is PHP?</h2>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>PHP</strong> (PHP: Hypertext Preprocessor) is an open-source, general-purpose scripting language designed primarily for web development. It runs on the <strong>server</strong>, processing requests and generating HTML that gets sent to the user's browser.</p>
+                </div>
+
+                <p>That recursive acronym — PHP stands for "PHP: Hypertext Preprocessor" — is a fun bit of programmer humor. Originally it stood for "Personal Home Page," but the name evolved as the language grew far beyond personal websites.</p>
+
+                <p>Here's the key idea: when you visit a PHP-powered website, your browser never sees any PHP code. The server runs the PHP, and what arrives at your browser is plain HTML, CSS, and JavaScript — just like any other web page. PHP does its work <em>before</em> the page reaches you.</p>
+
+                <h3>A Quick Taste</h3>
+                <p>Here's what a tiny PHP file looks like. Don't worry about understanding every detail yet — just notice how PHP mixes with HTML:</p>
+
+                <pre><code class="language-php">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+    &lt;h1&gt;Welcome!&lt;/h1&gt;
+    &lt;p&gt;Today is &lt;?php echo date("l, F j, Y"); ?&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <p>The <code>&lt;?php ... ?&gt;</code> tags tell the server: "Run this as PHP." The <code>echo</code> command outputs text. The <code>date()</code> function grabs the current date. When the browser receives this page, it just sees something like:</p>
+
+                <div class="card card-output">
+                    <h4>What the browser receives:</h4>
+                    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+    &lt;h1&gt;Welcome!&lt;/h1&gt;
+    &lt;p&gt;Today is Wednesday, April 16, 2026&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                </div>
+
+                <p>No PHP anywhere in the output — just clean HTML. That's the essence of server-side processing.</p>
+            </section>
+
+            <!-- Section 2: Client-Side vs. Server-Side -->
+            <section id="section2" class="lesson-section">
+                <h2>Client-Side vs. Server-Side</h2>
+
+                <p>To understand PHP, you need to understand <em>where</em> code runs. There are two sides to every web interaction:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Aspect</th>
+                                <th>Client-Side</th>
+                                <th>Server-Side</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Runs on</strong></td>
+                                <td>User's browser (Chrome, Firefox, etc.)</td>
+                                <td>Web server (Apache, Nginx, etc.)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Languages</strong></td>
+                                <td>HTML, CSS, JavaScript</td>
+                                <td>PHP, Python, Ruby, Java, Node.js, etc.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Visible to user?</strong></td>
+                                <td>Yes — anyone can "View Source"</td>
+                                <td>No — user only sees the output</td>
+                            </tr>
+                            <tr>
+                                <td><strong>When it runs</strong></td>
+                                <td>After the page loads in the browser</td>
+                                <td>Before the page is sent to the browser</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Can access</strong></td>
+                                <td>DOM, browser APIs, local storage</td>
+                                <td>Databases, file system, email, APIs</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Good for</strong></td>
+                                <td>UI interactions, animations, form validation</td>
+                                <td>Data processing, authentication, storage</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ Key Insight</h4>
+                    <p>Client-side and server-side aren't competitors — they're partners. A modern website uses <strong>both</strong>. PHP handles the "back end" (data, logic, security), while HTML/CSS/JS handle the "front end" (what users see and interact with).</p>
+                </div>
+
+                <h3>Why Does Server-Side Matter?</h3>
+                <p>Some things simply <em>cannot</em> be done in the browser:</p>
+                <ul>
+                    <li><strong>Database queries</strong> — You can't let browsers connect directly to your database (that would be a massive security risk)</li>
+                    <li><strong>User authentication</strong> — Passwords must be verified on the server, never in client-side code</li>
+                    <li><strong>Sending emails</strong> — Browsers can't send email; servers can</li>
+                    <li><strong>File processing</strong> — Uploading, resizing images, generating PDFs — all server tasks</li>
+                    <li><strong>Sensitive business logic</strong> — Pricing calculations, access control, and anything you don't want users to tamper with</li>
+                </ul>
+            </section>
+
+            <!-- Section 3: How PHP Works -->
+            <section id="section3" class="lesson-section">
+                <h2>How PHP Works: The Request/Response Cycle</h2>
+
+                <p>Every time you load a PHP-powered web page, a precise sequence of events occurs. Understanding this cycle is fundamental to everything you'll build in this course.</p>
+
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant B as 🌐 Browser
+                        participant S as 🖥️ Web Server<br/>(Apache)
+                        participant P as 🐘 PHP Engine
+                        participant D as 🗄️ Database<br/>(MySQL)
+
+                        B->>S: 1. HTTP Request<br/>(GET /products.php)
+                        S->>P: 2. "This is a .php file,<br/>process it"
+                        P->>D: 3. Query: SELECT * FROM products
+                        D-->>P: 4. Results: product data
+                        P-->>S: 5. Generated HTML
+                        S-->>B: 6. HTTP Response<br/>(HTML page)
+                        Note over B: 7. Browser renders<br/>the HTML page
+                </div>
+
+                <h3>Step by Step</h3>
+                <ol>
+                    <li><strong>The user makes a request</strong> — They type a URL or click a link. Their browser sends an HTTP request to the web server.</li>
+                    <li><strong>The server recognizes PHP</strong> — The web server (Apache, in our case) sees that the requested file ends in <code>.php</code> and hands it to the PHP engine.</li>
+                    <li><strong>PHP executes the code</strong> — The PHP engine reads the file top-to-bottom, running any PHP code it finds. It might query a database, process form data, check login status, or perform calculations.</li>
+                    <li><strong>The database responds</strong> — If PHP asked the database for data, it gets the results back.</li>
+                    <li><strong>PHP generates HTML</strong> — PHP combines its processed data with the HTML in the file and produces a complete HTML document.</li>
+                    <li><strong>The server sends the response</strong> — The generated HTML is sent back to the browser as an HTTP response.</li>
+                    <li><strong>The browser renders the page</strong> — The browser receives plain HTML (no PHP) and displays it to the user.</li>
+                </ol>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Important</h4>
+                    <p>PHP is <strong>stateless</strong> — each request starts fresh. When a user loads a new page, PHP doesn't automatically remember anything about the previous request. (We'll learn how to maintain state with sessions and cookies in Module 5.)</p>
+                </div>
+            </section>
+
+            <!-- Section 4: What Can You Build? -->
+            <section id="section4" class="lesson-section">
+                <h2>What Can You Build with PHP?</h2>
+
+                <p>PHP powers an enormous portion of the web. Here are some of the most common things built with PHP:</p>
+
+                <h3>Content Management Systems (CMS)</h3>
+                <p>WordPress — the most popular CMS in the world — is built entirely in PHP. It powers roughly 40% of all websites on the internet, from personal blogs to enterprise news sites. Other PHP-based CMS platforms include Drupal and Joomla.</p>
+
+                <h3>E-Commerce Platforms</h3>
+                <p>Major e-commerce solutions like WooCommerce (a WordPress plugin), Magento, and OpenCart are all PHP-based. If you've ever bought something online, there's a good chance PHP processed your order.</p>
+
+                <h3>Social Media &amp; Communication</h3>
+                <p>Facebook was originally built with PHP (they later created their own PHP variant called Hack). Slack's backend started as a PHP application. Many forums, chat apps, and community platforms use PHP.</p>
+
+                <h3>Web Applications</h3>
+                <p>PHP excels at building full-featured web applications: project management tools, customer relationship managers (CRMs), learning management systems (LMS), booking systems, inventory trackers, and more.</p>
+
+                <h3>APIs &amp; Microservices</h3>
+                <p>Modern PHP (with frameworks like Laravel and Symfony) is widely used to build REST APIs that serve data to mobile apps and single-page applications.</p>
+
+                <div class="card card-info">
+                    <h4>📊 PHP by the Numbers</h4>
+                    <ul>
+                        <li>PHP is used by approximately <strong>75–77%</strong> of websites with a known server-side language</li>
+                        <li>WordPress alone (built with PHP) powers about <strong>40%</strong> of all websites</li>
+                        <li>PHP has been a top-10 language on the TIOBE index for over 20 years</li>
+                        <li>Major frameworks: Laravel, Symfony, CodeIgniter, CakePHP, Slim</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 5: History of PHP -->
+            <section id="section5" class="lesson-section">
+                <h2>A Brief History of PHP</h2>
+
+                <p>PHP has a fascinating origin story — it was never <em>designed</em> to become one of the world's most-used programming languages. It just… happened.</p>
+
+                <div class="mermaid">
+                    timeline
+                        title PHP Through the Years
+                        1994 : Rasmus Lerdorf creates PHP/FI
+                             : "Personal Home Page Tools"
+                        1997 : PHP 3 — Complete rewrite
+                             : Zeev Suraski &amp; Andi Gutmans
+                             : Becomes a real language
+                        2000 : PHP 4 — Zend Engine
+                             : Better performance
+                             : Sessions support
+                        2004 : PHP 5 — OOP revolution
+                             : Classes, interfaces, exceptions
+                             : PDO for database access
+                        2015 : PHP 7 — Performance leap
+                             : 2x faster than PHP 5
+                             : Type declarations
+                        2020 : PHP 8.0 — JIT compiler
+                             : Named arguments, match
+                             : Attributes, union types
+                        2024 : PHP 8.4 — Latest stable
+                             : Property hooks
+                             : Continued modern evolution
+                </div>
+
+                <h3>The Key Milestones</h3>
+
+                <p><strong>1994 — The Beginning:</strong> Rasmus Lerdorf, a Danish-Canadian programmer, created a set of C programs to track visits to his online résumé. He called them "Personal Home Page Tools" (PHP Tools). He open-sourced them, and other developers started using and improving them.</p>
+
+                <p><strong>1997 — PHP 3:</strong> Two Israeli developers, Zeev Suraski and Andi Gutmans, rewrote the parser from scratch. PHP 3 transformed PHP from a simple tool into a genuine programming language. The acronym was changed to the recursive "PHP: Hypertext Preprocessor."</p>
+
+                <p><strong>2004 — PHP 5:</strong> This was the big leap. PHP 5 introduced proper object-oriented programming with classes, interfaces, abstract classes, and exceptions. It also brought PDO (PHP Data Objects), a clean way to interact with databases that we'll use extensively in this course.</p>
+
+                <p><strong>2015 — PHP 7:</strong> After PHP 5, the community planned PHP 6 (with Unicode support), but the effort stalled and was scrapped. They jumped straight to PHP 7, which delivered dramatic performance improvements — roughly twice as fast as PHP 5. It also added scalar type declarations, return types, and the null coalescing operator (<code>??</code>).</p>
+
+                <p><strong>2020 — PHP 8:</strong> PHP 8 introduced the JIT (Just-In-Time) compiler, named arguments, the <code>match</code> expression, attributes (annotations), and union types. PHP 8.x releases have continued to modernize the language with enums, fibers, readonly properties, and more.</p>
+
+                <blockquote>
+                    <strong>💡 Fun Fact:</strong> There is no PHP 6. The planned Unicode rewrite was abandoned, and the community decided to skip the version number entirely to avoid confusion with the abandoned project.
+                </blockquote>
+            </section>
+
+            <!-- Section 6: Myths vs. Reality -->
+            <section id="section6" class="lesson-section">
+                <h2>PHP Today: Myths vs. Reality</h2>
+
+                <p>PHP has a reputation problem. Some of the criticism was valid years ago, but modern PHP (version 8.x) is a very different language from the PHP of the early 2000s. Let's separate fact from fiction:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Myth</th>
+                                <th>Reality</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>"PHP is slow"</td>
+                                <td>PHP 7/8 is dramatically faster than older versions. With the JIT compiler and opcode caching (OPcache), PHP competes well with other server-side languages for web workloads.</td>
+                            </tr>
+                            <tr>
+                                <td>"PHP is insecure"</td>
+                                <td>PHP itself isn't insecure — poorly written code is. Modern PHP provides excellent security tools: prepared statements (PDO), password hashing (<code>password_hash</code>), input filtering, and CSRF protection. We'll cover all of these.</td>
+                            </tr>
+                            <tr>
+                                <td>"PHP is dying"</td>
+                                <td>PHP powers roughly 75%+ of server-side web. WordPress, Laravel, Symfony, and Drupal all have thriving ecosystems. PHP job demand remains strong globally.</td>
+                            </tr>
+                            <tr>
+                                <td>"PHP isn't a 'real' language"</td>
+                                <td>Modern PHP has type declarations, enums, interfaces, traits, generics (planned), async fibers, attributes, and a mature package ecosystem (Composer/Packagist). It's a fully-featured language.</td>
+                            </tr>
+                            <tr>
+                                <td>"Nobody uses PHP for new projects"</td>
+                                <td>Laravel is one of the most popular web frameworks in any language. New projects are built with PHP daily. The Laravel ecosystem (Livewire, Inertia, Forge, Vapor) is particularly vibrant.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ Bottom Line</h4>
+                    <p>PHP is a pragmatic choice for web development. It has a massive ecosystem, excellent hosting support (nearly every web host supports PHP out of the box), a gentle learning curve, and decades of battle-tested libraries. It's not the only option — but it's a solid, well-supported one.</p>
+                </div>
+            </section>
+
+            <!-- Section 7: Knowledge Check -->
+            <section id="section7" class="lesson-section">
+                <h2>Knowledge Check</h2>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> Where does PHP code execute?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Client-side languages like JavaScript run in the browser. PHP is different.">
+                                A) In the user's web browser
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! PHP runs on the web server. The server processes the PHP code and sends the resulting HTML to the browser.">
+                                B) On the web server
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="While PHP can interact with databases, it doesn't run inside the database itself.">
+                                C) Inside the database
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP needs a server to run. It processes code on the server before sending results to the browser.">
+                                D) On both the browser and the server
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What does PHP send to the browser?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP code is never sent to the browser — it's processed on the server first.">
+                                A) The raw PHP source code
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP doesn't send compiled bytecode to the browser.">
+                                B) Compiled bytecode
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! PHP processes the code on the server and sends the generated HTML (plus CSS/JS) to the browser. The browser never sees PHP.">
+                                C) Generated HTML (and CSS/JavaScript)
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="JSON is one possible output, but PHP primarily generates HTML for web pages.">
+                                D) JSON data only
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> Which of these tasks requires server-side code (like PHP) rather than client-side JavaScript?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Animations run in the browser using CSS or JavaScript.">
+                                A) Animating a dropdown menu
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Form field validation can be done in the browser with JavaScript (though server-side validation is also important!).">
+                                B) Validating that an email field isn't empty
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Verifying a password against the database must happen on the server. Doing it in the browser would expose your database and passwords to anyone.">
+                                C) Checking a user's password against the database
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Changing colors and styles happens in the browser with CSS or JavaScript.">
+                                D) Changing the page background color on click
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What does "PHP: Hypertext Preprocessor" tell us about when PHP runs?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="'Preprocessor' implies something happens before the final result, not after.">
+                                A) PHP runs after the HTML is displayed
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! 'Preprocessor' means PHP processes the file before the HTML is sent to the browser. It prepares (pre-processes) the content on the server side.">
+                                B) PHP processes the file before the HTML is sent to the browser
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP runs on the server, not in the browser alongside HTML.">
+                                C) PHP runs at the same time as HTML in the browser
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The 'Preprocessor' part of the name has a specific technical meaning about execution timing.">
+                                D) It's just a name and doesn't mean anything technical
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> Why was PHP version 6 never released?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP is open-source and maintained by a large community, not a single company.">
+                                A) The company behind PHP went bankrupt
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The planned Unicode rewrite for PHP 6 was too ambitious and was ultimately abandoned. The community skipped to PHP 7 to avoid confusion with the failed project.">
+                                B) The planned Unicode rewrite was abandoned, so they skipped to 7
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP has evolved continuously. Version 7 brought huge improvements, and version 8 continues to modernize the language.">
+                                C) PHP was replaced by a different language
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Version numbering is sequential (3, 4, 5, 7, 8). The skip from 5 to 7 happened for a specific reason.">
+                                D) It was released but under a different name
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 8: Summary -->
+            <section id="section8" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>PHP is a server-side language</strong> — it runs on the web server, not in the browser. Users never see PHP code.</li>
+                        <li><strong>Server-side code complements client-side code</strong> — PHP handles databases, authentication, and business logic; HTML/CSS/JS handle the user interface.</li>
+                        <li><strong>The request/response cycle</strong> — the browser sends a request, the server runs PHP, PHP generates HTML, and the HTML is sent back to the browser.</li>
+                        <li><strong>PHP powers the web</strong> — from WordPress to Facebook's origins, PHP runs on roughly 75% of server-side websites.</li>
+                        <li><strong>Modern PHP is mature and performant</strong> — PHP 8.x includes a JIT compiler, type system, OOP features, and a rich ecosystem.</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/" target="_blank" rel="noopener">PHP Official Website</a> — Documentation, downloads, and news</li>
+                    <li><a href="https://www.php.net/manual/en/history.php.php" target="_blank" rel="noopener">History of PHP</a> — Official history from php.net</li>
+                    <li><a href="https://phptherightway.com/" target="_blank" rel="noopener">PHP: The Right Way</a> — Best practices and modern PHP conventions</li>
+                    <li><a href="https://w3techs.com/technologies/details/pl-php" target="_blank" rel="noopener">W3Techs PHP Usage Statistics</a> — Current PHP market share data</li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Now that you understand what PHP is and how it fits into web development, it's time to get your hands dirty! In <strong>Lesson 2: Setting Up Your Environment</strong>, you'll verify your LAMP stack, configure Apache, and run your first PHP script on your own machine.</p>
+
+                <!-- Encouragement Card -->
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've completed Lesson 1! You now understand <em>what</em> PHP is — next, let's set it up so you can start <em>using</em> it.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <span class="prev-lesson" style="visibility: hidden;">← Previous</span>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_02.html" class="next-lesson">Next: Setting Up Your Environment →</a>
+            </nav>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

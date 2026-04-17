@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn PDO — PHP Data Objects for connecting to MySQL, writing prepared statements, binding parameters, and fetching results safely and efficiently.">
+    <meta name="author" content="Ray De La Paz">
+    <title>PDO — Connecting to MySQL &amp; Prepared Statements - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 6: Database Integration</a></li>
+            <li aria-current="page">Lesson 19: PDO — Connecting to MySQL &amp; Prepared Statements</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🗄️ Lesson 19: PDO — Connecting to MySQL &amp; Prepared Statements</h1>
+                <p class="lead">It's time to connect PHP to a database. <strong>PDO</strong> (PHP Data Objects) is PHP's modern, secure, database-agnostic interface. It works with MySQL, PostgreSQL, SQLite, and more — all with the same API. In this lesson, you'll learn to establish connections, execute queries safely with prepared statements, and fetch results. If you completed the <a href="https://rays-mysql.netlify.app/" target="_blank">MySQL Foundations</a> course, you already have databases ready to go — now you'll talk to them from PHP.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Explain why PDO is preferred over the older <code>mysqli</code> extension</li>
+                        <li>Connect to MySQL using a PDO DSN, username, and password</li>
+                        <li>Configure PDO with proper error mode and default fetch mode</li>
+                        <li>Write prepared statements with positional (<code>?</code>) and named (<code>:name</code>) placeholders</li>
+                        <li>Bind parameters with <code>bindParam()</code>, <code>bindValue()</code>, and <code>execute()</code></li>
+                        <li>Fetch results with <code>fetch()</code>, <code>fetchAll()</code>, and <code>fetchColumn()</code></li>
+                        <li>Build a reusable database connection class</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 50 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 18 (Error Handling), MySQL Foundations course (recommended)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">Why PDO?</a></li>
+                        <li><a href="#section2" class="toc-link">Connecting to MySQL</a></li>
+                        <li><a href="#section3" class="toc-link">PDO Configuration Options</a></li>
+                        <li><a href="#section4" class="toc-link">Running Simple Queries</a></li>
+                        <li><a href="#section5" class="toc-link">Prepared Statements</a></li>
+                        <li><a href="#section6" class="toc-link">Binding Parameters</a></li>
+                        <li><a href="#section7" class="toc-link">Fetching Results</a></li>
+                        <li><a href="#section8" class="toc-link">A Reusable Database Class</a></li>
+                        <li><a href="#section9" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section10" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Why PDO? -->
+            <section id="section1" class="lesson-section">
+                <h2>Why PDO?</h2>
+
+                <p>PHP has two ways to talk to MySQL: the older <code>mysqli</code> extension and the newer <code>PDO</code>. While both work, PDO is the modern standard for several important reasons.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>PDO</th>
+                                <th>mysqli</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Database support</td>
+                                <td>✅ MySQL, PostgreSQL, SQLite, Oracle, SQL Server, and more</td>
+                                <td>❌ MySQL only</td>
+                            </tr>
+                            <tr>
+                                <td>API style</td>
+                                <td>✅ Object-oriented only (clean, consistent)</td>
+                                <td>Mixed OO and procedural</td>
+                            </tr>
+                            <tr>
+                                <td>Named placeholders</td>
+                                <td>✅ <code>:name</code> and <code>?</code></td>
+                                <td>❌ <code>?</code> only</td>
+                            </tr>
+                            <tr>
+                                <td>Error handling</td>
+                                <td>✅ Throws exceptions (configurable)</td>
+                                <td>Returns false by default</td>
+                            </tr>
+                            <tr>
+                                <td>Fetch modes</td>
+                                <td>✅ Many (assoc, object, class, column, etc.)</td>
+                                <td>Fewer options</td>
+                            </tr>
+                            <tr>
+                                <td>Industry standard</td>
+                                <td>✅ Used by Laravel, Symfony, all major frameworks</td>
+                                <td>Rarely used in modern code</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>📖 What "Database-Agnostic" Means</h4>
+                    <p>With PDO, you can switch from MySQL to PostgreSQL or SQLite by changing one line — the DSN (connection string). Your queries, prepared statements, and fetch code stay the same. While you'll almost certainly use MySQL in this course, knowing PDO means you can work with <em>any</em> database.</p>
+                </div>
+
+                <div class="mermaid">
+                    flowchart LR
+                        A[Your PHP Code] --> B[PDO API]
+                        B --> C[MySQL Driver]
+                        B --> D[PostgreSQL Driver]
+                        B --> E[SQLite Driver]
+                        C --> F[(MySQL Database)]
+                        D --> G[(PostgreSQL Database)]
+                        E --> H[(SQLite File)]
+                </div>
+            </section>
+
+            <!-- Section 2: Connecting to MySQL -->
+            <section id="section2" class="lesson-section">
+                <h2>Connecting to MySQL</h2>
+
+                <p>A PDO connection requires three things: a <strong>DSN</strong> (Data Source Name) that tells PDO which database to connect to, a <strong>username</strong>, and a <strong>password</strong>.</p>
+
+                <h3>The DSN (Data Source Name)</h3>
+                <pre><code class="language-php">// DSN format for MySQL:
+// "mysql:host=HOSTNAME;dbname=DATABASE;charset=utf8mb4"
+
+// Common DSN examples:
+"mysql:host=localhost;dbname=myapp;charset=utf8mb4"     // Local MySQL
+"mysql:host=127.0.0.1;dbname=myapp;charset=utf8mb4"    // Local via IP
+"mysql:host=localhost;port=3307;dbname=myapp;charset=utf8mb4" // Custom port
+"mysql:host=db.example.com;dbname=myapp;charset=utf8mb4"     // Remote server</code></pre>
+
+                <h3>Basic Connection</h3>
+                <pre><code class="language-php">&lt;?php
+// Database credentials
+$host = "localhost";
+$dbname = "php_course";  // Your database from MySQL Foundations
+$user = "root";
+$pass = "";              // Your MySQL password
+
+// Build the DSN
+$dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
+
+// Create the connection
+try {
+    $pdo = new PDO($dsn, $user, $pass);
+    echo "Connected successfully!";
+} catch (PDOException $e) {
+    // Connection failed — handle the error
+    die("Connection failed: " . $e->getMessage());
+}
+
+// The $pdo object is your database connection
+// Use it for all queries in this script</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Never Hardcode Credentials in Production</h4>
+                    <p>The example above puts credentials directly in the code — fine for learning, but <strong>never do this in production</strong>. Use environment variables or a config file that's excluded from version control:</p>
+                </div>
+
+                <h3>Credentials from Environment Variables</h3>
+                <pre><code class="language-php">&lt;?php
+// Option 1: Environment variables (best practice)
+$host   = $_ENV["DB_HOST"]   ?? "localhost";
+$dbname = $_ENV["DB_NAME"]   ?? "php_course";
+$user   = $_ENV["DB_USER"]   ?? "root";
+$pass   = $_ENV["DB_PASS"]   ?? "";
+
+// Option 2: Config file (excluded from git via .gitignore)
+// $config = require "config/database.php";
+// $host = $config["host"];
+
+$dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
+
+try {
+    $pdo = new PDO($dsn, $user, $pass);
+} catch (PDOException $e) {
+    error_log("DB connection failed: " . $e->getMessage());
+    die("Database unavailable. Please try again later.");
+}</code></pre>
+
+                <h3>Connection Lifecycle</h3>
+                <pre><code class="language-php">&lt;?php
+// Connection is created when you call new PDO(...)
+$pdo = new PDO($dsn, $user, $pass);
+
+// Connection stays open for the lifetime of the $pdo variable
+// ... run queries here ...
+
+// Connection closes automatically when:
+// 1. The script ends
+// 2. $pdo goes out of scope
+// 3. You explicitly set it to null:
+$pdo = null; // Closes the connection</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ charset=utf8mb4</h4>
+                    <p>Always include <code>charset=utf8mb4</code> in your DSN. This ensures proper handling of all Unicode characters — including emoji (🎉). Without it, multi-byte characters can cause data corruption. <code>utf8mb4</code> is MySQL's "real" UTF-8; plain <code>utf8</code> only supports 3-byte characters.</p>
+                </div>
+            </section>
+
+            <!-- Section 3: PDO Configuration -->
+            <section id="section3" class="lesson-section">
+                <h2>PDO Configuration Options</h2>
+
+                <p>A bare <code>new PDO()</code> call works, but the defaults aren't ideal. You should always configure PDO for safety and convenience.</p>
+
+                <h3>Recommended Options</h3>
+                <pre><code class="language-php">&lt;?php
+$dsn = "mysql:host=localhost;dbname=php_course;charset=utf8mb4";
+
+$options = [
+    // Throw exceptions on errors (instead of silent failures)
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+
+    // Return associative arrays by default (instead of both numeric + assoc)
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+
+    // Use real prepared statements (not emulated)
+    PDO::ATTR_EMULATE_PREPARES   => false,
+
+    // Return column names in lowercase (consistent across databases)
+    PDO::ATTR_CASE               => PDO::CASE_NATURAL,
+];
+
+$pdo = new PDO($dsn, "root", "", $options);</code></pre>
+
+                <h3>What Each Option Does</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th>Recommended Value</th>
+                                <th>Why</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>ATTR_ERRMODE</code></td>
+                                <td><code>ERRMODE_EXCEPTION</code></td>
+                                <td>Throws <code>PDOException</code> on errors instead of silently returning <code>false</code>. Works with try/catch from Lesson 18.</td>
+                            </tr>
+                            <tr>
+                                <td><code>ATTR_DEFAULT_FETCH_MODE</code></td>
+                                <td><code>FETCH_ASSOC</code></td>
+                                <td>Returns results as <code>["column" => "value"]</code> arrays. Without this, you get both numeric and string keys (wasteful and confusing).</td>
+                            </tr>
+                            <tr>
+                                <td><code>ATTR_EMULATE_PREPARES</code></td>
+                                <td><code>false</code></td>
+                                <td>Uses the database's native prepared statements instead of PHP-side emulation. Better security and proper type handling.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <blockquote>
+                    <strong>⚠️ Important:</strong> The most critical option is <code>ERRMODE_EXCEPTION</code>. Without it, PDO fails silently — queries return <code>false</code> instead of throwing errors, and you won't know something went wrong until you see missing data or blank pages.
+                </blockquote>
+
+                <h3>Error Modes Compared</h3>
+                <pre><code class="language-php">&lt;?php
+// SILENT (default — dangerous!) — errors return false, no feedback
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+$result = $pdo->query("SELECT * FROM nonexistent_table");
+// $result is false — but you get no error message
+
+// WARNING — PHP warning is generated
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+// Generates: Warning: PDO::query(): SQLSTATE[42S02]: ...
+
+// EXCEPTION (recommended!) — throws PDOException
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+try {
+    $result = $pdo->query("SELECT * FROM nonexistent_table");
+} catch (PDOException $e) {
+    echo "Query failed: " . $e->getMessage();
+    // "SQLSTATE[42S02]: Base table or view not found: ..."
+}</code></pre>
+            </section>
+
+            <!-- Section 4: Simple Queries -->
+            <section id="section4" class="lesson-section">
+                <h2>Running Simple Queries</h2>
+
+                <p>For queries that don't include any user input, you can use <code>$pdo->query()</code> directly. This runs the SQL and returns a result set.</p>
+
+                <h3>SELECT with query()</h3>
+                <pre><code class="language-php">&lt;?php
+// Simple SELECT — no user input, so query() is safe
+$stmt = $pdo->query("SELECT id, name, email FROM users ORDER BY name");
+
+// Fetch all rows as an array of associative arrays
+$users = $stmt->fetchAll();
+
+foreach ($users as $user) {
+    echo "{$user['name']} — {$user['email']}\n";
+}
+// Alice — alice@example.com
+// Bob — bob@example.com
+// Charlie — charlie@example.com
+
+// Get the number of rows returned
+echo "Found: " . count($users) . " users";</code></pre>
+
+                <h3>exec() for Non-SELECT Queries</h3>
+                <pre><code class="language-php">&lt;?php
+// exec() runs INSERT, UPDATE, DELETE, CREATE, etc.
+// Returns the number of affected rows
+
+// Create a table
+$pdo->exec("CREATE TABLE IF NOT EXISTS logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    message VARCHAR(255) NOT NULL,
+    level VARCHAR(20) DEFAULT 'INFO',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+
+// Insert a row
+$affected = $pdo->exec("INSERT INTO logs (message, level) VALUES ('App started', 'INFO')");
+echo "$affected row(s) inserted";
+
+// Delete old logs
+$deleted = $pdo->exec("DELETE FROM logs WHERE created_at < '2026-01-01'");
+echo "$deleted row(s) deleted";</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ query() and exec() Are Only Safe for Static SQL</h4>
+                    <p>Never concatenate user input into <code>query()</code> or <code>exec()</code> calls. This creates <strong>SQL injection vulnerabilities</strong> — one of the most dangerous security flaws in web development. For any query that includes variables or user input, use <strong>prepared statements</strong> (covered next).</p>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+// ❌ NEVER DO THIS — SQL injection vulnerability!
+$name = $_GET["name"]; // User input
+$stmt = $pdo->query("SELECT * FROM users WHERE name = '$name'");
+// If $name is: ' OR '1'='1  → returns ALL users
+// If $name is: '; DROP TABLE users; --  → deletes the table!
+
+// ✅ ALWAYS use prepared statements for user input
+$stmt = $pdo->prepare("SELECT * FROM users WHERE name = ?");
+$stmt->execute([$name]);
+// Safe — the input is treated as data, never as SQL code</code></pre>
+            </section>
+
+            <!-- Section 5: Prepared Statements -->
+            <section id="section5" class="lesson-section">
+                <h2>Prepared Statements</h2>
+
+                <p>Prepared statements are the cornerstone of secure database access. They separate the SQL structure from the data, making SQL injection impossible. The database knows what's code and what's data — even if the data looks like SQL.</p>
+
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant PHP
+                        participant PDO
+                        participant MySQL
+                        PHP->>PDO: prepare("SELECT * FROM users WHERE id = ?")
+                        PDO->>MySQL: Parse and compile query template
+                        MySQL-->>PDO: Compiled statement ready
+                        PHP->>PDO: execute([42])
+                        PDO->>MySQL: Send parameter: 42
+                        MySQL-->>PDO: Results
+                        PDO-->>PHP: PDOStatement with results
+                </div>
+
+                <h3>Positional Placeholders (?)</h3>
+                <pre><code class="language-php">&lt;?php
+// Step 1: Prepare — write SQL with ? placeholders
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+
+// Step 2: Execute — pass values in an array (order must match ?)
+$stmt->execute([42]);
+
+// Step 3: Fetch the results
+$user = $stmt->fetch(); // Single row
+echo $user["name"];
+
+// Multiple placeholders — values are bound by position
+$stmt = $pdo->prepare(
+    "SELECT * FROM products WHERE price > ? AND category = ? ORDER BY price LIMIT ?"
+);
+$stmt->execute([10.00, "Electronics", 20]);
+$products = $stmt->fetchAll();</code></pre>
+
+                <h3>Named Placeholders (:name)</h3>
+                <pre><code class="language-php">&lt;?php
+// Named placeholders are more readable — especially with many parameters
+$stmt = $pdo->prepare(
+    "SELECT * FROM products WHERE price > :min_price AND category = :category ORDER BY price LIMIT :limit"
+);
+
+// Pass values as an associative array — order doesn't matter
+$stmt->execute([
+    ":min_price" => 10.00,
+    ":category"  => "Electronics",
+    ":limit"     => 20,
+]);
+
+$products = $stmt->fetchAll();
+
+// You can also omit the colon in the array keys:
+$stmt->execute([
+    "min_price" => 10.00,
+    "category"  => "Electronics",
+    "limit"     => 20,
+]);</code></pre>
+
+                <h3>Re-executing Prepared Statements</h3>
+                <p>A prepared statement can be executed multiple times with different values — the query is compiled once and reused, which is more efficient than running separate queries.</p>
+
+                <pre><code class="language-php">&lt;?php
+// Prepare once, execute many times — efficient for batch operations
+$stmt = $pdo->prepare(
+    "INSERT INTO users (name, email) VALUES (:name, :email)"
+);
+
+$newUsers = [
+    ["name" => "Alice",   "email" => "alice@example.com"],
+    ["name" => "Bob",     "email" => "bob@example.com"],
+    ["name" => "Charlie", "email" => "charlie@example.com"],
+];
+
+foreach ($newUsers as $user) {
+    $stmt->execute($user); // Same prepared statement, different data
+}
+
+echo count($newUsers) . " users inserted.";</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use ? vs. :name</h4>
+                    <p><strong>Positional (<code>?</code>)</strong> — Best for simple queries with 1–3 parameters. Less typing, but you must keep the array order matching the placeholder positions.</p>
+                    <p><strong>Named (<code>:name</code>)</strong> — Best for complex queries with many parameters. Self-documenting, order-independent, and less error-prone when you have 4+ parameters.</p>
+                </div>
+            </section>
+
+            <!-- Section 6: Binding Parameters -->
+            <section id="section6" class="lesson-section">
+                <h2>Binding Parameters</h2>
+
+                <p>Passing an array to <code>execute()</code> is the simplest approach, but PDO also offers explicit binding methods for more control over data types.</p>
+
+                <h3>execute() with Array (Simplest)</h3>
+                <pre><code class="language-php">&lt;?php
+// All values are sent as strings by default
+$stmt = $pdo->prepare("SELECT * FROM users WHERE age > ? AND active = ?");
+$stmt->execute([18, 1]);
+// Works fine — MySQL converts strings to the right types automatically</code></pre>
+
+                <h3>bindValue() — Bind a Value</h3>
+                <pre><code class="language-php">&lt;?php
+$stmt = $pdo->prepare("SELECT * FROM users WHERE age > :age AND active = :active");
+
+// bindValue binds a COPY of the value at the time of binding
+$stmt->bindValue(":age", 18, PDO::PARAM_INT);
+$stmt->bindValue(":active", true, PDO::PARAM_BOOL);
+$stmt->execute();
+
+$users = $stmt->fetchAll();
+
+// Positional example:
+$stmt = $pdo->prepare("SELECT * FROM products WHERE price < ? LIMIT ?");
+$stmt->bindValue(1, 50.00);    // First ? (1-indexed)
+$stmt->bindValue(2, 10, PDO::PARAM_INT);  // Second ?
+$stmt->execute();</code></pre>
+
+                <h3>bindParam() — Bind a Reference</h3>
+                <pre><code class="language-php">&lt;?php
+// bindParam binds by REFERENCE — the value is read at execute() time
+$stmt = $pdo->prepare("INSERT INTO logs (message, level) VALUES (:message, :level)");
+
+$message = "";
+$level = "";
+$stmt->bindParam(":message", $message);
+$stmt->bindParam(":level", $level);
+
+// Change the variables and re-execute
+$message = "User logged in";
+$level = "INFO";
+$stmt->execute(); // Uses current values of $message and $level
+
+$message = "Invalid password attempt";
+$level = "WARNING";
+$stmt->execute(); // Uses the new values — no need to rebind</code></pre>
+
+                <h3>PDO Parameter Types</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Constant</th>
+                                <th>PHP Type</th>
+                                <th>Use For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>PDO::PARAM_STR</code></td>
+                                <td>string</td>
+                                <td>Text, VARCHAR, dates (default)</td>
+                            </tr>
+                            <tr>
+                                <td><code>PDO::PARAM_INT</code></td>
+                                <td>int</td>
+                                <td>Integers, IDs, counts, LIMIT/OFFSET</td>
+                            </tr>
+                            <tr>
+                                <td><code>PDO::PARAM_BOOL</code></td>
+                                <td>bool</td>
+                                <td>Boolean values, flags</td>
+                            </tr>
+                            <tr>
+                                <td><code>PDO::PARAM_NULL</code></td>
+                                <td>null</td>
+                                <td>NULL values</td>
+                            </tr>
+                            <tr>
+                                <td><code>PDO::PARAM_LOB</code></td>
+                                <td>resource</td>
+                                <td>Large objects (BLOBs, files)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>📖 bindValue() vs. bindParam()</h4>
+                    <p><strong><code>bindValue()</code></strong> copies the value at bind time. Change the variable later? Doesn't matter — the bound value stays the same.</p>
+                    <p><strong><code>bindParam()</code></strong> binds a reference to the variable. The actual value is read when <code>execute()</code> is called, not when <code>bindParam()</code> is called. Useful for re-executing with different values in a loop.</p>
+                    <p>In practice, most developers use <code>execute([$array])</code> for simplicity and only reach for <code>bindValue()</code>/<code>bindParam()</code> when they need explicit type control (especially <code>PDO::PARAM_INT</code> for LIMIT clauses).</p>
+                </div>
+            </section>
+
+            <!-- Section 7: Fetching Results -->
+            <section id="section7" class="lesson-section">
+                <h2>Fetching Results</h2>
+
+                <p>After executing a SELECT query, you need to retrieve the results. PDO offers several fetch methods and modes to get data in the format you need.</p>
+
+                <h3>fetch() — One Row</h3>
+                <pre><code class="language-php">&lt;?php
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([42]);
+
+// Fetch a single row (returns false if no row found)
+$user = $stmt->fetch();
+
+if ($user) {
+    echo "Name: {$user['name']}\n";
+    echo "Email: {$user['email']}\n";
+} else {
+    echo "User not found.";
+}
+
+// Fetch rows one at a time in a loop (memory-efficient for large results)
+$stmt = $pdo->query("SELECT * FROM products ORDER BY name");
+while ($product = $stmt->fetch()) {
+    echo "{$product['name']}: \${$product['price']}\n";
+}</code></pre>
+
+                <h3>fetchAll() — All Rows</h3>
+                <pre><code class="language-php">&lt;?php
+$stmt = $pdo->query("SELECT * FROM users ORDER BY name");
+
+// Fetch all rows into an array at once
+$users = $stmt->fetchAll();
+
+echo count($users) . " users found.\n";
+
+foreach ($users as $user) {
+    echo "{$user['name']} — {$user['email']}\n";
+}</code></pre>
+
+                <h3>fetchColumn() — Single Value</h3>
+                <pre><code class="language-php">&lt;?php
+// Get a single value — great for COUNT, MAX, SUM, etc.
+$stmt = $pdo->query("SELECT COUNT(*) FROM users");
+$totalUsers = $stmt->fetchColumn();
+echo "Total users: $totalUsers";
+
+// Get a specific column by index (0-based)
+$stmt = $pdo->query("SELECT id, name, email FROM users");
+while ($name = $stmt->fetchColumn(1)) { // Column index 1 = name
+    echo "$name\n";
+}</code></pre>
+
+                <h3>Fetch Modes</h3>
+                <pre><code class="language-php">&lt;?php
+$stmt = $pdo->query("SELECT id, name, email FROM users");
+
+// FETCH_ASSOC — associative array (our default)
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+// ["id" => 1, "name" => "Alice", "email" => "alice@example.com"]
+
+// FETCH_NUM — numeric array
+$stmt->execute();
+$row = $stmt->fetch(PDO::FETCH_NUM);
+// [0 => 1, 1 => "Alice", 2 => "alice@example.com"]
+
+// FETCH_OBJ — anonymous object
+$stmt->execute();
+$row = $stmt->fetch(PDO::FETCH_OBJ);
+// echo $row->name;  → "Alice"
+// echo $row->email; → "alice@example.com"
+
+// FETCH_CLASS — map rows to a specific class
+class User {
+    public int $id;
+    public string $name;
+    public string $email;
+
+    public function getDisplayName(): string {
+        return "{$this->name} &lt;{$this->email}&gt;";
+    }
+}
+
+$stmt = $pdo->query("SELECT id, name, email FROM users");
+$stmt->setFetchMode(PDO::FETCH_CLASS, User::class);
+$users = $stmt->fetchAll();
+
+foreach ($users as $user) {
+    echo $user->getDisplayName() . "\n";
+    // "Alice <alice@example.com>"
+}
+
+// FETCH_KEY_PAIR — two columns as key => value
+$stmt = $pdo->query("SELECT id, name FROM users");
+$lookup = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+// [1 => "Alice", 2 => "Bob", 3 => "Charlie"]
+
+// FETCH_UNIQUE — full rows keyed by first column
+$stmt = $pdo->query("SELECT id, name, email FROM users");
+$usersById = $stmt->fetchAll(PDO::FETCH_UNIQUE);
+// [1 => ["name" => "Alice", "email" => "..."], 2 => ["name" => "Bob", ...]]
+
+// FETCH_GROUP — group rows by first column
+$stmt = $pdo->query("SELECT role, name, email FROM users ORDER BY role, name");
+$byRole = $stmt->fetchAll(PDO::FETCH_GROUP);
+// ["admin" => [["name" => "Alice", ...]], "user" => [["name" => "Bob", ...], ...]]
+
+// FETCH_COLUMN — single column as flat array
+$stmt = $pdo->query("SELECT email FROM users");
+$emails = $stmt->fetchAll(PDO::FETCH_COLUMN);
+// ["alice@example.com", "bob@example.com", "charlie@example.com"]</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Most Commonly Used Fetch Patterns</h4>
+                    <ul>
+                        <li><code>$stmt->fetch()</code> — One row (e.g., user profile, single record by ID)</li>
+                        <li><code>$stmt->fetchAll()</code> — All rows (e.g., product listings, search results)</li>
+                        <li><code>$stmt->fetchColumn()</code> — Single value (e.g., COUNT, MAX, EXISTS check)</li>
+                        <li><code>$stmt->fetchAll(PDO::FETCH_COLUMN)</code> — One column as flat array (e.g., all email addresses)</li>
+                        <li><code>$stmt->fetchAll(PDO::FETCH_KEY_PAIR)</code> — ID => Name lookup (e.g., dropdown options)</li>
+                    </ul>
+                </div>
+
+                <h3>Checking for Empty Results</h3>
+                <pre><code class="language-php">&lt;?php
+// For fetch() — returns false when no rows found
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([999]);
+$user = $stmt->fetch();
+
+if ($user === false) {
+    echo "User not found.";
+}
+
+// For fetchAll() — returns empty array when no rows found
+$stmt = $pdo->prepare("SELECT * FROM products WHERE price > ?");
+$stmt->execute([99999]);
+$products = $stmt->fetchAll();
+
+if (empty($products)) {
+    echo "No products found.";
+}
+
+// For counting affected rows (INSERT, UPDATE, DELETE)
+$stmt = $pdo->prepare("DELETE FROM sessions WHERE expires_at < NOW()");
+$stmt->execute();
+$deleted = $stmt->rowCount();
+echo "$deleted expired sessions removed.";</code></pre>
+            </section>
+
+            <!-- Section 8: Reusable Database Class -->
+            <section id="section8" class="lesson-section">
+                <h2>A Reusable Database Class</h2>
+
+                <p>Instead of creating a connection in every file, let's build a reusable <code>Database</code> class that handles connection setup, configuration, and provides a clean API.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: Database.php
+
+class Database {
+    private static ?PDO $instance = null;
+
+    // Default connection settings
+    private const DEFAULT_OPTIONS = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+
+    // Prevent direct instantiation (use getConnection instead)
+    private function __construct() {}
+    private function __clone() {}
+
+    /**
+     * Get the shared PDO connection (Singleton pattern).
+     * Creates the connection on first call, reuses it afterward.
+     */
+    public static function getConnection(): PDO {
+        if (self::$instance === null) {
+            $host   = $_ENV["DB_HOST"]   ?? "localhost";
+            $dbname = $_ENV["DB_NAME"]   ?? "php_course";
+            $user   = $_ENV["DB_USER"]   ?? "root";
+            $pass   = $_ENV["DB_PASS"]   ?? "";
+
+            $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
+
+            try {
+                self::$instance = new PDO($dsn, $user, $pass, self::DEFAULT_OPTIONS);
+            } catch (PDOException $e) {
+                error_log("Database connection failed: " . $e->getMessage());
+                throw new RuntimeException("Database unavailable", 0, $e);
+            }
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Shortcut: prepare and execute a query in one call.
+     */
+    public static function run(string $sql, array $params = []): PDOStatement {
+        $stmt = self::getConnection()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt;
+    }
+
+    /**
+     * Close the connection (rarely needed — PHP closes it at script end).
+     */
+    public static function close(): void {
+        self::$instance = null;
+    }
+}
+
+// === Usage ===
+
+// Simple queries become one-liners:
+$users = Database::run("SELECT * FROM users WHERE active = ?", [1])->fetchAll();
+
+$user = Database::run(
+    "SELECT * FROM users WHERE id = :id",
+    ["id" => 42]
+)->fetch();
+
+$count = Database::run("SELECT COUNT(*) FROM users")->fetchColumn();
+
+Database::run(
+    "INSERT INTO users (name, email) VALUES (?, ?)",
+    ["Alice", "alice@example.com"]
+);
+
+$affected = Database::run(
+    "UPDATE users SET active = 0 WHERE last_login < ?",
+    ["2025-01-01"]
+)->rowCount();
+
+echo "$affected accounts deactivated.";</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 The Singleton Pattern</h4>
+                    <p>The <code>Database</code> class uses a <strong>Singleton</strong> — it creates the connection on the first call to <code>getConnection()</code> and reuses it for every subsequent call. This prevents accidentally opening multiple connections (which wastes resources). The private constructor and <code>__clone()</code> prevent external code from creating additional instances.</p>
+                </div>
+
+                <h3>Using the Database Class in a Page</h3>
+                <pre><code class="language-php">&lt;?php
+// File: users.php
+require_once "Database.php";
+
+// Get all active users
+$users = Database::run(
+    "SELECT id, name, email, created_at FROM users WHERE active = 1 ORDER BY name"
+)->fetchAll();
+
+// Display in HTML
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;Users&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Active Users (<?= count($users) ?>)&lt;/h1&gt;
+
+    &lt;table&gt;
+        &lt;thead&gt;
+            &lt;tr&gt;
+                &lt;th&gt;Name&lt;/th&gt;
+                &lt;th&gt;Email&lt;/th&gt;
+                &lt;th&gt;Joined&lt;/th&gt;
+            &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+            &lt;?php foreach ($users as $user): ?&gt;
+            &lt;tr&gt;
+                &lt;td&gt;&lt;?= htmlspecialchars($user["name"]) ?&gt;&lt;/td&gt;
+                &lt;td&gt;&lt;?= htmlspecialchars($user["email"]) ?&gt;&lt;/td&gt;
+                &lt;td&gt;&lt;?= $user["created_at"] ?&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;?php endforeach; ?&gt;
+        &lt;/tbody&gt;
+    &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Always Escape Output with htmlspecialchars()</h4>
+                    <p>When displaying database values in HTML, <em>always</em> pass them through <code>htmlspecialchars()</code>. Data from the database could contain characters like <code>&lt;</code>, <code>&gt;</code>, or <code>&amp;</code> that break HTML — or worse, contain JavaScript injected by an attacker (XSS). We'll cover this in depth in Lesson 23 (Security Fundamentals).</p>
+                </div>
+            </section>
+
+            <!-- Section 9: Exercises -->
+            <section id="section9" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Connect and Query</h3>
+                    <p><strong>Objective:</strong> Establish a PDO connection and run basic queries.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a file called <code>db_test.php</code></li>
+                        <li>Connect to your MySQL server using PDO with all recommended options</li>
+                        <li>Create a table <code>notes</code> with columns: <code>id</code> (INT AUTO_INCREMENT PRIMARY KEY), <code>title</code> (VARCHAR 255), <code>content</code> (TEXT), <code>created_at</code> (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)</li>
+                        <li>Insert 3 notes using a prepared statement in a loop</li>
+                        <li>Fetch and display all notes</li>
+                        <li>Fetch the total count using <code>fetchColumn()</code></li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use <code>$pdo->exec()</code> for the CREATE TABLE statement (no user input). Use <code>$pdo->prepare()</code> with named placeholders for the INSERT, then call <code>$stmt->execute()</code> inside a foreach loop. For the count, <code>SELECT COUNT(*) FROM notes</code> with <code>fetchColumn()</code>.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+// Connect
+$dsn = "mysql:host=localhost;dbname=php_course;charset=utf8mb4";
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
+
+try {
+    $pdo = new PDO($dsn, "root", "", $options);
+    echo "Connected!\n\n";
+} catch (PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
+}
+
+// Create table
+$pdo->exec("CREATE TABLE IF NOT EXISTS notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+echo "Table ready.\n\n";
+
+// Insert notes
+$stmt = $pdo->prepare("INSERT INTO notes (title, content) VALUES (:title, :content)");
+
+$notes = [
+    ["title" => "PDO Basics",       "content" => "PDO is PHP's modern database interface."],
+    ["title" => "Prepared Statements", "content" => "Always use placeholders for user input."],
+    ["title" => "Fetch Modes",       "content" => "FETCH_ASSOC is the most common mode."],
+];
+
+foreach ($notes as $note) {
+    $stmt->execute($note);
+}
+echo count($notes) . " notes inserted.\n\n";
+
+// Fetch all notes
+$allNotes = $pdo->query("SELECT * FROM notes ORDER BY created_at DESC")->fetchAll();
+foreach ($allNotes as $note) {
+    echo "#{$note['id']} {$note['title']}\n";
+    echo "   {$note['content']}\n";
+    echo "   Created: {$note['created_at']}\n\n";
+}
+
+// Count
+$count = $pdo->query("SELECT COUNT(*) FROM notes")->fetchColumn();
+echo "Total notes: $count\n";</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: User Search with Prepared Statements</h3>
+                    <p><strong>Objective:</strong> Build a safe search function using prepared statements.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a <code>UserRepository</code> class that accepts a PDO connection in its constructor</li>
+                        <li>Add method <code>findById(int $id): ?array</code> — returns one user or null</li>
+                        <li>Add method <code>findByEmail(string $email): ?array</code> — returns one user or null</li>
+                        <li>Add method <code>search(string $query): array</code> — search by name OR email using LIKE</li>
+                        <li>Add method <code>findActive(int $limit = 10, int $offset = 0): array</code> — paginated results</li>
+                        <li>All methods must use prepared statements with appropriate parameter types</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>For the LIKE search, build the pattern in PHP (<code>"%$query%"</code>) and pass it as a single parameter — don't put the <code>%</code> wildcards in the SQL. For LIMIT/OFFSET, use <code>bindValue()</code> with <code>PDO::PARAM_INT</code> since those must be integers.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+class UserRepository {
+    private PDO $pdo;
+
+    public function __construct(PDO $pdo) {
+        $this->pdo = $pdo;
+    }
+
+    public function findById(int $id): ?array {
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        $user = $stmt->fetch();
+        return $user ?: null;
+    }
+
+    public function findByEmail(string $email): ?array {
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+        return $user ?: null;
+    }
+
+    public function search(string $query): array {
+        $pattern = "%" . $query . "%";
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM users WHERE name LIKE :q OR email LIKE :q ORDER BY name"
+        );
+        $stmt->execute(["q" => $pattern]);
+        return $stmt->fetchAll();
+    }
+
+    public function findActive(int $limit = 10, int $offset = 0): array {
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM users WHERE active = 1 ORDER BY name LIMIT :limit OFFSET :offset"
+        );
+        $stmt->bindValue(":limit", $limit, PDO::PARAM_INT);
+        $stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+}
+
+// Usage
+$dsn = "mysql:host=localhost;dbname=php_course;charset=utf8mb4";
+$pdo = new PDO($dsn, "root", "", [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+]);
+
+$repo = new UserRepository($pdo);
+
+// Find by ID
+$user = $repo->findById(1);
+echo $user ? "Found: {$user['name']}\n" : "Not found\n";
+
+// Search
+$results = $repo->search("alice");
+echo count($results) . " results for 'alice'\n";
+
+// Paginated
+$page1 = $repo->findActive(limit: 5, offset: 0);
+$page2 = $repo->findActive(limit: 5, offset: 5);
+echo "Page 1: " . count($page1) . " users\n";
+echo "Page 2: " . count($page2) . " users\n";</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What does the DSN (Data Source Name) specify?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Credentials (username/password) are separate parameters in the PDO constructor, not part of the DSN.">
+                                A) The username and password for the database
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The DSN specifies the database driver (mysql:), host, database name, charset, and optionally the port. It tells PDO HOW to connect — but not WHO to connect as (that's the username/password parameters).">
+                                B) The database driver, host, database name, and charset
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="SQL queries are separate from the connection setup. The DSN only handles connection details.">
+                                C) The SQL queries to execute
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> Why should you always use prepared statements for user input?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="While prepared statements are slightly faster when re-executed multiple times, that's not the primary reason. The main reason is security.">
+                                A) They make queries run faster
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Prepared statements separate SQL code from data. The database compiles the SQL structure first, then receives the data separately — so user input can NEVER be interpreted as SQL commands. This completely prevents SQL injection, one of the most dangerous web vulnerabilities.">
+                                B) They prevent SQL injection by separating SQL structure from data
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Prepared statements don't simplify syntax — they actually require an extra prepare + execute step. The reason is security, not convenience.">
+                                C) They simplify the SQL syntax
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What PDO option should you always set to handle errors properly?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="FETCH_ASSOC controls the format of returned data, not error handling.">
+                                A) <code>PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC</code>
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! ERRMODE_EXCEPTION makes PDO throw a PDOException whenever a database error occurs. Without it, errors are silent — queries return false, and you have to manually check for errors after every call. With exceptions, you can use try/catch for clean error handling.">
+                                B) <code>PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION</code>
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="EMULATE_PREPARES controls how prepared statements work internally. Important, but not the error handling option.">
+                                C) <code>PDO::ATTR_EMULATE_PREPARES => false</code>
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What is the difference between <code>fetch()</code> and <code>fetchAll()</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! fetch() returns one row (or false if no rows remain). fetchAll() returns ALL rows as an array. Use fetch() when you expect one result (e.g., lookup by ID) or when processing rows one at a time in a loop. Use fetchAll() when you need all results at once (e.g., listing products).">
+                                A) <code>fetch()</code> returns one row; <code>fetchAll()</code> returns all rows
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both can return associative arrays. The difference is about how many rows they return, not the format.">
+                                B) <code>fetch()</code> returns an object; <code>fetchAll()</code> returns an array
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Neither method re-executes the query. They both read from the same result set after a query has been executed.">
+                                C) <code>fetchAll()</code> runs the query again each time it's called
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What's the correct way to use LIKE with a prepared statement?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Putting % in the SQL around the placeholder doesn't work — the parameter replaces the entire placeholder including quotes. The % must be part of the value.">
+                                A) <code>WHERE name LIKE '%?%'</code>
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Build the LIKE pattern in PHP by prepending/appending % to the value, then pass the complete pattern as the parameter. The database receives '%alice%' as a single data value. Putting % in the SQL around the placeholder doesn't work because the placeholder represents the entire value.">
+                                B) Build the pattern in PHP: <code>$pattern = '%' . $query . '%'</code>, then <code>WHERE name LIKE ?</code> with <code>execute([$pattern])</code>
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="CONCAT works technically, but it's unnecessarily complex. The simpler approach is to build the pattern in PHP and pass it as a single parameter.">
+                                C) <code>WHERE name LIKE CONCAT('%', ?, '%')</code>
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Summary -->
+            <section id="section10" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>PDO</strong> is PHP's modern, database-agnostic interface — preferred over <code>mysqli</code> for all new projects.</li>
+                        <li><strong>DSN</strong> format: <code>mysql:host=localhost;dbname=mydb;charset=utf8mb4</code>. Always include <code>charset=utf8mb4</code>.</li>
+                        <li><strong>Essential options:</strong> <code>ERRMODE_EXCEPTION</code> (throw on errors), <code>FETCH_ASSOC</code> (associative arrays), <code>EMULATE_PREPARES = false</code> (native prepared statements).</li>
+                        <li><strong>Prepared statements</strong> separate SQL from data — preventing SQL injection. Use them for any query with variables.</li>
+                        <li><strong>Placeholders:</strong> <code>?</code> (positional, simple) and <code>:name</code> (named, readable for complex queries).</li>
+                        <li><strong>Binding:</strong> <code>execute([$array])</code> for simplicity, <code>bindValue()</code>/<code>bindParam()</code> for explicit type control.</li>
+                        <li><strong>Fetching:</strong> <code>fetch()</code> for one row, <code>fetchAll()</code> for all rows, <code>fetchColumn()</code> for a single value.</li>
+                        <li><strong>Fetch modes:</strong> <code>FETCH_ASSOC</code> (default), <code>FETCH_OBJ</code>, <code>FETCH_CLASS</code>, <code>FETCH_KEY_PAIR</code>, <code>FETCH_COLUMN</code>, and more.</li>
+                        <li><strong>Reusable Database class:</strong> Singleton pattern for shared connection, <code>run()</code> shortcut for prepare+execute.</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/book.pdo.php" target="_blank" rel="noopener">PHP Manual: PDO</a></li>
+                    <li><a href="https://www.php.net/manual/en/pdo.connections.php" target="_blank" rel="noopener">PHP Manual: PDO Connections</a></li>
+                    <li><a href="https://www.php.net/manual/en/pdo.prepared-statements.php" target="_blank" rel="noopener">PHP Manual: Prepared Statements</a></li>
+                    <li><a href="https://www.php.net/manual/en/pdostatement.fetch.php" target="_blank" rel="noopener">PHP Manual: PDOStatement::fetch</a></li>
+                    <li><a href="https://phpdelusions.net/pdo" target="_blank" rel="noopener">PHP Delusions: PDO Tutorial (community favorite)</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Now that you can connect and read data, <strong>Lesson 20: PDO — CRUD, Transactions &amp; Fetch Styles</strong> will complete your database toolkit. You'll learn INSERT, UPDATE, and DELETE with PDO, use transactions for multi-step operations, get the last inserted ID, and master advanced fetch patterns. Then in Lesson 21, you'll build a complete CRUD application that ties everything together.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've connected PHP to MySQL! With PDO and prepared statements, you can now safely query databases, fetch results in any format, and build database-driven web applications. The most powerful part of PHP development starts here.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_18.html" class="prev-lesson">← Previous: Error Handling</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_20.html" class="next-lesson">Next: PDO — CRUD &amp; Transactions →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PHP glossary — definitions of key terms, concepts, and acronyms from the PHP Foundations course, from Abstract Classes to XSS.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Glossary - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">☰</button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li aria-current="page">Glossary</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>📖 Glossary</h1>
+                <p class="lead">Definitions of key terms and concepts from the PHP Foundations course, organized alphabetically.</p>
+            </header>
+
+            <section class="lesson-section">
+
+                <h2>A</h2>
+
+                <div class="card card-accent">
+                    <h4>Abstract Class</h4>
+                    <p>A class declared with the <code>abstract</code> keyword that cannot be instantiated directly. It serves as a blueprint for child classes, which must implement its abstract methods. See <a href="lesson_17.html">Lesson 17</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Apache</h4>
+                    <p>An open-source web server that processes HTTP requests and serves web pages. In this course, Apache runs PHP files and is part of the LAMP stack. See <a href="lesson_02.html">Lesson 2</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Argument</h4>
+                    <p>A value passed to a function when calling it. Compare with <em>parameter</em>, which is the variable name defined in the function signature. See <a href="lesson_07.html">Lesson 7</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Array</h4>
+                    <p>A data structure that stores multiple values in a single variable. PHP supports indexed arrays (numeric keys), associative arrays (string keys), and multidimensional arrays. See <a href="lesson_08.html">Lesson 8</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Arrow Function</h4>
+                    <p>A shorthand syntax for anonymous functions introduced in PHP 7.4: <code>fn($x) => $x * 2</code>. Arrow functions automatically capture variables from the parent scope. See <a href="lesson_07.html">Lesson 7</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Associative Array</h4>
+                    <p>An array that uses named string keys instead of numeric indexes. Example: <code>['name' => 'Ray', 'age' => 30]</code>. See <a href="lesson_08.html">Lesson 8</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Autoloading</h4>
+                    <p>A mechanism that automatically loads class files when they're needed, eliminating the need for manual <code>require</code> statements. Composer provides PSR-4 autoloading. See <a href="lesson_17.html">Lesson 17</a>.</p>
+                </div>
+
+                <h2>B</h2>
+
+                <div class="card card-accent">
+                    <h4>Boolean</h4>
+                    <p>A data type with only two possible values: <code>true</code> or <code>false</code>. Used in conditional statements and comparisons. See <a href="lesson_03.html">Lesson 3</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>break</h4>
+                    <p>A statement that exits a loop (<code>for</code>, <code>while</code>, <code>foreach</code>) or <code>switch</code> block immediately, continuing execution after the block. See <a href="lesson_06.html">Lesson 6</a>.</p>
+                </div>
+
+                <h2>C</h2>
+
+                <div class="card card-accent">
+                    <h4>Class</h4>
+                    <p>A blueprint for creating objects, defining properties (data) and methods (behavior). PHP classes support constructors, visibility modifiers, inheritance, and more. See <a href="lesson_16.html">Lesson 16</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Closure</h4>
+                    <p>An anonymous function that can capture variables from its surrounding scope using the <code>use</code> keyword. Closures are often used as callbacks. See <a href="lesson_07.html">Lesson 7</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Composer</h4>
+                    <p>PHP's dependency manager that handles package installation, autoloading, and versioning. Used extensively in frameworks like Laravel and Symfony. See <a href="lesson_24.html">Lesson 24</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Constructor</h4>
+                    <p>A special method (<code>__construct()</code>) that runs automatically when a new object is created. Used to initialize properties. See <a href="lesson_16.html">Lesson 16</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Cookie</h4>
+                    <p>A small piece of data stored in the user's browser, sent with every HTTP request to the server. Set with <code>setcookie()</code> and read via <code>$_COOKIE</code>. See <a href="lesson_15.html">Lesson 15</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>CRUD</h4>
+                    <p><strong>C</strong>reate, <strong>R</strong>ead, <strong>U</strong>pdate, <strong>D</strong>elete — the four basic database operations. See <a href="lesson_20.html">Lesson 20</a> and <a href="lesson_21.html">Lesson 21</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>CSRF (Cross-Site Request Forgery)</h4>
+                    <p>An attack where a malicious site tricks a user's browser into making unwanted requests to another site where the user is authenticated. Prevented with CSRF tokens. See <a href="lesson_23.html">Lesson 23</a>.</p>
+                </div>
+
+                <h2>D</h2>
+
+                <div class="card card-accent">
+                    <h4>DSN (Data Source Name)</h4>
+                    <p>A string that tells PDO which database driver, host, database name, and charset to use. Example: <code>mysql:host=localhost;dbname=mydb;charset=utf8mb4</code>. See <a href="lesson_19.html">Lesson 19</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Destructuring</h4>
+                    <p>Assigning array elements to individual variables in a single statement. PHP uses <code>list()</code> or the shorthand <code>[$a, $b] = $array</code>. See <a href="lesson_08.html">Lesson 8</a>.</p>
+                </div>
+
+                <h2>E</h2>
+
+                <div class="card card-accent">
+                    <h4>echo</h4>
+                    <p>A language construct that outputs one or more strings to the browser. Not technically a function (no return value, no parentheses required). See <a href="lesson_03.html">Lesson 3</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Encapsulation</h4>
+                    <p>An OOP principle of hiding internal state and requiring interaction through public methods. Achieved using <code>private</code> and <code>protected</code> visibility modifiers. See <a href="lesson_16.html">Lesson 16</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Exception</h4>
+                    <p>An object representing an error condition, thrown with <code>throw</code> and caught with <code>try/catch</code>. PHP's base class is <code>Exception</code>. See <a href="lesson_18.html">Lesson 18</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Expression</h4>
+                    <p>Anything that produces a value — a literal, a variable, a function call, or a combination with operators. Example: <code>$x + 5</code> is an expression. See <a href="lesson_04.html">Lesson 4</a>.</p>
+                </div>
+
+                <h2>F</h2>
+
+                <div class="card card-accent">
+                    <h4>filter_var()</h4>
+                    <p>A function for validating and sanitizing data. Examples: <code>filter_var($email, FILTER_VALIDATE_EMAIL)</code> checks if a string is a valid email. See <a href="lesson_12.html">Lesson 12</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>foreach</h4>
+                    <p>A loop designed for iterating over arrays and objects. Syntax: <code>foreach ($array as $key => $value)</code>. See <a href="lesson_06.html">Lesson 6</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Function</h4>
+                    <p>A reusable block of code that performs a specific task. PHP has thousands of built-in functions and supports user-defined functions. See <a href="lesson_07.html">Lesson 7</a>.</p>
+                </div>
+
+                <h2>G</h2>
+
+                <div class="card card-accent">
+                    <h4>$_GET</h4>
+                    <p>A superglobal array containing data sent via URL query parameters (<code>?key=value</code>). Visible in the URL and limited in size. See <a href="lesson_11.html">Lesson 11</a>.</p>
+                </div>
+
+                <h2>H</h2>
+
+                <div class="card card-accent">
+                    <h4>Heredoc / Nowdoc</h4>
+                    <p>Multi-line string syntaxes. Heredoc (<code>&lt;&lt;&lt;EOT</code>) allows variable interpolation; Nowdoc (<code>&lt;&lt;&lt;'EOT'</code>) treats content as a literal string. See <a href="lesson_10.html">Lesson 10</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>htmlspecialchars()</h4>
+                    <p>A function that converts special HTML characters to their entity equivalents (e.g., <code>&lt;</code> → <code>&amp;lt;</code>), preventing XSS attacks. See <a href="lesson_12.html">Lesson 12</a> and <a href="lesson_23.html">Lesson 23</a>.</p>
+                </div>
+
+                <h2>I</h2>
+
+                <div class="card card-accent">
+                    <h4>include / require</h4>
+                    <p>Statements that insert the contents of one PHP file into another. <code>require</code> causes a fatal error if the file is missing; <code>include</code> only produces a warning. The <code>_once</code> variants prevent double-loading. See <a href="lesson_13.html">Lesson 13</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Inheritance</h4>
+                    <p>An OOP mechanism where a child class (<code>extends</code>) inherits properties and methods from a parent class, and can override or extend them. See <a href="lesson_17.html">Lesson 17</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Interface</h4>
+                    <p>A contract that defines method signatures a class must implement, without providing implementations. A class can implement multiple interfaces. See <a href="lesson_17.html">Lesson 17</a>.</p>
+                </div>
+
+                <h2>L</h2>
+
+                <div class="card card-accent">
+                    <h4>LAMP Stack</h4>
+                    <p><strong>L</strong>inux, <strong>A</strong>pache, <strong>M</strong>ySQL, <strong>P</strong>HP — a popular open-source web development stack. This course uses the full LAMP stack. See <a href="lesson_02.html">Lesson 2</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Loose Comparison</h4>
+                    <p>Comparison using <code>==</code> that performs type juggling before comparing. Example: <code>"5" == 5</code> is <code>true</code>. Contrast with <em>strict comparison</em> (<code>===</code>). See <a href="lesson_04.html">Lesson 4</a>.</p>
+                </div>
+
+                <h2>M</h2>
+
+                <div class="card card-accent">
+                    <h4>match</h4>
+                    <p>A PHP 8 expression similar to <code>switch</code> but with strict comparison, no fall-through, and the ability to return a value. See <a href="lesson_05.html">Lesson 5</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Method</h4>
+                    <p>A function defined inside a class. Methods can be <code>public</code>, <code>protected</code>, or <code>private</code>, and can be <code>static</code>. See <a href="lesson_16.html">Lesson 16</a>.</p>
+                </div>
+
+                <h2>N</h2>
+
+                <div class="card card-accent">
+                    <h4>Namespace</h4>
+                    <p>A way to organize code and avoid name collisions between classes, functions, or constants. Declared with <code>namespace App\Models;</code>. See <a href="lesson_17.html">Lesson 17</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Null Coalescing Operator (<code>??</code>)</h4>
+                    <p>Returns the left operand if it exists and is not null, otherwise returns the right operand. Example: <code>$name = $_POST['name'] ?? 'Guest'</code>. See <a href="lesson_04.html">Lesson 4</a>.</p>
+                </div>
+
+                <h2>O</h2>
+
+                <div class="card card-accent">
+                    <h4>Object</h4>
+                    <p>An instance of a class. Created with the <code>new</code> keyword: <code>$user = new User()</code>. See <a href="lesson_16.html">Lesson 16</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>OOP (Object-Oriented Programming)</h4>
+                    <p>A programming paradigm that organizes code into classes and objects, emphasizing encapsulation, inheritance, and polymorphism. See <a href="lesson_16.html">Lessons 16</a>–<a href="lesson_17.html">17</a>.</p>
+                </div>
+
+                <h2>P</h2>
+
+                <div class="card card-accent">
+                    <h4>Parameter</h4>
+                    <p>A variable declared in a function's definition that receives a value (argument) when the function is called. See <a href="lesson_07.html">Lesson 7</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>password_hash()</h4>
+                    <p>A function that creates a secure, salted hash of a password using bcrypt (by default). Always use this instead of <code>md5()</code> or <code>sha1()</code>. See <a href="lesson_23.html">Lesson 23</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>PDO (PHP Data Objects)</h4>
+                    <p>A database abstraction layer that provides a consistent interface for connecting to different databases. Supports prepared statements for security. See <a href="lesson_19.html">Lessons 19</a>–<a href="lesson_20.html">20</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>$_POST</h4>
+                    <p>A superglobal array containing data sent via HTTP POST method (typically from form submissions). Data is not visible in the URL. See <a href="lesson_11.html">Lesson 11</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Prepared Statement</h4>
+                    <p>A pre-compiled SQL query with placeholders (<code>?</code> or <code>:name</code>) for values. Prevents SQL injection by separating SQL logic from data. See <a href="lesson_19.html">Lesson 19</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Property</h4>
+                    <p>A variable defined inside a class that holds data for each object instance. Properties have visibility modifiers (<code>public</code>, <code>protected</code>, <code>private</code>). See <a href="lesson_16.html">Lesson 16</a>.</p>
+                </div>
+
+                <h2>R</h2>
+
+                <div class="card card-accent">
+                    <h4>Return Type</h4>
+                    <p>A type declaration after a function's parameter list that specifies what type of value the function returns. Example: <code>function add(int $a, int $b): int</code>. See <a href="lesson_07.html">Lesson 7</a>.</p>
+                </div>
+
+                <h2>S</h2>
+
+                <div class="card card-accent">
+                    <h4>Sanitization</h4>
+                    <p>The process of cleaning user input by removing or encoding dangerous characters. Distinct from <em>validation</em> (which checks if data meets criteria). See <a href="lesson_12.html">Lesson 12</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Scope</h4>
+                    <p>The region of code where a variable is accessible. PHP has function scope (local variables), global scope, and the <code>use</code> keyword for closures. See <a href="lesson_07.html">Lesson 7</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>$_SERVER</h4>
+                    <p>A superglobal array containing information about the server environment, request method, script path, client IP, and more. See <a href="lesson_14.html">Lesson 14</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Session</h4>
+                    <p>A mechanism for persisting data across multiple page requests for the same user. Data is stored on the server; the browser holds only a session ID cookie. See <a href="lesson_15.html">Lesson 15</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>SQL Injection</h4>
+                    <p>An attack where malicious SQL is inserted into a query through user input. Prevented by using prepared statements with bound parameters. See <a href="lesson_23.html">Lesson 23</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Spread Operator (<code>...</code>)</h4>
+                    <p>Unpacks an array into individual arguments or collects multiple arguments into an array. Works in function calls, definitions, and array expressions (PHP 7.4+). See <a href="lesson_08.html">Lesson 8</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Static</h4>
+                    <p>A keyword that makes a property or method belong to the class itself rather than to instances. Accessed with <code>ClassName::method()</code>. See <a href="lesson_16.html">Lesson 16</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Strict Comparison</h4>
+                    <p>Comparison using <code>===</code> that checks both value and type without type juggling. <code>"5" === 5</code> is <code>false</code>. See <a href="lesson_04.html">Lesson 4</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Superglobal</h4>
+                    <p>A built-in PHP array that is accessible from any scope without the <code>global</code> keyword. Includes <code>$_GET</code>, <code>$_POST</code>, <code>$_SESSION</code>, <code>$_COOKIE</code>, <code>$_SERVER</code>, <code>$_FILES</code>, and <code>$_ENV</code>. See <a href="lesson_14.html">Lesson 14</a>.</p>
+                </div>
+
+                <h2>T</h2>
+
+                <div class="card card-accent">
+                    <h4>Ternary Operator</h4>
+                    <p>A shorthand <code>if/else</code>: <code>$result = condition ? value_if_true : value_if_false</code>. See <a href="lesson_04.html">Lesson 4</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>$this</h4>
+                    <p>A pseudo-variable inside a class that refers to the current object instance. Used to access properties and methods: <code>$this->name</code>. See <a href="lesson_16.html">Lesson 16</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Trait</h4>
+                    <p>A mechanism for code reuse in single-inheritance languages. A trait provides methods that can be used in multiple classes via the <code>use</code> keyword. See <a href="lesson_17.html">Lesson 17</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Transaction</h4>
+                    <p>A sequence of database operations that either all succeed or all fail together. Managed with <code>beginTransaction()</code>, <code>commit()</code>, and <code>rollBack()</code>. See <a href="lesson_20.html">Lesson 20</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>try/catch</h4>
+                    <p>A control structure for handling exceptions. Code in <code>try</code> is executed; if it throws an exception, execution jumps to <code>catch</code>. See <a href="lesson_18.html">Lesson 18</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Type Hinting</h4>
+                    <p>Specifying the expected data type of function parameters and return values. Example: <code>function greet(string $name): string</code>. See <a href="lesson_07.html">Lesson 7</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Type Juggling</h4>
+                    <p>PHP's automatic conversion between data types in certain contexts. Example: <code>"5" + 3</code> produces <code>8</code> (string converted to int). See <a href="lesson_03.html">Lesson 3</a>.</p>
+                </div>
+
+                <h2>V</h2>
+
+                <div class="card card-accent">
+                    <h4>Validation</h4>
+                    <p>Checking that user input meets expected criteria (correct format, within range, required fields present). Distinct from <em>sanitization</em>. See <a href="lesson_12.html">Lesson 12</a>.</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>Visibility</h4>
+                    <p>Access modifiers for class properties and methods: <code>public</code> (accessible everywhere), <code>protected</code> (class and children), <code>private</code> (class only). See <a href="lesson_16.html">Lesson 16</a>.</p>
+                </div>
+
+                <h2>X</h2>
+
+                <div class="card card-accent">
+                    <h4>XSS (Cross-Site Scripting)</h4>
+                    <p>An attack where malicious JavaScript is injected into a web page through unsanitized user input. Prevented by escaping output with <code>htmlspecialchars()</code>. See <a href="lesson_23.html">Lesson 23</a>.</p>
+                </div>
+
+            </section>
+
+            <nav class="lesson-nav" aria-label="Page Navigation">
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

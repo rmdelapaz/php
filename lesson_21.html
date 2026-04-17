@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Build a complete CRUD task manager application with PHP and MySQL — featuring create, read, update, delete, and search functionality using everything from Modules 4–6.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Building a CRUD App (Mini Project) - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 6: Database Integration</a></li>
+            <li aria-current="page">Lesson 21: Building a CRUD App (Mini Project)</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🚀 Lesson 21: Building a CRUD App (Mini Project)</h1>
+                <p class="lead">It's time to bring everything together. In this lesson, you'll build a complete <strong>Task Manager</strong> application from scratch — a real, working web app with forms, database operations, search, and user feedback. This project draws on skills from across the course: forms and <code>$_GET</code>/<code>$_POST</code> (Lesson 11), input validation (Lesson 12), file includes (Lesson 13), sessions for flash messages (Lesson 15), OOP structure (Lessons 16–17), error handling (Lesson 18), and PDO (Lessons 19–20). Let's build something real.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Plan and structure a multi-file PHP application</li>
+                        <li>Build a complete CRUD interface: list, create, edit, and delete records</li>
+                        <li>Implement search and filtering on database results</li>
+                        <li>Use flash messages (via sessions) for user feedback after actions</li>
+                        <li>Apply the Post/Redirect/Get (PRG) pattern to prevent duplicate form submissions</li>
+                        <li>Organize code with includes, a Database class, and a TaskRepository</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 60 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lessons 11–13, 15, 18–20</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">Project Overview</a></li>
+                        <li><a href="#section2" class="toc-link">Project Structure</a></li>
+                        <li><a href="#section3" class="toc-link">Database Setup</a></li>
+                        <li><a href="#section4" class="toc-link">The Database Class</a></li>
+                        <li><a href="#section5" class="toc-link">The TaskRepository</a></li>
+                        <li><a href="#section6" class="toc-link">Shared Layout (Header &amp; Footer)</a></li>
+                        <li><a href="#section7" class="toc-link">Flash Messages</a></li>
+                        <li><a href="#section8" class="toc-link">Task List Page (Read)</a></li>
+                        <li><a href="#section9" class="toc-link">Create Task Page</a></li>
+                        <li><a href="#section10" class="toc-link">Edit Task Page</a></li>
+                        <li><a href="#section11" class="toc-link">Delete Task Action</a></li>
+                        <li><a href="#section12" class="toc-link">Hands-On Challenges</a></li>
+                        <li><a href="#section13" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Project Overview -->
+            <section id="section1" class="lesson-section">
+                <h2>Project Overview</h2>
+
+                <p>We're building a <strong>Task Manager</strong> — a web application where you can create tasks, view them in a list, edit details, mark them as complete, delete them, and search by title. It's a classic CRUD app that mirrors the patterns used in real-world PHP projects.</p>
+
+                <h3>Features</h3>
+                <ul>
+                    <li><strong>List tasks</strong> — filterable by status (all, pending, in progress, done)</li>
+                    <li><strong>Search</strong> — find tasks by title keyword</li>
+                    <li><strong>Create task</strong> — form with title, description, and priority</li>
+                    <li><strong>Edit task</strong> — update any field, change status</li>
+                    <li><strong>Delete task</strong> — with confirmation prompt</li>
+                    <li><strong>Flash messages</strong> — success/error feedback after every action</li>
+                    <li><strong>Input validation</strong> — server-side validation on all forms</li>
+                </ul>
+
+                <div class="mermaid">
+                    flowchart LR
+                        LIST["📋 Task List<br>index.php"] -->|"+ New Task"| CREATE["➕ Create<br>create.php"]
+                        LIST -->|"Edit"| EDIT["✏️ Edit<br>edit.php"]
+                        LIST -->|"Delete"| DELETE["🗑️ Delete<br>delete.php"]
+                        CREATE -->|"POST → PRG"| LIST
+                        EDIT -->|"POST → PRG"| LIST
+                        DELETE -->|"POST → PRG"| LIST
+                </div>
+
+                <div class="card card-accent">
+                    <h4>📖 The Post/Redirect/Get (PRG) Pattern</h4>
+                    <p>Every form submission in this app follows <strong>PRG</strong>: the form POSTs data, the server processes it and stores a flash message in the session, then redirects (302) to the list page, which displays the message. This prevents duplicate submissions if the user refreshes the page — the browser's last request was a GET, not a POST.</p>
+                </div>
+            </section>
+
+            <!-- Section 2: Project Structure -->
+            <section id="section2" class="lesson-section">
+                <h2>Project Structure</h2>
+
+                <p>We'll organize the project into logical files. Every PHP application benefits from separating concerns — database logic, page templates, and shared layout.</p>
+
+                <pre><code class="language-php">task-manager/
+├── config/
+│   └── database.php      ← Database credentials
+├── classes/
+│   ├── Database.php       ← PDO Singleton (from Lessons 19–20)
+│   └── TaskRepository.php ← All task SQL queries
+├── includes/
+│   ├── header.php         ← HTML head, nav, opening &lt;main&gt;
+│   ├── footer.php         ← Closing &lt;/main&gt;, footer, scripts
+│   └── flash.php          ← Flash message helper functions
+├── index.php              ← Task list (READ) + search
+├── create.php             ← New task form (CREATE)
+├── edit.php               ← Edit task form (UPDATE)
+├── delete.php             ← Delete handler (DELETE)
+└── setup.sql              ← Database schema</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Why This Structure?</h4>
+                    <ul>
+                        <li><strong>config/</strong> — Credentials stay in one place, easy to change per environment</li>
+                        <li><strong>classes/</strong> — Database and repository logic separated from page rendering</li>
+                        <li><strong>includes/</strong> — Shared HTML layout avoids copy-pasting headers and footers</li>
+                        <li><strong>Root .php files</strong> — One file per page/action, easy to follow</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 3: Database Setup -->
+            <section id="section3" class="lesson-section">
+                <h2>Database Setup</h2>
+
+                <p>First, let's create the database table. Run this SQL in phpMyAdmin, MySQL Workbench, or the MySQL command line.</p>
+
+                <pre><code class="language-sql">-- File: setup.sql
+
+CREATE DATABASE IF NOT EXISTS task_manager
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE task_manager;
+
+CREATE TABLE IF NOT EXISTS tasks (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    title       VARCHAR(255) NOT NULL,
+    description TEXT,
+    status      ENUM('pending', 'in_progress', 'done') NOT NULL DEFAULT 'pending',
+    priority    ENUM('low', 'medium', 'high') NOT NULL DEFAULT 'medium',
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Seed some sample data
+INSERT INTO tasks (title, description, status, priority) VALUES
+('Set up project structure', 'Create folders and initial files', 'done', 'high'),
+('Design the database schema', 'Plan tables and relationships', 'done', 'high'),
+('Build the task list page', 'Display all tasks with filters', 'in_progress', 'high'),
+('Add create task form', 'Form with validation', 'pending', 'medium'),
+('Implement edit functionality', 'Edit form pre-filled with data', 'pending', 'medium'),
+('Add delete with confirmation', 'Prevent accidental deletes', 'pending', 'low'),
+('Write documentation', 'README and code comments', 'pending', 'low');</code></pre>
+
+                <p>Next, the database configuration file:</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: config/database.php
+
+return [
+    "host"   => "localhost",
+    "dbname" => "task_manager",
+    "user"   => "root",
+    "pass"   => "",     // Your MySQL password
+];</code></pre>
+            </section>
+
+            <!-- Section 4: Database Class -->
+            <section id="section4" class="lesson-section">
+                <h2>The Database Class</h2>
+
+                <p>This is the same Singleton class from Lessons 19–20, updated to read credentials from the config file.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: classes/Database.php
+
+class Database {
+    private static ?PDO $instance = null;
+
+    private const OPTIONS = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+
+    private function __construct() {}
+    private function __clone() {}
+
+    public static function getConnection(): PDO {
+        if (self::$instance === null) {
+            $config = require __DIR__ . "/../config/database.php";
+
+            $dsn = sprintf(
+                "mysql:host=%s;dbname=%s;charset=utf8mb4",
+                $config["host"],
+                $config["dbname"]
+            );
+
+            try {
+                self::$instance = new PDO(
+                    $dsn,
+                    $config["user"],
+                    $config["pass"],
+                    self::OPTIONS
+                );
+            } catch (PDOException $e) {
+                error_log("DB connection failed: " . $e->getMessage());
+                die("Database connection error. Please check your configuration.");
+            }
+        }
+        return self::$instance;
+    }
+
+    public static function run(string $sql, array $params = []): PDOStatement {
+        $stmt = self::getConnection()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt;
+    }
+}</code></pre>
+            </section>
+
+            <!-- Section 5: TaskRepository -->
+            <section id="section5" class="lesson-section">
+                <h2>The TaskRepository</h2>
+
+                <p>The <strong>Repository pattern</strong> puts all SQL queries for a specific table (or entity) in one class. This keeps your page files clean — they call <code>$repo->findAll()</code> instead of writing raw SQL. If the schema changes, you update one file instead of hunting through every page.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: classes/TaskRepository.php
+
+require_once __DIR__ . "/Database.php";
+
+class TaskRepository {
+    private PDO $pdo;
+
+    public function __construct() {
+        $this->pdo = Database::getConnection();
+    }
+
+    // ---- READ ----
+
+    /** Get all tasks, optionally filtered by status and/or search query. */
+    public function findAll(?string $status = null, ?string $search = null): array {
+        $sql = "SELECT * FROM tasks WHERE 1=1";
+        $params = [];
+
+        if ($status && in_array($status, ["pending", "in_progress", "done"])) {
+            $sql .= " AND status = :status";
+            $params["status"] = $status;
+        }
+
+        if ($search) {
+            $sql .= " AND (title LIKE :search OR description LIKE :search)";
+            $params["search"] = "%" . $search . "%";
+        }
+
+        $sql .= " ORDER BY
+            CASE priority
+                WHEN 'high' THEN 1
+                WHEN 'medium' THEN 2
+                WHEN 'low' THEN 3
+            END,
+            created_at DESC";
+
+        return Database::run($sql, $params)->fetchAll();
+    }
+
+    /** Get a single task by ID, or null if not found. */
+    public function findById(int $id): ?array {
+        $row = Database::run(
+            "SELECT * FROM tasks WHERE id = ?",
+            [$id]
+        )->fetch();
+        return $row ?: null;
+    }
+
+    /** Count tasks grouped by status. */
+    public function countByStatus(): array {
+        return Database::run(
+            "SELECT status, COUNT(*) as count FROM tasks GROUP BY status"
+        )->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
+
+    // ---- CREATE ----
+
+    /** Insert a new task and return its ID. */
+    public function create(string $title, ?string $description, string $priority): int {
+        Database::run(
+            "INSERT INTO tasks (title, description, priority)
+             VALUES (:title, :description, :priority)",
+            [
+                "title"       => $title,
+                "description" => $description,
+                "priority"    => $priority,
+            ]
+        );
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    // ---- UPDATE ----
+
+    /** Update a task's fields. Returns true if the row existed. */
+    public function update(int $id, array $data): bool {
+        $allowed = ["title", "description", "status", "priority"];
+        $fields = [];
+        $params = ["id" => $id];
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, $allowed)) {
+                $fields[] = "$key = :$key";
+                $params[$key] = $value;
+            }
+        }
+
+        if (empty($fields)) {
+            return false;
+        }
+
+        $sql = "UPDATE tasks SET " . implode(", ", $fields) . " WHERE id = :id";
+        Database::run($sql, $params);
+
+        // Return true if the row existed (even if nothing changed)
+        return $this->findById($id) !== null;
+    }
+
+    // ---- DELETE ----
+
+    /** Delete a task by ID. Returns true if a row was deleted. */
+    public function delete(int $id): bool {
+        return Database::run(
+            "DELETE FROM tasks WHERE id = ?",
+            [$id]
+        )->rowCount() > 0;
+    }
+}</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 The "WHERE 1=1" Trick</h4>
+                    <p>In <code>findAll()</code>, we start with <code>WHERE 1=1</code> — a condition that's always true. This lets us append additional conditions with <code>AND</code> without worrying about whether it's the first condition or not. Without it, we'd need conditional logic to decide between <code>WHERE status = ?</code> and <code>AND status = ?</code>. It's a common pattern in dynamically-built queries and has zero performance cost — the database optimizer removes it.</p>
+                </div>
+            </section>
+
+            <!-- Section 6: Shared Layout -->
+            <section id="section6" class="lesson-section">
+                <h2>Shared Layout (Header &amp; Footer)</h2>
+
+                <p>Instead of duplicating HTML in every page, we use <code>include</code> files. Every page calls <code>require header.php</code> at the top and <code>require footer.php</code> at the bottom.</p>
+
+                <h3>Header</h3>
+                <pre><code class="language-php">&lt;?php
+// File: includes/header.php
+
+// Start session for flash messages (must be before any output)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;&lt;?= htmlspecialchars($pageTitle ?? "Task Manager") ?&gt;&lt;/title&gt;
+    &lt;style&gt;
+        /* Minimal embedded styles for the project */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6; color: #1e293b; background: #f8fafc;
+            padding: 0; margin: 0;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 1rem; }
+
+        /* Navigation */
+        .site-nav {
+            background: #1e293b; color: #e2e8f0; padding: 1rem;
+        }
+        .site-nav .container {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .site-nav a { color: #93c5fd; text-decoration: none; font-weight: 600; }
+        .site-nav a:hover { color: #bfdbfe; }
+
+        /* Cards and forms */
+        .card {
+            background: white; border-radius: 8px; padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1;
+            border-radius: 4px; font-size: 1rem;
+        }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+
+        /* Buttons */
+        .btn {
+            display: inline-block; padding: 0.5rem 1rem; border-radius: 4px;
+            font-size: 0.9rem; font-weight: 600; text-decoration: none;
+            border: none; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f1f5f9; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Status badges */
+        .badge {
+            display: inline-block; padding: 0.2rem 0.6rem; border-radius: 12px;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+        }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-in_progress { background: #dbeafe; color: #1e40af; }
+        .badge-done { background: #dcfce7; color: #166534; }
+
+        /* Priority badges */
+        .priority-high { color: #dc2626; font-weight: 600; }
+        .priority-medium { color: #d97706; }
+        .priority-low { color: #6b7280; }
+
+        /* Flash messages */
+        .flash {
+            padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        .flash-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .flash-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .flash-info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+
+        /* Filter bar */
+        .filter-bar {
+            display: flex; gap: 0.5rem; flex-wrap: wrap;
+            align-items: center; margin-bottom: 1rem;
+        }
+        .filter-bar a {
+            padding: 0.3rem 0.8rem; border-radius: 4px; text-decoration: none;
+            font-size: 0.85rem; color: #475569; background: #f1f5f9;
+        }
+        .filter-bar a:hover { background: #e2e8f0; }
+        .filter-bar a.active { background: #3b82f6; color: white; }
+
+        /* Search form */
+        .search-form {
+            display: flex; gap: 0.5rem; margin-bottom: 1rem;
+        }
+        .search-form input { flex: 1; }
+
+        /* Utilities */
+        .text-muted { color: #94a3b8; }
+        .text-center { text-align: center; }
+        .mb-1 { margin-bottom: 1rem; }
+        .mt-1 { margin-top: 1rem; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .actions { display: flex; gap: 0.4rem; }
+        .error-text { color: #dc2626; font-size: 0.85rem; margin-top: 0.25rem; }
+
+        @media (max-width: 640px) {
+            table, thead, tbody, th, td, tr { display: block; }
+            th { display: none; }
+            td {
+                padding: 0.4rem 0.75rem; text-align: right;
+                border: none; position: relative; padding-left: 40%;
+            }
+            td::before {
+                content: attr(data-label);
+                position: absolute; left: 0.75rem; font-weight: 600; text-align: left;
+            }
+            tr { border-bottom: 2px solid #e2e8f0; margin-bottom: 0.5rem; padding: 0.5rem 0; }
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;nav class="site-nav"&gt;
+        &lt;div class="container"&gt;
+            &lt;a href="index.php"&gt;📋 Task Manager&lt;/a&gt;
+            &lt;a href="create.php"&gt;+ New Task&lt;/a&gt;
+        &lt;/div&gt;
+    &lt;/nav&gt;
+    &lt;div class="container"&gt;
+        &lt;h1 style="margin: 1.5rem 0 1rem;"&gt;&lt;?= htmlspecialchars($pageTitle ?? "Task Manager") ?&gt;&lt;/h1&gt;</code></pre>
+
+                <h3>Footer</h3>
+                <pre><code class="language-php">&lt;?php // File: includes/footer.php ?&gt;
+    &lt;/div&gt;&lt;!-- /.container --&gt;
+
+    &lt;footer style="text-align:center; padding:2rem 1rem; color:#94a3b8; font-size:0.85rem; margin-top:2rem; border-top:1px solid #e2e8f0;"&gt;
+        &lt;p&gt;Task Manager — PHP Foundations Mini Project&lt;/p&gt;
+    &lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ How This Layout Works</h4>
+                    <p>Each page sets <code>$pageTitle</code> before including the header. The header outputs everything from <code>&lt;!DOCTYPE&gt;</code> through the <code>&lt;h1&gt;</code>. The footer closes out the HTML. Between them, each page file contains only its unique content — no boilerplate.</p>
+                </div>
+            </section>
+
+            <!-- Section 7: Flash Messages -->
+            <section id="section7" class="lesson-section">
+                <h2>Flash Messages</h2>
+
+                <p>A <strong>flash message</strong> is a one-time notification stored in the session. It survives one redirect, then disappears. This is how you show "Task created!" after a form submission without passing messages through URL parameters.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: includes/flash.php
+
+/**
+ * Set a flash message in the session.
+ * Types: "success", "error", "info"
+ */
+function setFlash(string $type, string $message): void {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $_SESSION["flash"] = [
+        "type"    => $type,
+        "message" => $message,
+    ];
+}
+
+/**
+ * Display and clear the flash message (if one exists).
+ * Call this in the page body where you want the message to appear.
+ */
+function showFlash(): void {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if (isset($_SESSION["flash"])) {
+        $flash = $_SESSION["flash"];
+        $type = htmlspecialchars($flash["type"]);
+        $message = htmlspecialchars($flash["message"]);
+        echo "&lt;div class=\"flash flash-$type\"&gt;$message&lt;/div&gt;";
+        unset($_SESSION["flash"]); // One-time display
+    }
+}</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 The Flash Message Lifecycle</h4>
+                    <ol>
+                        <li>User submits a form (POST to <code>create.php</code>)</li>
+                        <li>Server processes the request and calls <code>setFlash("success", "Task created!")</code></li>
+                        <li>Server redirects to <code>index.php</code> (PRG pattern)</li>
+                        <li>The <code>index.php</code> page calls <code>showFlash()</code> — the message appears</li>
+                        <li><code>showFlash()</code> removes the message from the session — it won't appear again on refresh</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- Section 8: Task List (Read) -->
+            <section id="section8" class="lesson-section">
+                <h2>Task List Page (Read)</h2>
+
+                <p>This is the main page — it lists all tasks with status filters and a search bar.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: index.php
+
+require_once "classes/TaskRepository.php";
+require_once "includes/flash.php";
+
+$repo = new TaskRepository();
+
+// Get filter parameters from the URL
+$statusFilter = $_GET["status"] ?? null;
+$searchQuery  = trim($_GET["q"] ?? "");
+
+// Fetch tasks (filtered if params provided)
+$tasks = $repo->findAll($statusFilter, $searchQuery ?: null);
+$counts = $repo->countByStatus();
+
+$totalTasks = array_sum($counts);
+
+$pageTitle = "All Tasks";
+require "includes/header.php";
+?&gt;
+
+&lt;?php showFlash(); ?&gt;
+
+&lt;!-- Search bar --&gt;
+&lt;form class="search-form" method="GET" action="index.php"&gt;
+    &lt;?php if ($statusFilter): ?&gt;
+        &lt;input type="hidden" name="status" value="&lt;?= htmlspecialchars($statusFilter) ?&gt;"&gt;
+    &lt;?php endif; ?&gt;
+    &lt;input type="text" name="q" placeholder="Search tasks..."
+           value="&lt;?= htmlspecialchars($searchQuery) ?&gt;"&gt;
+    &lt;button type="submit" class="btn btn-primary"&gt;Search&lt;/button&gt;
+    &lt;?php if ($searchQuery): ?&gt;
+        &lt;a href="index.php&lt;?= $statusFilter ? '?status=' . urlencode($statusFilter) : '' ?&gt;"
+           class="btn btn-secondary"&gt;Clear&lt;/a&gt;
+    &lt;?php endif; ?&gt;
+&lt;/form&gt;
+
+&lt;!-- Status filters --&gt;
+&lt;div class="filter-bar"&gt;
+    &lt;a href="index.php&lt;?= $searchQuery ? '?q=' . urlencode($searchQuery) : '' ?&gt;"
+       class="&lt;?= !$statusFilter ? 'active' : '' ?&gt;"&gt;
+        All (&lt;?= $totalTasks ?&gt;)
+    &lt;/a&gt;
+    &lt;a href="?status=pending&lt;?= $searchQuery ? '&amp;q=' . urlencode($searchQuery) : '' ?&gt;"
+       class="&lt;?= $statusFilter === 'pending' ? 'active' : '' ?&gt;"&gt;
+        Pending (&lt;?= $counts["pending"] ?? 0 ?&gt;)
+    &lt;/a&gt;
+    &lt;a href="?status=in_progress&lt;?= $searchQuery ? '&amp;q=' . urlencode($searchQuery) : '' ?&gt;"
+       class="&lt;?= $statusFilter === 'in_progress' ? 'active' : '' ?&gt;"&gt;
+        In Progress (&lt;?= $counts["in_progress"] ?? 0 ?&gt;)
+    &lt;/a&gt;
+    &lt;a href="?status=done&lt;?= $searchQuery ? '&amp;q=' . urlencode($searchQuery) : '' ?&gt;"
+       class="&lt;?= $statusFilter === 'done' ? 'active' : '' ?&gt;"&gt;
+        Done (&lt;?= $counts["done"] ?? 0 ?&gt;)
+    &lt;/a&gt;
+&lt;/div&gt;
+
+&lt;!-- Task table --&gt;
+&lt;?php if (empty($tasks)): ?&gt;
+    &lt;div class="card text-center"&gt;
+        &lt;p class="text-muted"&gt;No tasks found.
+            &lt;a href="create.php"&gt;Create one?&lt;/a&gt;
+        &lt;/p&gt;
+    &lt;/div&gt;
+&lt;?php else: ?&gt;
+    &lt;div class="card" style="padding: 0; overflow-x: auto;"&gt;
+        &lt;table&gt;
+            &lt;thead&gt;
+                &lt;tr&gt;
+                    &lt;th&gt;Title&lt;/th&gt;
+                    &lt;th&gt;Status&lt;/th&gt;
+                    &lt;th&gt;Priority&lt;/th&gt;
+                    &lt;th&gt;Created&lt;/th&gt;
+                    &lt;th&gt;Actions&lt;/th&gt;
+                &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+                &lt;?php foreach ($tasks as $task): ?&gt;
+                &lt;tr&gt;
+                    &lt;td data-label="Title"&gt;
+                        &lt;strong&gt;&lt;?= htmlspecialchars($task["title"]) ?&gt;&lt;/strong&gt;
+                        &lt;?php if ($task["description"]): ?&gt;
+                            &lt;br&gt;&lt;small class="text-muted"&gt;
+                                &lt;?= htmlspecialchars(
+                                    mb_strimwidth($task["description"], 0, 80, "...")
+                                ) ?&gt;
+                            &lt;/small&gt;
+                        &lt;?php endif; ?&gt;
+                    &lt;/td&gt;
+                    &lt;td data-label="Status"&gt;
+                        &lt;span class="badge badge-&lt;?= $task['status'] ?&gt;"&gt;
+                            &lt;?= str_replace("_", " ", $task["status"]) ?&gt;
+                        &lt;/span&gt;
+                    &lt;/td&gt;
+                    &lt;td data-label="Priority"&gt;
+                        &lt;span class="priority-&lt;?= $task['priority'] ?&gt;"&gt;
+                            &lt;?= ucfirst($task["priority"]) ?&gt;
+                        &lt;/span&gt;
+                    &lt;/td&gt;
+                    &lt;td data-label="Created"&gt;
+                        &lt;small&gt;&lt;?= date("M j, Y", strtotime($task["created_at"])) ?&gt;&lt;/small&gt;
+                    &lt;/td&gt;
+                    &lt;td data-label="Actions"&gt;
+                        &lt;div class="actions"&gt;
+                            &lt;a href="edit.php?id=&lt;?= $task['id'] ?&gt;"
+                               class="btn btn-primary btn-sm"&gt;Edit&lt;/a&gt;
+                            &lt;a href="delete.php?id=&lt;?= $task['id'] ?&gt;"
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Delete this task?')"&gt;Delete&lt;/a&gt;
+                        &lt;/div&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;?php endforeach; ?&gt;
+            &lt;/tbody&gt;
+        &lt;/table&gt;
+    &lt;/div&gt;
+&lt;?php endif; ?&gt;
+
+&lt;?php require "includes/footer.php"; ?&gt;</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Always Escape Output</h4>
+                    <p>Notice that every database value displayed in HTML goes through <code>htmlspecialchars()</code>. This prevents Cross-Site Scripting (XSS) attacks — even if someone saved <code>&lt;script&gt;alert('hacked')&lt;/script&gt;</code> as a task title, it would display as harmless text. We'll cover this in depth in Lesson 23.</p>
+                </div>
+            </section>
+
+            <!-- Section 9: Create -->
+            <section id="section9" class="lesson-section">
+                <h2>Create Task Page</h2>
+
+                <p>This page handles two requests: <strong>GET</strong> (display the empty form) and <strong>POST</strong> (process the submission). The same file handles both — a common PHP pattern.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: create.php
+
+require_once "classes/TaskRepository.php";
+require_once "includes/flash.php";
+
+$repo = new TaskRepository();
+$errors = [];
+$old = [
+    "title"       => "",
+    "description" => "",
+    "priority"    => "medium",
+];
+
+// ---- Handle form submission ----
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // 1. Collect and trim input
+    $old["title"]       = trim($_POST["title"] ?? "");
+    $old["description"] = trim($_POST["description"] ?? "");
+    $old["priority"]    = $_POST["priority"] ?? "medium";
+
+    // 2. Validate
+    if ($old["title"] === "") {
+        $errors["title"] = "Title is required.";
+    } elseif (mb_strlen($old["title"]) > 255) {
+        $errors["title"] = "Title must be 255 characters or fewer.";
+    }
+
+    if (!in_array($old["priority"], ["low", "medium", "high"])) {
+        $errors["priority"] = "Invalid priority selected.";
+    }
+
+    // 3. If valid → insert, flash, redirect (PRG)
+    if (empty($errors)) {
+        $newId = $repo->create(
+            $old["title"],
+            $old["description"] ?: null,
+            $old["priority"]
+        );
+        setFlash("success", "Task \"{$old['title']}\" created! (ID: $newId)");
+        header("Location: index.php");
+        exit;
+    }
+}
+
+// ---- Display the form ----
+$pageTitle = "New Task";
+require "includes/header.php";
+?&gt;
+
+&lt;?php if (!empty($errors)): ?&gt;
+    &lt;div class="flash flash-error"&gt;
+        Please fix the errors below.
+    &lt;/div&gt;
+&lt;?php endif; ?&gt;
+
+&lt;div class="card"&gt;
+    &lt;form method="POST" action="create.php"&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="title"&gt;Title *&lt;/label&gt;
+            &lt;input type="text" id="title" name="title"
+                   value="&lt;?= htmlspecialchars($old['title']) ?&gt;"
+                   placeholder="What needs to be done?" required&gt;
+            &lt;?php if (isset($errors["title"])): ?&gt;
+                &lt;p class="error-text"&gt;&lt;?= htmlspecialchars($errors["title"]) ?&gt;&lt;/p&gt;
+            &lt;?php endif; ?&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="description"&gt;Description&lt;/label&gt;
+            &lt;textarea id="description" name="description"
+                      placeholder="Add details (optional)"&gt;&lt;?= htmlspecialchars($old['description']) ?&gt;&lt;/textarea&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="priority"&gt;Priority&lt;/label&gt;
+            &lt;select id="priority" name="priority"&gt;
+                &lt;option value="low" &lt;?= $old["priority"] === "low" ? "selected" : "" ?&gt;&gt;
+                    Low
+                &lt;/option&gt;
+                &lt;option value="medium" &lt;?= $old["priority"] === "medium" ? "selected" : "" ?&gt;&gt;
+                    Medium
+                &lt;/option&gt;
+                &lt;option value="high" &lt;?= $old["priority"] === "high" ? "selected" : "" ?&gt;&gt;
+                    High
+                &lt;/option&gt;
+            &lt;/select&gt;
+        &lt;/div&gt;
+
+        &lt;div&gt;
+            &lt;button type="submit" class="btn btn-success"&gt;Create Task&lt;/button&gt;
+            &lt;a href="index.php" class="btn btn-secondary"&gt;Cancel&lt;/a&gt;
+        &lt;/div&gt;
+    &lt;/form&gt;
+&lt;/div&gt;
+
+&lt;?php require "includes/footer.php"; ?&gt;</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Key Patterns in This Page</h4>
+                    <ul>
+                        <li><strong>Sticky form</strong> — If validation fails, the form re-displays with the user's input preserved via <code>$old</code> values</li>
+                        <li><strong>Server-side validation</strong> — Even though we have <code>required</code> on the HTML input, we validate again in PHP because HTML attributes can be bypassed</li>
+                        <li><strong>PRG redirect</strong> — After a successful insert, we redirect to <code>index.php</code> to prevent double submission on refresh</li>
+                        <li><strong>Whitelist validation</strong> — Priority is checked against a list of allowed values with <code>in_array()</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 10: Edit -->
+            <section id="section10" class="lesson-section">
+                <h2>Edit Task Page</h2>
+
+                <p>The edit page is similar to create, but it pre-fills the form with existing data and includes a status dropdown.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: edit.php
+
+require_once "classes/TaskRepository.php";
+require_once "includes/flash.php";
+
+$repo = new TaskRepository();
+$errors = [];
+
+// Get the task ID from the URL
+$id = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
+if (!$id) {
+    setFlash("error", "Invalid task ID.");
+    header("Location: index.php");
+    exit;
+}
+
+// Load the existing task
+$task = $repo->findById($id);
+if (!$task) {
+    setFlash("error", "Task not found.");
+    header("Location: index.php");
+    exit;
+}
+
+// Use task data as defaults (overwritten by POST data on submit)
+$old = $task;
+
+// ---- Handle form submission ----
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $old["title"]       = trim($_POST["title"] ?? "");
+    $old["description"] = trim($_POST["description"] ?? "");
+    $old["status"]      = $_POST["status"] ?? $task["status"];
+    $old["priority"]    = $_POST["priority"] ?? $task["priority"];
+
+    // Validate
+    if ($old["title"] === "") {
+        $errors["title"] = "Title is required.";
+    } elseif (mb_strlen($old["title"]) > 255) {
+        $errors["title"] = "Title must be 255 characters or fewer.";
+    }
+
+    if (!in_array($old["status"], ["pending", "in_progress", "done"])) {
+        $errors["status"] = "Invalid status.";
+    }
+
+    if (!in_array($old["priority"], ["low", "medium", "high"])) {
+        $errors["priority"] = "Invalid priority.";
+    }
+
+    if (empty($errors)) {
+        $repo->update($id, [
+            "title"       => $old["title"],
+            "description" => $old["description"] ?: null,
+            "status"      => $old["status"],
+            "priority"    => $old["priority"],
+        ]);
+        setFlash("success", "Task \"{$old['title']}\" updated!");
+        header("Location: index.php");
+        exit;
+    }
+}
+
+$pageTitle = "Edit Task";
+require "includes/header.php";
+?&gt;
+
+&lt;?php if (!empty($errors)): ?&gt;
+    &lt;div class="flash flash-error"&gt;Please fix the errors below.&lt;/div&gt;
+&lt;?php endif; ?&gt;
+
+&lt;div class="card"&gt;
+    &lt;form method="POST" action="edit.php?id=&lt;?= $id ?&gt;"&gt;
+        &lt;div class="form-group"&gt;
+            &lt;label for="title"&gt;Title *&lt;/label&gt;
+            &lt;input type="text" id="title" name="title"
+                   value="&lt;?= htmlspecialchars($old['title']) ?&gt;" required&gt;
+            &lt;?php if (isset($errors["title"])): ?&gt;
+                &lt;p class="error-text"&gt;&lt;?= htmlspecialchars($errors["title"]) ?&gt;&lt;/p&gt;
+            &lt;?php endif; ?&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="description"&gt;Description&lt;/label&gt;
+            &lt;textarea id="description" name="description"&gt;&lt;?= htmlspecialchars($old['description'] ?? '') ?&gt;&lt;/textarea&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="status"&gt;Status&lt;/label&gt;
+            &lt;select id="status" name="status"&gt;
+                &lt;option value="pending" &lt;?= $old["status"] === "pending" ? "selected" : "" ?&gt;&gt;
+                    Pending
+                &lt;/option&gt;
+                &lt;option value="in_progress" &lt;?= $old["status"] === "in_progress" ? "selected" : "" ?&gt;&gt;
+                    In Progress
+                &lt;/option&gt;
+                &lt;option value="done" &lt;?= $old["status"] === "done" ? "selected" : "" ?&gt;&gt;
+                    Done
+                &lt;/option&gt;
+            &lt;/select&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="priority"&gt;Priority&lt;/label&gt;
+            &lt;select id="priority" name="priority"&gt;
+                &lt;option value="low" &lt;?= $old["priority"] === "low" ? "selected" : "" ?&gt;&gt;
+                    Low
+                &lt;/option&gt;
+                &lt;option value="medium" &lt;?= $old["priority"] === "medium" ? "selected" : "" ?&gt;&gt;
+                    Medium
+                &lt;/option&gt;
+                &lt;option value="high" &lt;?= $old["priority"] === "high" ? "selected" : "" ?&gt;&gt;
+                    High
+                &lt;/option&gt;
+            &lt;/select&gt;
+        &lt;/div&gt;
+
+        &lt;div&gt;
+            &lt;button type="submit" class="btn btn-primary"&gt;Save Changes&lt;/button&gt;
+            &lt;a href="index.php" class="btn btn-secondary"&gt;Cancel&lt;/a&gt;
+        &lt;/div&gt;
+    &lt;/form&gt;
+&lt;/div&gt;
+
+&lt;div class="card text-muted" style="font-size: 0.85rem;"&gt;
+    &lt;p&gt;Created: &lt;?= $task["created_at"] ?&gt; | Last updated: &lt;?= $task["updated_at"] ?&gt; | ID: &lt;?= $task["id"] ?&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;?php require "includes/footer.php"; ?&gt;</code></pre>
+
+                <div class="card card-accent">
+                    <h4>📖 Edit vs. Create — What's Different?</h4>
+                    <ul>
+                        <li>The edit page <strong>loads existing data</strong> with <code>findById()</code> and uses it as form defaults</li>
+                        <li>It includes a <strong>status field</strong> (new tasks always start as "pending", but existing tasks can be changed)</li>
+                        <li>The form action includes <code>?id=X</code> so the POST handler knows which record to update</li>
+                        <li>It validates the task ID from the URL with <code>filter_input()</code> and redirects if invalid</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 11: Delete -->
+            <section id="section11" class="lesson-section">
+                <h2>Delete Task Action</h2>
+
+                <p>Delete doesn't need its own form page — it's triggered from the task list with a JavaScript <code>confirm()</code> dialog. The <code>delete.php</code> file simply receives the ID via GET, performs the delete, and redirects back.</p>
+
+                <pre><code class="language-php">&lt;?php
+// File: delete.php
+
+require_once "classes/TaskRepository.php";
+require_once "includes/flash.php";
+
+$repo = new TaskRepository();
+
+// Validate the task ID
+$id = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
+if (!$id) {
+    setFlash("error", "Invalid task ID.");
+    header("Location: index.php");
+    exit;
+}
+
+// Attempt to delete
+$task = $repo->findById($id);
+if (!$task) {
+    setFlash("error", "Task not found.");
+    header("Location: index.php");
+    exit;
+}
+
+$deleted = $repo->delete($id);
+
+if ($deleted) {
+    setFlash("success", "Task \"{$task['title']}\" deleted.");
+} else {
+    setFlash("error", "Could not delete the task.");
+}
+
+header("Location: index.php");
+exit;</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Security Note: GET for Deletes</h4>
+                    <p>Using GET for a destructive action (delete) isn't ideal — a malicious link could trick a user into deleting a task. In a production app, you'd use a POST form with a <strong>CSRF token</strong> (covered in Lesson 23). For this learning project, the <code>confirm()</code> dialog and server-side ID validation provide basic protection. The important thing is the <em>pattern</em> — validate, act, flash, redirect.</p>
+                </div>
+
+                <blockquote>
+                    <strong>💡 Production Improvement:</strong> Replace the GET delete link with a small POST form containing a hidden <code>id</code> field and a CSRF token. The delete button submits the form. This prevents both accidental and malicious deletes.
+                </blockquote>
+            </section>
+
+            <!-- Section 12: Challenges -->
+            <section id="section12" class="lesson-section">
+                <h2>Hands-On Challenges</h2>
+
+                <p>You've seen the complete application. Now try building it yourself and extending it with these challenges.</p>
+
+                <div class="card card-info">
+                    <h3>🏋️ Challenge 1: Build the App from Scratch</h3>
+                    <p><strong>Objective:</strong> Recreate the Task Manager using the code in this lesson as your guide — but type it yourself, don't copy-paste.</p>
+
+                    <h4>Steps:</h4>
+                    <ol>
+                        <li>Create the folder structure: <code>config/</code>, <code>classes/</code>, <code>includes/</code></li>
+                        <li>Run <code>setup.sql</code> to create the database and table</li>
+                        <li>Build <code>Database.php</code> and <code>TaskRepository.php</code></li>
+                        <li>Create the layout files (<code>header.php</code>, <code>footer.php</code>, <code>flash.php</code>)</li>
+                        <li>Build each page: <code>index.php</code>, <code>create.php</code>, <code>edit.php</code>, <code>delete.php</code></li>
+                        <li>Test every feature: create, edit, change status, delete, search, filter</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Build incrementally. Start with <code>Database.php</code>, then <code>TaskRepository</code> with just <code>findAll()</code> and <code>create()</code>. Get the list page working first, then add create, then edit, then delete. Add search last.</p>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Challenge 2: Add a Due Date</h3>
+                    <p><strong>Objective:</strong> Add a <code>due_date</code> column (DATE, nullable) to the tasks table and integrate it throughout the app.</p>
+
+                    <h4>Requirements:</h4>
+                    <ol>
+                        <li>Add <code>due_date DATE DEFAULT NULL</code> to the tasks table (use ALTER TABLE)</li>
+                        <li>Add a date input to both the create and edit forms</li>
+                        <li>Display the due date in the task list — highlight overdue tasks in red</li>
+                        <li>Update <code>TaskRepository</code> to include <code>due_date</code> in create and update</li>
+                        <li>Add a filter for "overdue" tasks (due date is past and status is not "done")</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use <code>&lt;input type="date"&gt;</code> for the form field. For the overdue filter, add a SQL condition: <code>due_date < CURDATE() AND status != 'done'</code>. Use PHP's <code>strtotime()</code> and <code>date()</code> to compare dates for the red highlighting in the list view.</p>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Challenge 3: Add Pagination</h3>
+                    <p><strong>Objective:</strong> Instead of showing all tasks at once, display 10 per page with "Previous" and "Next" links.</p>
+
+                    <h4>Requirements:</h4>
+                    <ol>
+                        <li>Accept a <code>page</code> GET parameter (default to 1)</li>
+                        <li>Modify <code>findAll()</code> to accept <code>$limit</code> and <code>$offset</code> parameters</li>
+                        <li>Add a <code>countAll()</code> method that returns the total number of matching tasks</li>
+                        <li>Calculate total pages: <code>ceil($total / $perPage)</code></li>
+                        <li>Display page navigation links below the table</li>
+                        <li>Preserve search and filter parameters in pagination links</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Calculate offset as <code>($page - 1) * $perPage</code>. Use <code>bindValue()</code> with <code>PDO::PARAM_INT</code> for LIMIT and OFFSET. Build pagination URLs with <code>http_build_query()</code> to preserve all existing GET parameters.</p>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What is the Post/Redirect/Get (PRG) pattern, and why is it important?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PRG is about form submissions, not URL structure. REST is the pattern for clean URLs.">
+                                A) A way to structure URLs for clean navigation
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! After a form POST, the server processes the data and issues a 302 redirect to a GET page. The browser's last request is a GET, so refreshing the page doesn't re-submit the form. Without PRG, refreshing after a form submission would show a 'resubmit form?' dialog and potentially create duplicate records.">
+                                B) After processing a POST, redirect to a GET page to prevent duplicate submissions on refresh
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PRG doesn't encrypt anything. It's a flow pattern: POST data → process → redirect → display.">
+                                C) A security pattern that encrypts POST data during transmission
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> Why do we use <code>htmlspecialchars()</code> when displaying database values in HTML?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="htmlspecialchars() converts special characters to HTML entities. It doesn't affect text formatting like bold or italic.">
+                                A) To make the text display in bold
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! htmlspecialchars() converts characters like <, >, &, and quotes into their HTML entity equivalents (&amp;lt;, &amp;gt;, etc.). Without it, if a task title contained &lt;script&gt;alert('xss')&lt;/script&gt;, the browser would execute the JavaScript. This is called Cross-Site Scripting (XSS) — one of the most common web vulnerabilities.">
+                                B) To prevent XSS attacks by escaping HTML characters in user-provided data
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="htmlspecialchars() is for output escaping, not input validation. Validation happens before the data is saved; escaping happens when it's displayed.">
+                                C) To validate the data before saving it to the database
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What does the "WHERE 1=1" trick accomplish in dynamic queries?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Starting with WHERE 1=1 (always true) means every additional condition can start with AND — no conditional logic needed to decide between WHERE and AND. The optimizer removes it, so there's zero performance cost. It's purely a code organization convenience for building queries with optional filters.">
+                                A) It lets you append additional AND conditions without checking if it's the first condition
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="WHERE 1=1 doesn't affect performance. It's optimized away by the query planner. Its purpose is to simplify dynamic query building in PHP code.">
+                                B) It makes the query run faster by giving the optimizer a hint
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="WHERE 1=1 returns ALL rows (it's always true). You then append AND conditions to narrow the results. It doesn't limit results by itself.">
+                                C) It returns only the first row from the table
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What's the purpose of a flash message?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Flash messages use sessions, not URL parameters. URL parameters persist if the user bookmarks or shares the link, which isn't appropriate for one-time notifications.">
+                                A) To pass error messages through URL parameters
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Flash messages are stored in the session, displayed once on the next page load, then automatically deleted. They're perfect for the PRG pattern: process form → set flash → redirect → display flash → clear flash. The user sees feedback, but refreshing the page doesn't show the message again.">
+                                B) A one-time session message that displays once after a redirect and then disappears
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Flash messages are temporary by design — they appear once and vanish. For persistent notifications (like unread counts), you'd store them in the database, not the session.">
+                                C) A permanent notification that stays until the user dismisses it
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> Why is using GET for delete operations a security concern?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="GET requests are certainly logged in browser history and server logs, but the primary concern is about unintended execution of the delete action.">
+                                A) GET requests are slower than POST requests
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Because GET requests can be triggered by clicking any link, a malicious site could include an &lt;img&gt; or &lt;a&gt; tag pointing to delete.php?id=5 — and the browser would execute it automatically. POST requests require a form submission, which can't be triggered by a simple link. Adding a CSRF token (Lesson 23) provides even more protection.">
+                                B) A malicious link or image tag could trigger the delete without the user's knowledge
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="GET doesn't encrypt data, but neither does POST by default (both need HTTPS for encryption). The issue is about how easily GET actions can be triggered without user intent.">
+                                C) GET requests don't encrypt the task ID
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 13: Summary -->
+            <section id="section13" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Project structure matters:</strong> Separate config, classes, includes, and page files for maintainability.</li>
+                        <li><strong>Repository pattern:</strong> Put all SQL queries for an entity in one class — cleaner pages, easier testing, one place to update.</li>
+                        <li><strong>PRG (Post/Redirect/Get):</strong> After a form POST, always redirect with <code>header("Location: ...")</code> to prevent duplicate submissions.</li>
+                        <li><strong>Flash messages:</strong> Store one-time notifications in <code>$_SESSION</code>, display once, then delete. Perfect for post-action feedback.</li>
+                        <li><strong>Sticky forms:</strong> On validation failure, re-display the form with the user's input preserved — don't make them retype everything.</li>
+                        <li><strong>Output escaping:</strong> Every database value displayed in HTML must go through <code>htmlspecialchars()</code> to prevent XSS.</li>
+                        <li><strong>Input validation:</strong> Always validate on the server side, even when you have HTML5 validation attributes.</li>
+                        <li><strong>Filter with <code>filter_input()</code>:</strong> Validate GET parameters (like IDs) before using them in database queries.</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/reserved.variables.session.php" target="_blank" rel="noopener">PHP Manual: $_SESSION</a></li>
+                    <li><a href="https://en.wikipedia.org/wiki/Post/Redirect/Get" target="_blank" rel="noopener">Wikipedia: Post/Redirect/Get Pattern</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.filter-input.php" target="_blank" rel="noopener">PHP Manual: filter_input()</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.htmlspecialchars.php" target="_blank" rel="noopener">PHP Manual: htmlspecialchars()</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Your Task Manager is functional, but we haven't covered some important features: <strong>file uploads</strong> and <strong>email</strong>. In <strong>Lesson 22: File Uploads &amp; Email</strong>, you'll learn to handle <code>$_FILES</code>, validate file types and sizes, move uploaded files safely, and send email from PHP. Then Lesson 23 covers the security fundamentals (SQL injection, XSS, CSRF) that turn a working app into a <em>safe</em> app.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've built a real PHP web application! This Task Manager uses every core skill from the course — forms, validation, sessions, OOP, error handling, and PDO. The patterns you've learned here (CRUD, PRG, flash messages, repository pattern, output escaping) are the same patterns used in professional PHP applications and frameworks like Laravel.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_20.html" class="prev-lesson">← Previous: PDO — CRUD &amp; Transactions</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_22.html" class="next-lesson">Next: File Uploads &amp; Email →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

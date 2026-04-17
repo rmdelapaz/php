@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Master PHP's built-in array functions: array_map, array_filter, array_reduce, sorting, merging, searching, slicing, and more.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Array Functions - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 3: Data Structures</a></li>
+            <li aria-current="page">Lesson 9: Array Functions</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🔧 Lesson 9: Array Functions</h1>
+                <p class="lead">PHP ships with over 80 built-in array functions — a powerful toolkit for transforming, filtering, sorting, and combining data. In this lesson you'll master the ones you'll reach for every day.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Transform arrays with <code>array_map()</code></li>
+                        <li>Filter arrays with <code>array_filter()</code></li>
+                        <li>Reduce arrays to a single value with <code>array_reduce()</code></li>
+                        <li>Sort arrays by value and key in multiple directions</li>
+                        <li>Merge, combine, slice, and splice arrays</li>
+                        <li>Search, extract, and manipulate array data with utility functions</li>
+                        <li>Chain these functions together to build data pipelines</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 45 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 8 (arrays, foreach, associative arrays, arrow functions)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">The Big Three: map, filter, reduce</a></li>
+                        <li><a href="#section2" class="toc-link">Sorting Arrays</a></li>
+                        <li><a href="#section3" class="toc-link">Merging &amp; Combining</a></li>
+                        <li><a href="#section4" class="toc-link">Slicing &amp; Splicing</a></li>
+                        <li><a href="#section5" class="toc-link">Searching &amp; Extracting</a></li>
+                        <li><a href="#section6" class="toc-link">Utility Functions</a></li>
+                        <li><a href="#section7" class="toc-link">Building Data Pipelines</a></li>
+                        <li><a href="#section8" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section9" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: The Big Three -->
+            <section id="section1" class="lesson-section">
+                <h2>The Big Three: map, filter, reduce</h2>
+
+                <p>These three functions are the workhorses of array processing. Together they can handle the vast majority of data transformation tasks.</p>
+
+                <div class="mermaid">
+                    flowchart LR
+                        A["Input Array"] --> B["array_map<br/>Transform each element"]
+                        A --> C["array_filter<br/>Keep matching elements"]
+                        A --> D["array_reduce<br/>Collapse to single value"]
+                        B --> E["New array<br/>(same length)"]
+                        C --> F["New array<br/>(fewer elements)"]
+                        D --> G["Single value<br/>(number, string, etc.)"]
+                </div>
+
+                <h3>array_map() — Transform Every Element</h3>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>array_map(callable $callback, array $array): array</strong> — Applies a function to every element and returns a new array of the results. The original array is not modified.</p>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+$prices = [10.99, 24.50, 7.25, 18.00];
+
+// Apply 10% discount to all prices
+$discounted = array_map(fn($p) => round($p * 0.90, 2), $prices);
+// [9.89, 22.05, 6.53, 16.2]
+
+// Convert all strings to uppercase
+$names = ["alice", "bob", "carol"];
+$upper = array_map('strtoupper', $names);
+// ["ALICE", "BOB", "CAROL"]
+
+// Transform associative array values
+$user = ["name" => "Alice", "city" => "Portland"];
+$trimmed = array_map('trim', $user);
+// Keys are preserved!
+
+// With a more complex transformation
+$products = ["widget", "gadget", "doohickey"];
+$formatted = array_map(fn($name, $i) => ($i + 1) . ". " . ucfirst($name),
+    $products, array_keys($products));
+// ["1. Widget", "2. Gadget", "3. Doohickey"]</code></pre>
+
+                <blockquote>
+                    <strong>💡 Note:</strong> Notice that the callback comes <em>first</em>, then the array. This is the opposite order from JavaScript's <code>array.map()</code>. It trips up a lot of developers switching between languages.
+                </blockquote>
+
+                <h3>array_filter() — Keep Only Matching Elements</h3>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>array_filter(array $array, ?callable $callback, int $mode): array</strong> — Returns a new array containing only the elements for which the callback returns <code>true</code>. Keys are preserved.</p>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+$numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+// Keep only even numbers
+$evens = array_filter($numbers, fn($n) => $n % 2 === 0);
+// [1 => 2, 3 => 4, 5 => 6, 7 => 8, 9 => 10]
+// ⚠️ Notice: original keys are preserved!
+
+// Re-index if you need clean 0-based keys
+$evens = array_values(array_filter($numbers, fn($n) => $n % 2 === 0));
+// [2, 4, 6, 8, 10]
+
+// Filter strings by length
+$words = ["hi", "hello", "hey", "greetings", "yo"];
+$long = array_filter($words, fn($w) => strlen($w) > 3);
+// [1 => "hello", 3 => "greetings"]
+
+// Filter associative arrays
+$employees = [
+    ["name" => "Alice", "salary" => 95000, "dept" => "Engineering"],
+    ["name" => "Bob",   "salary" => 72000, "dept" => "Marketing"],
+    ["name" => "Carol", "salary" => 105000, "dept" => "Engineering"],
+    ["name" => "Dave",  "salary" => 68000, "dept" => "Marketing"],
+];
+
+$engineers = array_filter($employees, fn($e) => $e["dept"] === "Engineering");
+$highEarners = array_filter($employees, fn($e) => $e["salary"] > 80000);</code></pre>
+
+                <h4>Filtering Without a Callback</h4>
+                <p>With no callback, <code>array_filter()</code> removes all "falsy" values:</p>
+                <pre><code class="language-php">&lt;?php
+$data = ["hello", "", 0, null, false, "world", 42, [], "0"];
+
+$cleaned = array_filter($data);
+// ["hello", "world", 42]
+// Removed: "", 0, null, false, [], "0"</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Careful with Falsy Filtering</h4>
+                    <p>Using <code>array_filter()</code> without a callback removes <code>0</code>, <code>"0"</code>, <code>""</code>, <code>null</code>, <code>false</code>, and <code>[]</code>. If <code>0</code> is a valid value in your data (like a score or a count), write an explicit callback: <code>fn($v) => $v !== null && $v !== ""</code>.</p>
+                </div>
+
+                <h4>Filtering by Key</h4>
+                <pre><code class="language-php">&lt;?php
+$data = [
+    "name"    => "Alice",
+    "email"   => "alice@example.com",
+    "temp_id" => "abc123",
+    "age"     => 30,
+    "temp_token" => "xyz789",
+];
+
+// ARRAY_FILTER_USE_KEY — callback receives the key
+$cleaned = array_filter($data, fn($key) => !str_starts_with($key, "temp_"),
+    ARRAY_FILTER_USE_KEY);
+// ["name" => "Alice", "email" => "alice@example.com", "age" => 30]
+
+// ARRAY_FILTER_USE_BOTH — callback receives value AND key
+$result = array_filter($data, fn($val, $key) => is_string($val) && $key !== "temp_id",
+    ARRAY_FILTER_USE_BOTH);</code></pre>
+
+                <h3>array_reduce() — Collapse to a Single Value</h3>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>array_reduce(array $array, callable $callback, mixed $initial): mixed</strong> — Iterates through the array, passing an accumulator and each element to the callback. Returns the final accumulated value.</p>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+$numbers = [1, 2, 3, 4, 5];
+
+// Sum all numbers
+$sum = array_reduce($numbers, fn($carry, $n) => $carry + $n, 0);
+echo $sum; // 15
+
+// How it works step by step:
+// carry=0, n=1 → 0+1 = 1
+// carry=1, n=2 → 1+2 = 3
+// carry=3, n=3 → 3+3 = 6
+// carry=6, n=4 → 6+4 = 10
+// carry=10, n=5 → 10+5 = 15
+
+// Product of all numbers
+$product = array_reduce($numbers, fn($carry, $n) => $carry * $n, 1);
+echo $product; // 120
+
+// Find the longest string
+$words = ["cat", "elephant", "dog", "hippopotamus", "ant"];
+$longest = array_reduce($words,
+    fn($carry, $word) => strlen($word) > strlen($carry) ? $word : $carry,
+    ""
+);
+echo $longest; // "hippopotamus"
+
+// Build a string
+$parts = ["Hello", "World", "from", "PHP"];
+$sentence = array_reduce($parts,
+    fn($carry, $word) => $carry === "" ? $word : "$carry $word",
+    ""
+);
+echo $sentence; // "Hello World from PHP"</code></pre>
+
+                <h4>Reduce with Associative Arrays</h4>
+                <pre><code class="language-php">&lt;?php
+$cart = [
+    ["name" => "Widget",  "price" => 12.99, "qty" => 3],
+    ["name" => "Gadget",  "price" => 49.99, "qty" => 1],
+    ["name" => "Cable",   "price" => 7.50,  "qty" => 2],
+];
+
+// Calculate total cost
+$total = array_reduce($cart,
+    fn($sum, $item) => $sum + ($item["price"] * $item["qty"]),
+    0.0
+);
+echo "Total: \$" . number_format($total, 2); // Total: $103.96
+
+// Count total items
+$itemCount = array_reduce($cart, fn($count, $item) => $count + $item["qty"], 0);
+echo "Items: $itemCount"; // Items: 6
+
+// Build a summary string
+$summary = array_reduce($cart,
+    fn($carry, $item) => $carry . "{$item['name']} ×{$item['qty']}, ",
+    ""
+);
+echo rtrim($summary, ", "); // Widget ×3, Gadget ×1, Cable ×2</code></pre>
+
+                <h4>Reduce to Build Arrays (Advanced)</h4>
+                <pre><code class="language-php">&lt;?php
+// Group by category
+$products = [
+    ["name" => "Widget",    "category" => "Tools"],
+    ["name" => "Gadget",    "category" => "Electronics"],
+    ["name" => "Wrench",    "category" => "Tools"],
+    ["name" => "Tablet",    "category" => "Electronics"],
+    ["name" => "Hammer",    "category" => "Tools"],
+];
+
+$grouped = array_reduce($products, function($carry, $product) {
+    $cat = $product["category"];
+    $carry[$cat][] = $product["name"];
+    return $carry;
+}, []);
+
+print_r($grouped);
+/* Array (
+    [Tools] => Array ( [0] => Widget [1] => Wrench [2] => Hammer )
+    [Electronics] => Array ( [0] => Gadget [1] => Tablet )
+) */</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use Each</h4>
+                    <p><strong>array_map:</strong> "I want the <em>same number</em> of items, but each one transformed."</p>
+                    <p><strong>array_filter:</strong> "I want <em>fewer</em> items — only those matching a condition."</p>
+                    <p><strong>array_reduce:</strong> "I want to collapse everything into <em>one value</em> — a total, a string, a grouped structure."</p>
+                </div>
+            </section>
+
+            <!-- Section 2: Sorting -->
+            <section id="section2" class="lesson-section">
+                <h2>Sorting Arrays</h2>
+
+                <p>PHP provides a family of sorting functions. The key distinction is whether the function preserves keys, and whether it sorts by value or by key.</p>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Sort Functions Modify In-Place</h4>
+                    <p>All PHP sort functions modify the original array directly and return <code>true</code> on success — they do <em>not</em> return a new sorted array. This is different from many other languages.</p>
+                </div>
+
+                <h3>Sorting Indexed Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+$numbers = [3, 1, 4, 1, 5, 9, 2, 6];
+
+// sort — ascending, re-indexes keys
+sort($numbers);
+// [1, 1, 2, 3, 4, 5, 6, 9]
+
+// rsort — descending, re-indexes keys
+rsort($numbers);
+// [9, 6, 5, 4, 3, 2, 1, 1]
+
+// Strings sort alphabetically
+$fruits = ["cherry", "apple", "banana", "date"];
+sort($fruits);
+// ["apple", "banana", "cherry", "date"]</code></pre>
+
+                <h3>Sorting Associative Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+$ages = ["Alice" => 30, "Carol" => 25, "Bob" => 35, "Dave" => 28];
+
+// asort — sort by VALUE, PRESERVE keys
+asort($ages);
+// ["Carol" => 25, "Dave" => 28, "Alice" => 30, "Bob" => 35]
+
+// arsort — sort by value descending, preserve keys
+arsort($ages);
+// ["Bob" => 35, "Alice" => 30, "Dave" => 28, "Carol" => 25]
+
+// ksort — sort by KEY ascending
+ksort($ages);
+// ["Alice" => 30, "Bob" => 35, "Carol" => 25, "Dave" => 28]
+
+// krsort — sort by key descending
+krsort($ages);
+// ["Dave" => 28, "Carol" => 25, "Bob" => 35, "Alice" => 30]</code></pre>
+
+                <h3>Sorting Reference Table</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Function</th>
+                                <th>Sort By</th>
+                                <th>Order</th>
+                                <th>Preserves Keys?</th>
+                                <th>Best For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>sort()</code></td>
+                                <td>Value</td>
+                                <td>Ascending</td>
+                                <td>❌ Re-indexes</td>
+                                <td>Simple indexed arrays</td>
+                            </tr>
+                            <tr>
+                                <td><code>rsort()</code></td>
+                                <td>Value</td>
+                                <td>Descending</td>
+                                <td>❌ Re-indexes</td>
+                                <td>Simple indexed arrays</td>
+                            </tr>
+                            <tr>
+                                <td><code>asort()</code></td>
+                                <td>Value</td>
+                                <td>Ascending</td>
+                                <td>✅ Yes</td>
+                                <td>Associative arrays</td>
+                            </tr>
+                            <tr>
+                                <td><code>arsort()</code></td>
+                                <td>Value</td>
+                                <td>Descending</td>
+                                <td>✅ Yes</td>
+                                <td>Associative arrays</td>
+                            </tr>
+                            <tr>
+                                <td><code>ksort()</code></td>
+                                <td>Key</td>
+                                <td>Ascending</td>
+                                <td>✅ Yes</td>
+                                <td>Sort by key name</td>
+                            </tr>
+                            <tr>
+                                <td><code>krsort()</code></td>
+                                <td>Key</td>
+                                <td>Descending</td>
+                                <td>✅ Yes</td>
+                                <td>Sort by key name</td>
+                            </tr>
+                            <tr>
+                                <td><code>usort()</code></td>
+                                <td>Custom</td>
+                                <td>Custom</td>
+                                <td>❌ Re-indexes</td>
+                                <td>Complex sorting logic</td>
+                            </tr>
+                            <tr>
+                                <td><code>uasort()</code></td>
+                                <td>Custom</td>
+                                <td>Custom</td>
+                                <td>✅ Yes</td>
+                                <td>Custom + preserve keys</td>
+                            </tr>
+                            <tr>
+                                <td><code>uksort()</code></td>
+                                <td>Custom key</td>
+                                <td>Custom</td>
+                                <td>✅ Yes</td>
+                                <td>Custom key sorting</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Custom Sorting with usort()</h3>
+                <p>The <code>usort()</code> function lets you define your own comparison logic with a callback. The callback receives two elements and must return a negative number, zero, or positive number:</p>
+                <pre><code class="language-php">&lt;?php
+$employees = [
+    ["name" => "Carol", "salary" => 105000],
+    ["name" => "Alice", "salary" => 95000],
+    ["name" => "Dave",  "salary" => 68000],
+    ["name" => "Bob",   "salary" => 72000],
+];
+
+// Sort by salary ascending (spaceship operator!)
+usort($employees, fn($a, $b) => $a["salary"] &lt;=&gt; $b["salary"]);
+// Dave (68k), Bob (72k), Alice (95k), Carol (105k)
+
+// Sort by salary descending — just flip $a and $b
+usort($employees, fn($a, $b) => $b["salary"] &lt;=&gt; $a["salary"]);
+// Carol (105k), Alice (95k), Bob (72k), Dave (68k)
+
+// Sort by name alphabetically
+usort($employees, fn($a, $b) => strcmp($a["name"], $b["name"]));
+// or: fn($a, $b) => $a["name"] &lt;=&gt; $b["name"]
+
+// Multi-level sort: by department, then by salary descending
+$employees = [
+    ["name" => "Alice", "dept" => "Engineering", "salary" => 95000],
+    ["name" => "Bob",   "dept" => "Marketing",   "salary" => 72000],
+    ["name" => "Carol", "dept" => "Engineering", "salary" => 105000],
+    ["name" => "Dave",  "dept" => "Marketing",   "salary" => 68000],
+];
+
+usort($employees, function($a, $b) {
+    // First compare by department
+    $deptCompare = $a["dept"] &lt;=&gt; $b["dept"];
+    if ($deptCompare !== 0) return $deptCompare;
+
+    // If same department, sort by salary descending
+    return $b["salary"] &lt;=&gt; $a["salary"];
+});
+// Carol (Eng, 105k), Alice (Eng, 95k), Bob (Mkt, 72k), Dave (Mkt, 68k)</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ The Spaceship Operator (&lt;=&gt;)</h4>
+                    <p>The <code>&lt;=&gt;</code> operator compares two values and returns <code>-1</code>, <code>0</code>, or <code>1</code> — exactly what sorting callbacks need. It works with numbers, strings, and even arrays. For descending order, just swap <code>$a</code> and <code>$b</code>.</p>
+                </div>
+            </section>
+
+            <!-- Section 3: Merging & Combining -->
+            <section id="section3" class="lesson-section">
+                <h2>Merging &amp; Combining</h2>
+
+                <h3>array_merge() — Combine Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+// Indexed arrays — values are appended, keys are re-indexed
+$a = [1, 2, 3];
+$b = [4, 5, 6];
+$merged = array_merge($a, $b);
+// [1, 2, 3, 4, 5, 6]
+
+// Associative arrays — later values override
+$defaults = ["theme" => "light", "lang" => "en", "page_size" => 20];
+$prefs    = ["theme" => "dark", "lang" => "es"];
+$config   = array_merge($defaults, $prefs);
+// ["theme" => "dark", "lang" => "es", "page_size" => 20]
+
+// Merge many arrays at once
+$all = array_merge($a, $b, [7, 8], [9, 10]);
+// [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]</code></pre>
+
+                <h3>array_merge vs. Spread Operator</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th><code>array_merge()</code></th>
+                                <th>Spread <code>[...$a, ...$b]</code></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Indexed arrays</td>
+                                <td>Same behavior</td>
+                                <td>Same behavior</td>
+                            </tr>
+                            <tr>
+                                <td>Associative arrays</td>
+                                <td>Same behavior</td>
+                                <td>Same (PHP 8.1+)</td>
+                            </tr>
+                            <tr>
+                                <td>Add inline values</td>
+                                <td>Wrap in array first</td>
+                                <td>Just add them: <code>[...$a, "new"]</code></td>
+                            </tr>
+                            <tr>
+                                <td>PHP version</td>
+                                <td>All versions</td>
+                                <td>7.4+ (indexed), 8.1+ (assoc)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>array_combine() — Keys + Values → One Array</h3>
+                <pre><code class="language-php">&lt;?php
+$keys   = ["name", "email", "age"];
+$values = ["Alice", "alice@example.com", 30];
+
+$user = array_combine($keys, $values);
+// ["name" => "Alice", "email" => "alice@example.com", "age" => 30]
+
+// Useful when processing CSV headers
+$headers = ["Product", "Price", "Stock"];
+$row     = ["Widget", 12.99, 50];
+$product = array_combine($headers, $row);
+// ["Product" => "Widget", "Price" => 12.99, "Stock" => 50]</code></pre>
+
+                <h3>array_zip / Pairing Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+// array_map with null callback zips arrays together
+$names  = ["Alice", "Bob", "Carol"];
+$scores = [95, 87, 92];
+
+$pairs = array_map(null, $names, $scores);
+// [["Alice", 95], ["Bob", 87], ["Carol", 92]]</code></pre>
+
+                <h3>array_unique() — Remove Duplicates</h3>
+                <pre><code class="language-php">&lt;?php
+$colors = ["red", "blue", "green", "red", "blue", "yellow"];
+
+$unique = array_unique($colors);
+// [0 => "red", 1 => "blue", 2 => "green", 5 => "yellow"]
+
+// Re-index for clean keys
+$unique = array_values(array_unique($colors));
+// ["red", "blue", "green", "yellow"]</code></pre>
+
+                <h3>array_diff() and array_intersect()</h3>
+                <pre><code class="language-php">&lt;?php
+$a = [1, 2, 3, 4, 5];
+$b = [3, 4, 5, 6, 7];
+
+// Values in $a that are NOT in $b
+$diff = array_diff($a, $b);
+// [0 => 1, 1 => 2]
+
+// Values that exist in BOTH $a and $b
+$common = array_intersect($a, $b);
+// [2 => 3, 3 => 4, 4 => 5]
+
+// Works with strings too
+$mySkills   = ["PHP", "JavaScript", "Python", "SQL"];
+$jobRequires = ["PHP", "SQL", "React", "Docker"];
+
+$matching = array_intersect($mySkills, $jobRequires);
+// ["PHP", "SQL"]
+
+$needToLearn = array_diff($jobRequires, $mySkills);
+// ["React", "Docker"]</code></pre>
+            </section>
+
+            <!-- Section 4: Slicing & Splicing -->
+            <section id="section4" class="lesson-section">
+                <h2>Slicing &amp; Splicing</h2>
+
+                <h3>array_slice() — Extract a Portion</h3>
+                <pre><code class="language-php">&lt;?php
+$letters = ["a", "b", "c", "d", "e", "f"];
+
+// From index 2, take 3 elements
+$slice = array_slice($letters, 2, 3);
+// ["c", "d", "e"]
+
+// From index 1 to end
+$slice = array_slice($letters, 1);
+// ["b", "c", "d", "e", "f"]
+
+// Last 2 elements (negative offset = from end)
+$slice = array_slice($letters, -2);
+// ["e", "f"]
+
+// First 3 elements
+$slice = array_slice($letters, 0, 3);
+// ["a", "b", "c"]
+
+// Preserve keys with the 4th parameter
+$slice = array_slice($letters, 2, 3, true);
+// [2 => "c", 3 => "d", 4 => "e"]</code></pre>
+
+                <h3>array_splice() — Remove/Replace a Portion (In-Place)</h3>
+                <pre><code class="language-php">&lt;?php
+$colors = ["red", "green", "blue", "yellow", "purple"];
+
+// Remove 2 elements starting at index 1
+$removed = array_splice($colors, 1, 2);
+echo implode(", ", $removed); // "green, blue"
+echo implode(", ", $colors);  // "red, yellow, purple"
+
+// Replace elements
+$colors = ["red", "green", "blue", "yellow"];
+array_splice($colors, 1, 2, ["teal", "pink", "gold"]);
+// ["red", "teal", "pink", "gold", "yellow"]
+
+// Insert without removing (length = 0)
+$colors = ["red", "blue", "green"];
+array_splice($colors, 1, 0, ["orange"]);
+// ["red", "orange", "blue", "green"]</code></pre>
+
+                <h3>array_chunk() — Split into Groups</h3>
+                <pre><code class="language-php">&lt;?php
+$items = [1, 2, 3, 4, 5, 6, 7, 8];
+
+// Split into chunks of 3
+$chunks = array_chunk($items, 3);
+// [[1, 2, 3], [4, 5, 6], [7, 8]]
+
+// Preserve keys
+$chunks = array_chunk($items, 3, true);
+// [[0=>1, 1=>2, 2=>3], [3=>4, 4=>5, 5=>6], [6=>7, 7=>8]]
+
+// Practical use: pagination
+$allProducts = [...]; // 100 products
+$pages = array_chunk($allProducts, 10);
+$page3 = $pages[2]; // Products 21-30</code></pre>
+            </section>
+
+            <!-- Section 5: Searching & Extracting -->
+            <section id="section5" class="lesson-section">
+                <h2>Searching &amp; Extracting</h2>
+
+                <h3>array_column() — Extract a Column</h3>
+                <p>Pulls out one field from every record in a list — incredibly useful with database results:</p>
+                <pre><code class="language-php">&lt;?php
+$employees = [
+    ["name" => "Alice", "email" => "alice@example.com", "dept" => "Engineering"],
+    ["name" => "Bob",   "email" => "bob@example.com",   "dept" => "Marketing"],
+    ["name" => "Carol", "email" => "carol@example.com", "dept" => "Engineering"],
+];
+
+// Get all names
+$names = array_column($employees, "name");
+// ["Alice", "Bob", "Carol"]
+
+// Get all emails
+$emails = array_column($employees, "email");
+// ["alice@example.com", "bob@example.com", "carol@example.com"]
+
+// Index results by a field
+$byName = array_column($employees, null, "name");
+// ["Alice" => ["name"=>"Alice", ...], "Bob" => [...], "Carol" => [...]]
+
+// Get emails indexed by name
+$emailByName = array_column($employees, "email", "name");
+// ["Alice" => "alice@example.com", "Bob" => "bob@example.com", ...]</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ array_column() Is a Superpower</h4>
+                    <p>Before <code>array_column()</code>, extracting one field from a list of records required a <code>foreach</code> loop or <code>array_map()</code>. Now it's one function call. Use it every time you need to pull a single field from an array of associative arrays.</p>
+                </div>
+
+                <h3>array_keys() and array_values()</h3>
+                <pre><code class="language-php">&lt;?php
+$user = ["name" => "Alice", "age" => 30, "city" => "Portland"];
+
+// Get all keys
+$keys = array_keys($user);
+// ["name", "age", "city"]
+
+// Get all values (also re-indexes numeric arrays)
+$values = array_values($user);
+// ["Alice", 30, "Portland"]
+
+// Find keys where value matches
+$scores = ["Alice" => 95, "Bob" => 87, "Carol" => 95, "Dave" => 73];
+$topKeys = array_keys($scores, 95);
+// ["Alice", "Carol"] — all keys with value 95</code></pre>
+
+                <h3>array_flip() — Swap Keys and Values</h3>
+                <pre><code class="language-php">&lt;?php
+$countryCodes = ["US" => "United States", "GB" => "United Kingdom", "JP" => "Japan"];
+
+$flipped = array_flip($countryCodes);
+// ["United States" => "US", "United Kingdom" => "GB", "Japan" => "JP"]
+
+// Useful for quick lookups — turn a list into a set-like structure
+$allowedRoles = ["admin", "editor", "viewer"];
+$roleSet = array_flip($allowedRoles);
+// ["admin" => 0, "editor" => 1, "viewer" => 2]
+
+// isset() on flipped array is faster than in_array() for large arrays
+if (isset($roleSet["admin"])) {
+    echo "Valid role!\n";
+}</code></pre>
+
+                <h3>array_count_values() — Frequency Counter</h3>
+                <pre><code class="language-php">&lt;?php
+$votes = ["red", "blue", "red", "green", "blue", "red", "blue", "blue"];
+
+$tally = array_count_values($votes);
+// ["red" => 3, "blue" => 4, "green" => 1]
+
+arsort($tally); // Sort by count descending
+foreach ($tally as $color => $count) {
+    echo "$color: $count votes\n";
+}
+// blue: 4 votes
+// red: 3 votes
+// green: 1 vote</code></pre>
+            </section>
+
+            <!-- Section 6: Utility Functions -->
+            <section id="section6" class="lesson-section">
+                <h2>Utility Functions</h2>
+
+                <h3>array_reverse()</h3>
+                <pre><code class="language-php">&lt;?php
+$numbers = [1, 2, 3, 4, 5];
+$reversed = array_reverse($numbers);
+// [5, 4, 3, 2, 1]</code></pre>
+
+                <h3>array_pad() — Pad to a Length</h3>
+                <pre><code class="language-php">&lt;?php
+$data = [1, 2, 3];
+
+// Pad to 6 elements with 0
+$padded = array_pad($data, 6, 0);
+// [1, 2, 3, 0, 0, 0]
+
+// Pad to the left (negative length)
+$padded = array_pad($data, -6, 0);
+// [0, 0, 0, 1, 2, 3]</code></pre>
+
+                <h3>array_fill() and range()</h3>
+                <pre><code class="language-php">&lt;?php
+// Fill an array with a value
+$zeros = array_fill(0, 5, 0);
+// [0, 0, 0, 0, 0]
+
+$defaults = array_fill(0, 3, ["score" => 0, "attempts" => 0]);
+// [["score"=>0, "attempts"=>0], ["score"=>0, "attempts"=>0], ...]
+
+// Generate a range of values
+$nums = range(1, 10);
+// [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+$evens = range(0, 20, 2); // Step of 2
+// [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+
+$letters = range('a', 'z');
+// ["a", "b", "c", ..., "z"]</code></pre>
+
+                <h3>implode() and explode()</h3>
+                <p>These convert between arrays and strings (covered fully in Lesson 10, but essential for arrays too):</p>
+                <pre><code class="language-php">&lt;?php
+// implode — array → string
+$words = ["Hello", "World", "from", "PHP"];
+$sentence = implode(" ", $words);
+// "Hello World from PHP"
+
+$csv = implode(",", [1, 2, 3, 4, 5]);
+// "1,2,3,4,5"
+
+// explode — string → array
+$data = "Alice,Bob,Carol,Dave";
+$names = explode(",", $data);
+// ["Alice", "Bob", "Carol", "Dave"]</code></pre>
+
+                <h3>compact() and extract()</h3>
+                <pre><code class="language-php">&lt;?php
+// compact — variables → associative array
+$name = "Alice";
+$age = 30;
+$city = "Portland";
+
+$user = compact("name", "age", "city");
+// ["name" => "Alice", "age" => 30, "city" => "Portland"]
+
+// extract — associative array → variables
+$config = ["theme" => "dark", "language" => "en", "debug" => true];
+extract($config);
+echo $theme;    // "dark"
+echo $language; // "en"
+echo $debug;    // true (1)</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Be Careful with extract()</h4>
+                    <p><code>extract()</code> creates variables from array keys, which can overwrite existing variables. Never use it with untrusted data (like <code>$_GET</code> or <code>$_POST</code>). It's mostly useful in controlled situations like template rendering. Destructuring (<code>["key" => $var] = $arr</code>) is generally safer since you explicitly name what you're extracting.</p>
+                </div>
+            </section>
+
+            <!-- Section 7: Data Pipelines -->
+            <section id="section7" class="lesson-section">
+                <h2>Building Data Pipelines</h2>
+
+                <p>The real power of array functions emerges when you chain them together. Each step transforms the data, feeding its output into the next function.</p>
+
+                <h3>Example: E-Commerce Report</h3>
+                <pre><code class="language-php">&lt;?php
+$orders = [
+    ["id" => 101, "product" => "Widget",    "price" => 12.99, "qty" => 3, "status" => "shipped"],
+    ["id" => 102, "product" => "Gadget",    "price" => 49.99, "qty" => 1, "status" => "pending"],
+    ["id" => 103, "product" => "Cable",     "price" => 7.50,  "qty" => 5, "status" => "shipped"],
+    ["id" => 104, "product" => "Doohickey", "price" => 8.50,  "qty" => 2, "status" => "cancelled"],
+    ["id" => 105, "product" => "Gizmo",     "price" => 31.00, "qty" => 1, "status" => "shipped"],
+    ["id" => 106, "product" => "Thingamajig","price" => 22.00,"qty" => 4, "status" => "pending"],
+];
+
+// Pipeline: Filter → Transform → Sort → Reduce
+
+// Step 1: Only shipped orders
+$shipped = array_filter($orders, fn($o) => $o["status"] === "shipped");
+
+// Step 2: Add a "total" field to each
+$withTotals = array_map(fn($o) => [
+    ...$o,
+    "total" => $o["price"] * $o["qty"],
+], $shipped);
+
+// Step 3: Sort by total descending
+usort($withTotals, fn($a, $b) => $b["total"] &lt;=&gt; $a["total"]);
+
+// Step 4: Calculate grand total
+$grandTotal = array_reduce($withTotals,
+    fn($sum, $o) => $sum + $o["total"], 0.0);
+
+// Display
+echo "📦 Shipped Orders Report\n";
+echo str_repeat("=", 50) . "\n";
+foreach ($withTotals as $order) {
+    echo sprintf("  #%d %-12s %d × \$%5.2f = \$%6.2f\n",
+        $order["id"], $order["product"],
+        $order["qty"], $order["price"], $order["total"]);
+}
+echo str_repeat("-", 50) . "\n";
+echo sprintf("  Grand Total: %30s\$%6.2f\n", "", $grandTotal);</code></pre>
+
+                <div class="card card-output">
+                    <h4>Output:</h4>
+                    <pre><code>📦 Shipped Orders Report
+==================================================
+  #101 Widget       3 × $12.99 = $ 38.97
+  #105 Cable        5 × $ 7.50 = $ 37.50
+  #103 Gizmo        1 × $31.00 = $ 31.00
+--------------------------------------------------
+  Grand Total:                        $107.47</code></pre>
+                </div>
+
+                <h3>Example: Word Frequency Analyzer</h3>
+                <pre><code class="language-php">&lt;?php
+$text = "the quick brown fox jumps over the lazy dog the fox the dog";
+
+// Pipeline: split → lowercase → count → sort → top 5
+$words = explode(" ", strtolower($text));                    // Split into words
+$counts = array_count_values($words);                         // Count occurrences
+arsort($counts);                                              // Sort by count descending
+$top5 = array_slice($counts, 0, 5, true);                    // Take top 5
+
+echo "Top 5 words:\n";
+foreach ($top5 as $word => $count) {
+    $bar = str_repeat("█", $count);
+    echo sprintf("  %-8s %s (%d)\n", $word, $bar, $count);
+}</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Pipeline Thinking</h4>
+                    <p>When faced with a complex data task, break it down into steps: <strong>Filter</strong> what you need → <strong>Transform</strong> each item → <strong>Sort</strong> the results → <strong>Reduce</strong> to a summary. Each step is a simple function call, and the data flows from one to the next.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Exercises -->
+            <section id="section8" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Student Score Analyzer</h3>
+                    <p><strong>Objective:</strong> Use array functions to analyze student performance data.</p>
+
+                    <h4>Given data:</h4>
+                    <pre><code class="language-php">$students = [
+    ["name" => "Alice", "math" => 92, "science" => 88, "english" => 95],
+    ["name" => "Bob",   "math" => 78, "science" => 85, "english" => 72],
+    ["name" => "Carol", "math" => 95, "science" => 92, "english" => 89],
+    ["name" => "Dave",  "math" => 65, "science" => 70, "english" => 68],
+    ["name" => "Eve",   "math" => 88, "science" => 94, "english" => 91],
+];</code></pre>
+
+                    <h4>Tasks:</h4>
+                    <ol>
+                        <li>Use <code>array_map</code> to add an "average" field to each student</li>
+                        <li>Use <code>array_filter</code> to find students with average ≥ 85 (honor roll)</li>
+                        <li>Use <code>usort</code> to sort by average descending</li>
+                        <li>Use <code>array_column</code> to extract just the names of honor roll students</li>
+                        <li>Use <code>array_reduce</code> to find the class average across all students</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Calculate each student's average as <code>($math + $science + $english) / 3</code>. Use the spread operator to add the average field: <code>[...$student, "average" => ...]</code>.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$students = [
+    ["name" => "Alice", "math" => 92, "science" => 88, "english" => 95],
+    ["name" => "Bob",   "math" => 78, "science" => 85, "english" => 72],
+    ["name" => "Carol", "math" => 95, "science" => 92, "english" => 89],
+    ["name" => "Dave",  "math" => 65, "science" => 70, "english" => 68],
+    ["name" => "Eve",   "math" => 88, "science" => 94, "english" => 91],
+];
+
+// 1. Add average field
+$withAvg = array_map(fn($s) => [
+    ...$s,
+    "average" => round(($s["math"] + $s["science"] + $s["english"]) / 3, 1),
+], $students);
+
+// 2. Filter honor roll (average >= 85)
+$honorRoll = array_filter($withAvg, fn($s) => $s["average"] >= 85);
+
+// 3. Sort by average descending
+usort($honorRoll, fn($a, $b) => $b["average"] &lt;=&gt; $a["average"]);
+
+// 4. Extract names
+$honorNames = array_column($honorRoll, "name");
+echo "🏆 Honor Roll: " . implode(", ", $honorNames) . "\n";
+
+// 5. Class average
+$classAvg = array_reduce($withAvg,
+    fn($sum, $s) => $sum + $s["average"], 0.0) / count($withAvg);
+echo "📊 Class Average: " . round($classAvg, 1) . "\n";
+
+// Display full report
+echo "\n📋 Full Rankings:\n";
+usort($withAvg, fn($a, $b) => $b["average"] &lt;=&gt; $a["average"]);
+foreach ($withAvg as $i => $s) {
+    $badge = $s["average"] >= 85 ? "⭐" : "  ";
+    echo sprintf("  %s %d. %-8s Math:%3d Sci:%3d Eng:%3d Avg:%5.1f\n",
+        $badge, $i + 1, $s["name"],
+        $s["math"], $s["science"], $s["english"], $s["average"]);
+}</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Inventory Manager</h3>
+                    <p><strong>Objective:</strong> Build an inventory processing system using array functions.</p>
+
+                    <h4>Given data:</h4>
+                    <pre><code class="language-php">$inventory = [
+    ["sku" => "W001", "name" => "Widget",      "price" => 12.99, "stock" => 150, "category" => "Tools"],
+    ["sku" => "G001", "name" => "Gadget",       "price" => 49.99, "stock" => 30,  "category" => "Electronics"],
+    ["sku" => "C001", "name" => "Cable",        "price" => 7.50,  "stock" => 500, "category" => "Electronics"],
+    ["sku" => "D001", "name" => "Doohickey",    "price" => 8.50,  "stock" => 0,   "category" => "Tools"],
+    ["sku" => "T001", "name" => "Thingamajig",  "price" => 22.00, "stock" => 75,  "category" => "Toys"],
+    ["sku" => "G002", "name" => "Gizmo",        "price" => 31.00, "stock" => 45,  "category" => "Electronics"],
+    ["sku" => "W002", "name" => "Whatchamacallit","price"=> 15.75, "stock" => 200, "category" => "Toys"],
+];</code></pre>
+
+                    <h4>Tasks:</h4>
+                    <ol>
+                        <li>Find all out-of-stock items (stock === 0)</li>
+                        <li>Calculate total inventory value (price × stock for each in-stock item)</li>
+                        <li>Group items by category and show count per category</li>
+                        <li>Find the most expensive item in each category</li>
+                        <li>Create a price-sorted product list with formatted prices</li>
+                    </ol>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$inventory = [
+    ["sku" => "W001", "name" => "Widget",      "price" => 12.99, "stock" => 150, "category" => "Tools"],
+    ["sku" => "G001", "name" => "Gadget",       "price" => 49.99, "stock" => 30,  "category" => "Electronics"],
+    ["sku" => "C001", "name" => "Cable",        "price" => 7.50,  "stock" => 500, "category" => "Electronics"],
+    ["sku" => "D001", "name" => "Doohickey",    "price" => 8.50,  "stock" => 0,   "category" => "Tools"],
+    ["sku" => "T001", "name" => "Thingamajig",  "price" => 22.00, "stock" => 75,  "category" => "Toys"],
+    ["sku" => "G002", "name" => "Gizmo",        "price" => 31.00, "stock" => 45,  "category" => "Electronics"],
+    ["sku" => "W002", "name" => "Whatchamacallit","price"=> 15.75, "stock" => 200, "category" => "Toys"],
+];
+
+// 1. Out of stock
+$outOfStock = array_filter($inventory, fn($item) => $item["stock"] === 0);
+$outNames = array_column($outOfStock, "name");
+echo "❌ Out of stock: " . implode(", ", $outNames) . "\n";
+
+// 2. Total inventory value
+$inStock = array_filter($inventory, fn($item) => $item["stock"] > 0);
+$totalValue = array_reduce($inStock,
+    fn($sum, $item) => $sum + ($item["price"] * $item["stock"]),
+    0.0
+);
+echo "💰 Total inventory value: $" . number_format($totalValue, 2) . "\n";
+
+// 3. Group by category
+$grouped = array_reduce($inventory, function($carry, $item) {
+    $carry[$item["category"]][] = $item;
+    return $carry;
+}, []);
+
+echo "\n📁 By Category:\n";
+foreach ($grouped as $cat => $items) {
+    echo "  $cat: " . count($items) . " items\n";
+}
+
+// 4. Most expensive per category
+echo "\n👑 Most Expensive per Category:\n";
+foreach ($grouped as $cat => $items) {
+    usort($items, fn($a, $b) => $b["price"] &lt;=&gt; $a["price"]);
+    echo "  $cat: {$items[0]['name']} (\${$items[0]['price']})\n";
+}
+
+// 5. Price-sorted list
+$sorted = $inventory;
+usort($sorted, fn($a, $b) => $a["price"] &lt;=&gt; $b["price"]);
+echo "\n💲 Products by Price:\n";
+foreach ($sorted as $item) {
+    echo sprintf("  \$%6.2f  %-20s [%s]\n",
+        $item["price"], $item["name"], $item["category"]);
+}</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What does <code>array_map()</code> return?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="array_map creates and returns a new array. It doesn't modify the original.">
+                                A) The modified original array
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! array_map() returns a brand-new array with each element transformed by your callback. The original array is untouched.">
+                                B) A new array with each element transformed by the callback
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="That's what array_reduce does. array_map always returns an array of the same length.">
+                                C) A single value
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What happens to keys when you use <code>array_filter()</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! array_filter preserves the original keys, which can leave gaps in indexed arrays. Use array_values() to re-index if needed.">
+                                A) They are preserved from the original array
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="array_filter keeps the original keys. You need to call array_values() separately to re-index.">
+                                B) They are automatically re-indexed starting from 0
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The keys stay the same as the original. Only the values that pass the filter are included.">
+                                C) They are converted to strings
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> Do PHP sort functions return a new array or modify in-place?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP sort functions are different from many other languages. They modify directly.">
+                                A) They return a new sorted array
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! All PHP sort functions (sort, rsort, asort, usort, etc.) modify the original array directly and return true/false. This is a common gotcha for developers coming from JavaScript or Python.">
+                                B) They modify the original array in-place and return true/false
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Sort functions do both — they modify in-place and return a boolean, not the array.">
+                                C) It depends on the sort function
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What does <code>array_column($arr, "email")</code> do?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="array_column doesn't filter. It extracts one field from every element.">
+                                A) Filters the array to only include elements with an "email" key
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! array_column extracts a single field from each element of a 2D array. Given an array of user records, it pulls all email values into a flat array.">
+                                B) Extracts the "email" value from each element into a flat array
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="array_column works on the values, not the keys. It creates a new array of extracted values.">
+                                C) Renames all keys to "email"
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What does the spaceship operator (<code>&lt;=&gt;</code>) return?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="The spaceship operator returns three possible values, not just boolean true/false.">
+                                A) true or false
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The spaceship operator returns -1 if left < right, 0 if equal, and 1 if left > right. This is exactly what sorting comparison callbacks need.">
+                                B) -1, 0, or 1 depending on whether the left side is less than, equal to, or greater than the right
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="It returns a comparison result, not the larger value.">
+                                C) The larger of the two values
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 9: Summary -->
+            <section id="section9" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>array_map()</strong> — Transform every element: same size array, new values</li>
+                        <li><strong>array_filter()</strong> — Keep matching elements: smaller array, original values preserved with keys</li>
+                        <li><strong>array_reduce()</strong> — Collapse to one value: sum, product, string, grouped array</li>
+                        <li><strong>Sorting</strong> — <code>sort/rsort</code> (indexed), <code>asort/arsort</code> (associative by value), <code>ksort</code> (by key), <code>usort</code> (custom) — all modify in-place</li>
+                        <li><strong>Merging</strong> — <code>array_merge()</code> or spread; <code>array_combine()</code> zips keys + values; <code>array_unique()</code> deduplicates</li>
+                        <li><strong>Slicing</strong> — <code>array_slice()</code> extracts portions; <code>array_splice()</code> removes/replaces in-place; <code>array_chunk()</code> splits into groups</li>
+                        <li><strong>Searching</strong> — <code>array_column()</code> extracts a field; <code>array_keys/values()</code>; <code>array_flip()</code> for fast lookup; <code>array_count_values()</code> for frequency</li>
+                        <li><strong>Utilities</strong> — <code>implode/explode</code>, <code>range()</code>, <code>compact/extract</code>, <code>array_fill()</code></li>
+                        <li><strong>Pipelines</strong> — Chain filter → map → sort → reduce for powerful data processing</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/ref.array.php" target="_blank" rel="noopener">PHP Manual: Array Functions (Complete List)</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.array-map.php" target="_blank" rel="noopener">PHP Manual: array_map()</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.array-filter.php" target="_blank" rel="noopener">PHP Manual: array_filter()</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.array-reduce.php" target="_blank" rel="noopener">PHP Manual: array_reduce()</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.usort.php" target="_blank" rel="noopener">PHP Manual: usort()</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>You've conquered arrays — now it's time for their text counterpart. In <strong>Lesson 10: Strings &amp; String Functions</strong>, you'll master PHP's string manipulation toolkit: <code>strlen</code>, <code>strpos</code>, <code>substr</code>, <code>str_replace</code>, <code>sprintf</code>, regular expressions basics, and more.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Excellent Progress!</h3>
+                    <p>You now have a powerful toolkit for processing data in PHP. The combination of arrays + array functions is what you'll use in nearly every real-world project.</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_08.html" class="prev-lesson">← Previous: Arrays</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_10.html" class="next-lesson">Next: Strings &amp; String Functions →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

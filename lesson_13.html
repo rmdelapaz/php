@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn PHP file handling with file_get_contents, file_put_contents, fopen/fread/fwrite/fclose, and code organization with include, require, and __DIR__.">
+    <meta name="author" content="Ray De La Paz">
+    <title>File Handling &amp; Includes - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 4: Web Fundamentals</a></li>
+            <li aria-current="page">Lesson 13: File Handling &amp; Includes</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>📂 Lesson 13: File Handling &amp; Includes</h1>
+                <p class="lead">PHP can read and write files on the server — logs, configuration files, user uploads, CSV exports, cached data. It can also include other PHP files to organize your code into reusable pieces. This lesson covers both: file I/O for data, and includes for structure.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Read entire files into strings or arrays with <code>file_get_contents()</code> and <code>file()</code></li>
+                        <li>Write and append to files with <code>file_put_contents()</code></li>
+                        <li>Use the handle-based API (<code>fopen</code>, <code>fread</code>, <code>fwrite</code>, <code>fclose</code>) for fine-grained control</li>
+                        <li>Check file existence, size, and permissions before operating on files</li>
+                        <li>Organize code with <code>include</code>, <code>require</code>, <code>include_once</code>, and <code>require_once</code></li>
+                        <li>Use <code>__DIR__</code> and <code>__FILE__</code> for reliable file paths</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 45 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lessons 11–12 (forms, validation)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">Reading Files</a></li>
+                        <li><a href="#section2" class="toc-link">Writing Files</a></li>
+                        <li><a href="#section3" class="toc-link">The Handle-Based API</a></li>
+                        <li><a href="#section4" class="toc-link">File Information &amp; Checks</a></li>
+                        <li><a href="#section5" class="toc-link">Working with CSV Files</a></li>
+                        <li><a href="#section6" class="toc-link">include &amp; require</a></li>
+                        <li><a href="#section7" class="toc-link">Building Reusable Components</a></li>
+                        <li><a href="#section8" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section9" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Reading Files -->
+            <section id="section1" class="lesson-section">
+                <h2>Reading Files</h2>
+
+                <p>PHP provides several functions for reading files, each suited to different situations.</p>
+
+                <h3>file_get_contents() — Read Entire File as a String</h3>
+                <p>This is the simplest and most common way to read a file. It slurps the entire file into a single string:</p>
+                <pre><code class="language-php">&lt;?php
+// Read entire file into a string
+$content = file_get_contents("data/notes.txt");
+echo $content;
+
+// Read a file from an absolute path
+$config = file_get_contents("/var/www/config/settings.ini");
+
+// Read from a URL (if allow_url_fopen is enabled)
+$html = file_get_contents("https://example.com");
+
+// Read with error handling
+$content = @file_get_contents("maybe_missing.txt");
+if ($content === false) {
+    echo "Could not read the file.";
+} else {
+    echo "File contains " . strlen($content) . " bytes.";
+}</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Memory Warning</h4>
+                    <p><code>file_get_contents()</code> loads the <strong>entire file into memory</strong>. For a 10MB log file, that's 10MB of RAM. For very large files, use the handle-based API (<code>fopen</code>/<code>fread</code>) to read in chunks instead.</p>
+                </div>
+
+                <h3>file() — Read File into an Array of Lines</h3>
+                <pre><code class="language-php">&lt;?php
+// Each line becomes an array element (newlines included)
+$lines = file("data/names.txt");
+// ["Alice\n", "Bob\n", "Carol\n", "Dave\n"]
+
+// Strip newlines with FILE_IGNORE_NEW_LINES
+$lines = file("data/names.txt", FILE_IGNORE_NEW_LINES);
+// ["Alice", "Bob", "Carol", "Dave"]
+
+// Also skip empty lines
+$lines = file("data/names.txt", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+// Process each line
+$lines = file("data/scores.txt", FILE_IGNORE_NEW_LINES);
+foreach ($lines as $lineNum => $line) {
+    echo "Line " . ($lineNum + 1) . ": $line\n";
+}
+
+// Count lines in a file
+$lineCount = count(file("access.log"));
+echo "Log has $lineCount entries.";</code></pre>
+
+                <h3>readfile() — Output File Directly</h3>
+                <pre><code class="language-php">&lt;?php
+// Reads a file and sends it directly to the output buffer
+// Useful for serving file downloads — no variable needed
+header("Content-Type: application/pdf");
+header("Content-Disposition: attachment; filename=\"report.pdf\"");
+readfile("files/report.pdf");
+exit;</code></pre>
+
+                <h3>Choosing the Right Read Function</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Function</th>
+                                <th>Returns</th>
+                                <th>Best For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>file_get_contents()</code></td>
+                                <td>Single string</td>
+                                <td>Reading config files, JSON, HTML, small text files</td>
+                            </tr>
+                            <tr>
+                                <td><code>file()</code></td>
+                                <td>Array of lines</td>
+                                <td>Line-by-line processing, counting lines, CSV-like data</td>
+                            </tr>
+                            <tr>
+                                <td><code>readfile()</code></td>
+                                <td>Outputs directly</td>
+                                <td>Serving file downloads, streaming to browser</td>
+                            </tr>
+                            <tr>
+                                <td><code>fopen()</code> + <code>fread()</code></td>
+                                <td>Chunks at a time</td>
+                                <td>Large files, binary files, fine-grained control</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 2: Writing Files -->
+            <section id="section2" class="lesson-section">
+                <h2>Writing Files</h2>
+
+                <h3>file_put_contents() — Write String to File</h3>
+                <p>The counterpart to <code>file_get_contents()</code>. Writes a string to a file, creating it if it doesn't exist:</p>
+                <pre><code class="language-php">&lt;?php
+// Write a string to a file (creates file if needed, overwrites if exists)
+file_put_contents("data/output.txt", "Hello, World!\n");
+
+// Write an array of lines
+$lines = ["Line 1", "Line 2", "Line 3"];
+file_put_contents("data/output.txt", implode("\n", $lines));
+
+// Append to a file (don't overwrite!)
+file_put_contents("data/log.txt", "New entry\n", FILE_APPEND);
+
+// Append with a lock (prevents concurrent writes from corrupting data)
+file_put_contents("data/log.txt", "Safe entry\n", FILE_APPEND | LOCK_EX);
+
+// Returns number of bytes written, or false on failure
+$bytes = file_put_contents("data/output.txt", $content);
+if ($bytes === false) {
+    echo "Failed to write file!";
+} else {
+    echo "Wrote $bytes bytes.";
+}</code></pre>
+
+                <h3>Practical Example: Simple Log Function</h3>
+                <pre><code class="language-php">&lt;?php
+function log_message(string $level, string $message): void {
+    $timestamp = date("Y-m-d H:i:s");
+    $entry = "[$timestamp] [$level] $message\n";
+    file_put_contents("logs/app.log", $entry, FILE_APPEND | LOCK_EX);
+}
+
+// Usage
+log_message("INFO", "User alice logged in");
+log_message("ERROR", "Failed to connect to database");
+log_message("WARNING", "Disk space below 10%");
+
+// Log file looks like:
+// [2026-04-17 14:30:00] [INFO] User alice logged in
+// [2026-04-17 14:30:01] [ERROR] Failed to connect to database
+// [2026-04-17 14:30:02] [WARNING] Disk space below 10%</code></pre>
+
+                <h3>Practical Example: JSON Data Store</h3>
+                <pre><code class="language-php">&lt;?php
+// Save data as JSON
+function save_data(string $file, array $data): bool {
+    $json = json_encode($data, JSON_PRETTY_PRINT);
+    return file_put_contents($file, $json, LOCK_EX) !== false;
+}
+
+// Load data from JSON
+function load_data(string $file): array {
+    if (!file_exists($file)) {
+        return [];
+    }
+    $json = file_get_contents($file);
+    return json_decode($json, true) ?? [];
+}
+
+// Usage: a simple "database" using JSON files
+$todos = load_data("data/todos.json");
+$todos[] = [
+    "task" => "Learn PHP file handling",
+    "done" => false,
+    "created" => date("Y-m-d H:i:s"),
+];
+save_data("data/todos.json", $todos);</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ file_put_contents Covers Most Cases</h4>
+                    <p>For writing small to medium files (config, logs, JSON, text), <code>file_put_contents()</code> is all you need. Use the <code>FILE_APPEND</code> flag for logs, and <code>LOCK_EX</code> when multiple processes might write simultaneously.</p>
+                </div>
+            </section>
+
+            <!-- Section 3: Handle-Based API -->
+            <section id="section3" class="lesson-section">
+                <h2>The Handle-Based API</h2>
+
+                <p>For more control — reading large files in chunks, writing to specific positions, or working with binary data — use the traditional open/read/write/close pattern.</p>
+
+                <h3>fopen() Modes</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mode</th>
+                                <th>Description</th>
+                                <th>Creates?</th>
+                                <th>Truncates?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>"r"</code></td>
+                                <td>Read only (pointer at start)</td>
+                                <td>No</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td><code>"w"</code></td>
+                                <td>Write only (erases existing content!)</td>
+                                <td>Yes</td>
+                                <td><strong>Yes</strong></td>
+                            </tr>
+                            <tr>
+                                <td><code>"a"</code></td>
+                                <td>Append (write at end)</td>
+                                <td>Yes</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td><code>"r+"</code></td>
+                                <td>Read and write (pointer at start)</td>
+                                <td>No</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td><code>"w+"</code></td>
+                                <td>Read and write (erases existing!)</td>
+                                <td>Yes</td>
+                                <td><strong>Yes</strong></td>
+                            </tr>
+                            <tr>
+                                <td><code>"a+"</code></td>
+                                <td>Read and append</td>
+                                <td>Yes</td>
+                                <td>No</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-warning">
+                    <h4>⚠️ "w" Mode Erases Everything!</h4>
+                    <p><code>fopen("file.txt", "w")</code> immediately empties the file, even before you write anything. If you want to add to an existing file, use <code>"a"</code> (append). This is one of the most common mistakes in file handling.</p>
+                </div>
+
+                <h3>Reading with fopen/fgets/fclose</h3>
+                <pre><code class="language-php">&lt;?php
+// Open the file
+$handle = fopen("data/large_log.txt", "r");
+if ($handle === false) {
+    die("Cannot open file!");
+}
+
+// Read line by line (memory efficient for large files)
+$lineNumber = 0;
+while (($line = fgets($handle)) !== false) {
+    $lineNumber++;
+    $line = trim($line); // Remove trailing newline
+    echo "Line $lineNumber: $line\n";
+}
+
+// Close the file (important!)
+fclose($handle);</code></pre>
+
+                <h3>Reading in Chunks with fread</h3>
+                <pre><code class="language-php">&lt;?php
+// Read a specific number of bytes at a time
+$handle = fopen("data/bigfile.bin", "r");
+
+while (!feof($handle)) {       // feof = "end of file?"
+    $chunk = fread($handle, 8192); // Read 8KB at a time
+    // Process $chunk...
+    echo "Read " . strlen($chunk) . " bytes\n";
+}
+
+fclose($handle);</code></pre>
+
+                <h3>Writing with fopen/fwrite/fclose</h3>
+                <pre><code class="language-php">&lt;?php
+// Write to a new file
+$handle = fopen("data/report.txt", "w");
+
+fwrite($handle, "Sales Report\n");
+fwrite($handle, str_repeat("=", 30) . "\n\n");
+
+$products = [
+    ["Widget", 150, 12.99],
+    ["Gadget", 75, 24.99],
+    ["Doohickey", 200, 8.50],
+];
+
+foreach ($products as [$name, $qty, $price]) {
+    $line = sprintf("%-15s %5d  $%8.2f\n", $name, $qty, $price);
+    fwrite($handle, $line);
+}
+
+fwrite($handle, "\nGenerated: " . date("Y-m-d H:i:s") . "\n");
+fclose($handle);
+
+// Append to an existing log
+$log = fopen("data/access.log", "a");
+$entry = date("Y-m-d H:i:s") . " | " . $_SERVER["REMOTE_ADDR"] . " | " . $_SERVER["REQUEST_URI"] . "\n";
+fwrite($log, $entry);
+fclose($log);</code></pre>
+
+                <h3>The fgetcsv/fputcsv Shortcut</h3>
+                <p>PHP has built-in CSV parsing functions that work with file handles. We'll cover these in detail in the next section.</p>
+
+                <div class="card card-success">
+                    <h4>✅ Always Close Your Files</h4>
+                    <p>Every <code>fopen()</code> must be paired with an <code>fclose()</code>. Open file handles consume system resources, and leaving them open can lead to resource exhaustion, file locking issues, and data loss (unflushed write buffers). PHP closes handles at script end, but explicit closing is a best practice.</p>
+                </div>
+            </section>
+
+            <!-- Section 4: File Info & Checks -->
+            <section id="section4" class="lesson-section">
+                <h2>File Information &amp; Checks</h2>
+
+                <p>Before reading or writing, check that the file exists and that you have permission to access it.</p>
+
+                <h3>Essential Check Functions</h3>
+                <pre><code class="language-php">&lt;?php
+$file = "data/config.json";
+
+// Does it exist?
+if (file_exists($file)) {
+    echo "File exists!\n";
+}
+
+// Is it a regular file (not a directory)?
+if (is_file($file)) {
+    echo "It's a file!\n";
+}
+
+// Is it a directory?
+if (is_dir("data/")) {
+    echo "It's a directory!\n";
+}
+
+// Can we read it?
+if (is_readable($file)) {
+    echo "We can read it!\n";
+}
+
+// Can we write to it?
+if (is_writable($file)) {
+    echo "We can write to it!\n";
+}
+
+// File size in bytes
+$size = filesize($file);
+echo "Size: $size bytes\n";
+
+// Last modified time (Unix timestamp)
+$modified = filemtime($file);
+echo "Last modified: " . date("Y-m-d H:i:s", $modified) . "\n";</code></pre>
+
+                <h3>Safe File Operations Pattern</h3>
+                <pre><code class="language-php">&lt;?php
+function safe_read(string $path): string|false {
+    if (!file_exists($path)) {
+        error_log("File not found: $path");
+        return false;
+    }
+    if (!is_readable($path)) {
+        error_log("File not readable: $path");
+        return false;
+    }
+    return file_get_contents($path);
+}
+
+function safe_write(string $path, string $content): bool {
+    // Ensure the directory exists
+    $dir = dirname($path);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true); // Create directory recursively
+    }
+
+    $bytes = file_put_contents($path, $content, LOCK_EX);
+    if ($bytes === false) {
+        error_log("Failed to write: $path");
+        return false;
+    }
+    return true;
+}</code></pre>
+
+                <h3>pathinfo() — Dissect File Paths</h3>
+                <pre><code class="language-php">&lt;?php
+$path = "/var/www/html/uploads/photo_2026.jpg";
+$info = pathinfo($path);
+
+echo $info["dirname"];    // "/var/www/html/uploads"
+echo $info["basename"];   // "photo_2026.jpg"
+echo $info["filename"];   // "photo_2026"
+echo $info["extension"];  // "jpg"
+
+// Or get a specific component
+echo pathinfo($path, PATHINFO_EXTENSION); // "jpg"
+
+// basename() gets just the filename from a path
+echo basename($path);           // "photo_2026.jpg"
+echo basename($path, ".jpg");   // "photo_2026" (strip extension)
+
+// dirname() gets the directory portion
+echo dirname($path);            // "/var/www/html/uploads"
+echo dirname($path, 2);         // "/var/www/html" (go up 2 levels)</code></pre>
+
+                <h3>Other Useful File Functions</h3>
+                <pre><code class="language-php">&lt;?php
+// Delete a file
+unlink("data/temp.txt");
+
+// Rename/move a file
+rename("old_name.txt", "new_name.txt");
+rename("uploads/temp.txt", "archive/document.txt"); // Also moves
+
+// Copy a file
+copy("template.html", "pages/new_page.html");
+
+// Create a directory
+mkdir("data/exports", 0755);        // Single directory
+mkdir("data/exports/2026/04", 0755, true); // Recursive (create all levels)
+
+// Delete an empty directory
+rmdir("data/old_exports");
+
+// List files in a directory
+$files = scandir("uploads/");
+// [".", "..", "file1.txt", "file2.jpg", "file3.pdf"]
+
+// Cleaner — filter out . and ..
+$files = array_diff(scandir("uploads/"), [".", ".."]);
+
+// glob() — find files matching a pattern
+$phpFiles = glob("*.php");           // All PHP files in current dir
+$images = glob("uploads/*.{jpg,png,gif}", GLOB_BRACE); // Multiple extensions
+$allLogs = glob("logs/**/*.log");    // (no recursive by default)</code></pre>
+            </section>
+
+            <!-- Section 5: CSV Files -->
+            <section id="section5" class="lesson-section">
+                <h2>Working with CSV Files</h2>
+
+                <p>CSV (Comma-Separated Values) is one of the most common data exchange formats. PHP has dedicated functions for reading and writing CSV data.</p>
+
+                <h3>Reading CSV with fgetcsv()</h3>
+                <pre><code class="language-php">&lt;?php
+// Sample CSV file (data/products.csv):
+// name,price,stock,category
+// Widget,12.99,150,Tools
+// Gadget,49.99,30,Electronics
+// Doohickey,8.50,200,Tools
+
+$handle = fopen("data/products.csv", "r");
+if ($handle === false) {
+    die("Cannot open CSV file!");
+}
+
+// Read the header row
+$headers = fgetcsv($handle);
+// ["name", "price", "stock", "category"]
+
+// Read data rows
+$products = [];
+while (($row = fgetcsv($handle)) !== false) {
+    // Combine headers with values to get associative array
+    $products[] = array_combine($headers, $row);
+}
+fclose($handle);
+
+// Now $products is:
+// [
+//     ["name" => "Widget", "price" => "12.99", "stock" => "150", "category" => "Tools"],
+//     ["name" => "Gadget", "price" => "49.99", "stock" => "30", "category" => "Electronics"],
+//     ...
+// ]
+
+foreach ($products as $p) {
+    echo sprintf("%-15s $%6.2f  (%s in stock)\n",
+        $p["name"], (float)$p["price"], $p["stock"]);
+}</code></pre>
+
+                <h3>Writing CSV with fputcsv()</h3>
+                <pre><code class="language-php">&lt;?php
+$orders = [
+    ["order_id" => 1001, "customer" => "Alice", "total" => 89.97, "date" => "2026-04-15"],
+    ["order_id" => 1002, "customer" => "Bob",   "total" => 45.50, "date" => "2026-04-16"],
+    ["order_id" => 1003, "customer" => "Carol", "total" => 123.00, "date" => "2026-04-17"],
+];
+
+$handle = fopen("data/orders_export.csv", "w");
+
+// Write header row
+fputcsv($handle, ["Order ID", "Customer", "Total", "Date"]);
+
+// Write data rows
+foreach ($orders as $order) {
+    fputcsv($handle, [
+        $order["order_id"],
+        $order["customer"],
+        number_format($order["total"], 2),
+        $order["date"],
+    ]);
+}
+
+fclose($handle);
+echo "Exported " . count($orders) . " orders to CSV.";</code></pre>
+
+                <h3>Complete CSV Helper Functions</h3>
+                <pre><code class="language-php">&lt;?php
+/**
+ * Read a CSV file into an array of associative arrays.
+ * First row is treated as headers.
+ */
+function read_csv(string $file): array {
+    if (!file_exists($file)) return [];
+
+    $handle = fopen($file, "r");
+    if ($handle === false) return [];
+
+    $headers = fgetcsv($handle);
+    if ($headers === false) {
+        fclose($handle);
+        return [];
+    }
+
+    $data = [];
+    while (($row = fgetcsv($handle)) !== false) {
+        if (count($row) === count($headers)) {
+            $data[] = array_combine($headers, $row);
+        }
+    }
+
+    fclose($handle);
+    return $data;
+}
+
+/**
+ * Write an array of associative arrays to a CSV file.
+ * Headers are taken from the keys of the first row.
+ */
+function write_csv(string $file, array $data): bool {
+    if (empty($data)) return false;
+
+    $handle = fopen($file, "w");
+    if ($handle === false) return false;
+
+    // Write headers from first row's keys
+    fputcsv($handle, array_keys($data[0]));
+
+    // Write data rows
+    foreach ($data as $row) {
+        fputcsv($handle, array_values($row));
+    }
+
+    fclose($handle);
+    return true;
+}
+
+// Usage
+$products = read_csv("data/products.csv");
+// Filter and export
+$tools = array_filter($products, fn($p) => $p["category"] === "Tools");
+write_csv("data/tools_only.csv", array_values($tools));</code></pre>
+            </section>
+
+            <!-- Section 6: Include & Require -->
+            <section id="section6" class="lesson-section">
+                <h2>include &amp; require</h2>
+
+                <p>As your projects grow, you'll want to split code into multiple files — reusable functions in one file, HTML headers in another, configuration in a third. PHP's <code>include</code> and <code>require</code> statements bring those files together.</p>
+
+                <div class="card card-accent">
+                    <h4>📖 How It Works</h4>
+                    <p>When PHP encounters <code>include "file.php"</code>, it pauses, reads and executes that file's code, then continues. It's as if the included file's code were pasted right at that spot.</p>
+                </div>
+
+                <h3>include vs. require</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Statement</th>
+                                <th>If File Not Found</th>
+                                <th>Use When</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>include</code></td>
+                                <td>Warning — script continues</td>
+                                <td>Non-critical files (sidebar, ad block)</td>
+                            </tr>
+                            <tr>
+                                <td><code>require</code></td>
+                                <td><strong>Fatal error — script stops</strong></td>
+                                <td>Essential files (config, database connection)</td>
+                            </tr>
+                            <tr>
+                                <td><code>include_once</code></td>
+                                <td>Warning — skips if already included</td>
+                                <td>Helper functions (prevent redeclaration)</td>
+                            </tr>
+                            <tr>
+                                <td><code>require_once</code></td>
+                                <td>Fatal error — skips if already required</td>
+                                <td>Class definitions, core libraries</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+// include — warning if missing, script continues
+include "sidebar.php"; // If missing: Warning, but page still loads
+
+// require — fatal error if missing, script stops
+require "config.php"; // If missing: Fatal error, nothing works
+
+// include_once — only includes the file once, even if called multiple times
+include_once "helpers/format.php";
+include_once "helpers/format.php"; // Ignored — already included
+
+// require_once — same as require, but only once
+require_once "classes/Database.php";
+require_once "classes/Database.php"; // Ignored — already required</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use Which</h4>
+                    <p><strong><code>require_once</code></strong> is the most common choice for function libraries and class definitions — it prevents redeclaration errors and fails loudly if the file is missing.</p>
+                    <p><strong><code>require</code></strong> for config files and database connections — if these are missing, the app can't function.</p>
+                    <p><strong><code>include</code></strong> for optional content like sidebars or widgets — the page should still render if a widget file is missing.</p>
+                </div>
+
+                <h3>__DIR__ and __FILE__ — Reliable Paths</h3>
+                <p>One of the trickiest parts of includes is getting the file path right. If your file structure looks like this:</p>
+                <pre><code class="language-text">project/
+├── index.php
+├── config.php
+├── includes/
+│   ├── header.php
+│   ├── footer.php
+│   └── functions.php
+├── pages/
+│   ├── about.php      ← includes header.php
+│   └── contact.php    ← includes header.php
+└── admin/
+    └── dashboard.php  ← also includes header.php</code></pre>
+
+                <p>If <code>about.php</code> uses <code>include "../includes/header.php"</code>, it works. But if you visit the page from a different working directory, it breaks. The solution: use <code>__DIR__</code>.</p>
+
+                <pre><code class="language-php">&lt;?php
+// __DIR__ = absolute path to the directory containing THIS file
+// __FILE__ = absolute path to THIS file
+
+// In pages/about.php:
+echo __DIR__;  // "/var/www/project/pages"
+echo __FILE__; // "/var/www/project/pages/about.php"
+
+// BAD — relative path depends on working directory
+include "../includes/header.php"; // Might break!
+
+// GOOD — absolute path using __DIR__
+include __DIR__ . "/../includes/header.php"; // Always works!
+
+// BETTER — define a project root constant
+define("ROOT_PATH", dirname(__DIR__)); // Goes up one level from pages/
+include ROOT_PATH . "/includes/header.php";
+include ROOT_PATH . "/includes/footer.php";</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Always Use <code>__DIR__</code> for Include Paths</h4>
+                    <p>Relative paths like <code>"../includes/file.php"</code> are relative to the current working directory, which can change depending on how the script is called (web server, CLI, cron job). <code>__DIR__</code> is always relative to the file containing the statement, so it works consistently everywhere.</p>
+                </div>
+
+                <h3>Variables and Scope in Included Files</h3>
+                <pre><code class="language-php">&lt;?php
+// config.php
+$dbHost = "localhost";
+$dbName = "myapp";
+$siteName = "My Awesome Site";
+
+// index.php
+require "config.php";
+// $dbHost, $dbName, $siteName are now available here
+echo $siteName; // "My Awesome Site"
+
+// If you include inside a function, the included file
+// only has access to that function's scope:
+function loadConfig() {
+    include "config.php";
+    echo $siteName; // Works — it's in this function's scope
+}
+// echo $siteName; // Error — not available outside the function!</code></pre>
+            </section>
+
+            <!-- Section 7: Building Reusable Components -->
+            <section id="section7" class="lesson-section">
+                <h2>Building Reusable Components</h2>
+
+                <p>The most common use of includes is building a page layout system — a shared header, footer, and navigation that every page uses.</p>
+
+                <h3>Project Structure</h3>
+                <pre><code class="language-text">project/
+├── config.php              ← Site-wide settings
+├── includes/
+│   ├── header.php          ← HTML head, nav, opening tags
+│   ├── footer.php          ← Footer, closing tags, scripts
+│   └── functions.php       ← Reusable helper functions
+├── index.php               ← Home page
+├── about.php               ← About page
+└── contact.php             ← Contact page</code></pre>
+
+                <h3>config.php</h3>
+                <pre><code class="language-php">&lt;?php
+// Site configuration
+define("SITE_NAME", "PHP Foundations Demo");
+define("SITE_URL", "http://localhost/project");
+define("ROOT_PATH", __DIR__);
+
+// Database config (for later lessons)
+define("DB_HOST", "localhost");
+define("DB_NAME", "myapp");
+define("DB_USER", "root");
+define("DB_PASS", "");</code></pre>
+
+                <h3>includes/functions.php</h3>
+                <pre><code class="language-php">&lt;?php
+/**
+ * Escape output for safe HTML display.
+ */
+function e(string $text): string {
+    return htmlspecialchars($text, ENT_QUOTES, "UTF-8");
+}
+
+/**
+ * Check if the current page matches a given path (for active nav highlighting).
+ */
+function is_active(string $page): string {
+    $current = basename($_SERVER["PHP_SELF"]);
+    return $current === $page ? 'class="active"' : '';
+}
+
+/**
+ * Redirect to a different page.
+ */
+function redirect(string $url): never {
+    header("Location: $url");
+    exit;
+}
+
+/**
+ * Display a formatted error or success message.
+ */
+function flash_message(string $type, string $message): string {
+    return "&lt;div class=\"alert alert-$type\"&gt;" . e($message) . "&lt;/div&gt;";
+}</code></pre>
+
+                <h3>includes/header.php</h3>
+                <pre><code class="language-php">&lt;?php
+require_once __DIR__ . "/../config.php";
+require_once __DIR__ . "/functions.php";
+
+// $pageTitle should be set before including header.php
+$pageTitle = ($pageTitle ?? "Home") . " — " . SITE_NAME;
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;&lt;?= e($pageTitle) ?&gt;&lt;/title&gt;
+    &lt;link rel="stylesheet" href="styles.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;nav&gt;
+        &lt;a href="index.php" &lt;?= is_active("index.php") ?&gt;&gt;Home&lt;/a&gt;
+        &lt;a href="about.php" &lt;?= is_active("about.php") ?&gt;&gt;About&lt;/a&gt;
+        &lt;a href="contact.php" &lt;?= is_active("contact.php") ?&gt;&gt;Contact&lt;/a&gt;
+    &lt;/nav&gt;
+    &lt;main&gt;</code></pre>
+
+                <h3>includes/footer.php</h3>
+                <pre><code class="language-php">    &lt;/main&gt;
+    &lt;footer&gt;
+        &lt;p&gt;&amp;copy; &lt;?= date("Y") ?&gt; &lt;?= e(SITE_NAME) ?&gt;. All rights reserved.&lt;/p&gt;
+    &lt;/footer&gt;
+    &lt;script src="scripts.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <h3>index.php — Using the Layout</h3>
+                <pre><code class="language-php">&lt;?php
+$pageTitle = "Home";
+include __DIR__ . "/includes/header.php";
+?&gt;
+
+&lt;h1&gt;Welcome to &lt;?= e(SITE_NAME) ?&gt;&lt;/h1&gt;
+&lt;p&gt;This is the home page content.&lt;/p&gt;
+
+&lt;?php include __DIR__ . "/includes/footer.php"; ?&gt;</code></pre>
+
+                <h3>about.php — Same Layout, Different Content</h3>
+                <pre><code class="language-php">&lt;?php
+$pageTitle = "About Us";
+include __DIR__ . "/includes/header.php";
+?&gt;
+
+&lt;h1&gt;About Us&lt;/h1&gt;
+&lt;p&gt;We're learning PHP!&lt;/p&gt;
+
+&lt;?php include __DIR__ . "/includes/footer.php"; ?&gt;</code></pre>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A["index.php"] --> B["includes/header.php"]
+                        A --> C["Page-specific content"]
+                        A --> D["includes/footer.php"]
+                        B --> E["config.php"]
+                        B --> F["functions.php"]
+                        style A fill:#dbeafe,stroke:#3b82f6
+                        style C fill:#dcfce7,stroke:#22c55e
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ This Is How Real PHP Sites Work</h4>
+                    <p>Every PHP framework (Laravel, Symfony, WordPress) uses this same basic concept — shared layout files with page-specific content injected in the middle. Frameworks add more sophistication (template engines, layout inheritance), but the core idea is the same: split repetitive HTML into included files.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Exercises -->
+            <section id="section8" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Guestbook</h3>
+                    <p><strong>Objective:</strong> Build a guestbook that stores entries in a text file.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a self-processing form with Name, Email, and Message fields</li>
+                        <li>On valid submission, append the entry to <code>data/guestbook.txt</code> (one JSON object per line)</li>
+                        <li>Display all previous entries below the form (newest first)</li>
+                        <li>Format each entry with the name, date, and message</li>
+                        <li>Handle the case where the file doesn't exist yet</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Store each entry as a single line of JSON: <code>json_encode($entry) . "\n"</code>. Read all lines with <code>file()</code>, decode each, and reverse the array to show newest first.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$dataFile = __DIR__ . "/data/guestbook.txt";
+$name    = "";
+$email   = "";
+$message = "";
+$errors  = [];
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $name    = trim($_POST["name"] ?? "");
+    $email   = trim($_POST["email"] ?? "");
+    $message = trim($_POST["message"] ?? "");
+
+    if ($name === "") $errors[] = "Name is required.";
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Valid email is required.";
+    if ($message === "") $errors[] = "Message is required.";
+
+    if (empty($errors)) {
+        $entry = json_encode([
+            "name"    => $name,
+            "email"   => $email,
+            "message" => $message,
+            "date"    => date("Y-m-d H:i:s"),
+        ]);
+
+        // Ensure directory exists
+        if (!is_dir(dirname($dataFile))) {
+            mkdir(dirname($dataFile), 0755, true);
+        }
+
+        file_put_contents($dataFile, $entry . "\n", FILE_APPEND | LOCK_EX);
+        header("Location: guestbook.php?success=1");
+        exit;
+    }
+}
+
+// Load existing entries
+$entries = [];
+if (file_exists($dataFile)) {
+    $lines = file($dataFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $decoded = json_decode($line, true);
+        if ($decoded) $entries[] = $decoded;
+    }
+    $entries = array_reverse($entries); // Newest first
+}
+?&gt;
+&lt;h2&gt;Guestbook&lt;/h2&gt;
+
+&lt;?php if (isset($_GET["success"])): ?&gt;
+    &lt;p class="success"&gt;Thank you for signing the guestbook!&lt;/p&gt;
+&lt;?php endif; ?&gt;
+
+&lt;form method="post" action=""&gt;
+    &lt;label&gt;Name: &lt;input type="text" name="name" value="&lt;?= htmlspecialchars($name) ?&gt;"&gt;&lt;/label&gt;&lt;br&gt;
+    &lt;label&gt;Email: &lt;input type="email" name="email" value="&lt;?= htmlspecialchars($email) ?&gt;"&gt;&lt;/label&gt;&lt;br&gt;
+    &lt;label&gt;Message:&lt;br&gt;&lt;textarea name="message"&gt;&lt;?= htmlspecialchars($message) ?&gt;&lt;/textarea&gt;&lt;/label&gt;&lt;br&gt;
+    &lt;button type="submit"&gt;Sign Guestbook&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;h3&gt;&lt;?= count($entries) ?&gt; Entries&lt;/h3&gt;
+&lt;?php foreach ($entries as $e): ?&gt;
+    &lt;div class="entry"&gt;
+        &lt;strong&gt;&lt;?= htmlspecialchars($e["name"]) ?&gt;&lt;/strong&gt;
+        &lt;small&gt;(&lt;?= htmlspecialchars($e["date"]) ?&gt;)&lt;/small&gt;
+        &lt;p&gt;&lt;?= nl2br(htmlspecialchars($e["message"])) ?&gt;&lt;/p&gt;
+    &lt;/div&gt;
+&lt;?php endforeach; ?&gt;</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: CSV Product Manager</h3>
+                    <p><strong>Objective:</strong> Build a page that reads products from a CSV file, displays them in a table, and lets you add new products.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create <code>data/products.csv</code> with headers: name, price, stock, category</li>
+                        <li>Read and display all products in an HTML table</li>
+                        <li>Add a form below the table to add a new product</li>
+                        <li>Validate: name required, price must be positive number, stock must be non-negative integer</li>
+                        <li>On valid submission, append to the CSV file and redirect</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use the <code>read_csv()</code> helper to load products. Open the file in append mode (<code>"a"</code>) with <code>fopen</code>/<code>fputcsv</code> to add a new row without overwriting existing data.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$csvFile = __DIR__ . "/data/products.csv";
+$errors = [];
+
+// Initialize CSV if it doesn't exist
+if (!file_exists($csvFile)) {
+    if (!is_dir(dirname($csvFile))) mkdir(dirname($csvFile), 0755, true);
+    file_put_contents($csvFile, "name,price,stock,category\n");
+}
+
+// Handle form submission
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $name     = trim($_POST["name"] ?? "");
+    $price    = $_POST["price"] ?? "";
+    $stock    = $_POST["stock"] ?? "";
+    $category = trim($_POST["category"] ?? "");
+
+    if ($name === "") $errors[] = "Product name is required.";
+    if (!is_numeric($price) || (float)$price &lt;= 0) $errors[] = "Price must be a positive number.";
+    $stockInt = filter_var($stock, FILTER_VALIDATE_INT, ["options" => ["min_range" => 0]]);
+    if ($stockInt === false) $errors[] = "Stock must be a non-negative whole number.";
+
+    if (empty($errors)) {
+        $handle = fopen($csvFile, "a");
+        fputcsv($handle, [$name, number_format((float)$price, 2, ".", ""), $stockInt, $category]);
+        fclose($handle);
+        header("Location: products.php?added=1");
+        exit;
+    }
+}
+
+// Read products
+$products = [];
+$handle = fopen($csvFile, "r");
+$headers = fgetcsv($handle);
+while (($row = fgetcsv($handle)) !== false) {
+    if (count($row) === count($headers)) {
+        $products[] = array_combine($headers, $row);
+    }
+}
+fclose($handle);
+?&gt;
+
+&lt;h2&gt;Products (&lt;?= count($products) ?&gt;)&lt;/h2&gt;
+&lt;table border="1"&gt;
+    &lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;th&gt;Stock&lt;/th&gt;&lt;th&gt;Category&lt;/th&gt;&lt;/tr&gt;
+    &lt;?php foreach ($products as $p): ?&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;?= htmlspecialchars($p["name"]) ?&gt;&lt;/td&gt;
+        &lt;td&gt;$&lt;?= htmlspecialchars($p["price"]) ?&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;?= htmlspecialchars($p["stock"]) ?&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;?= htmlspecialchars($p["category"]) ?&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;?php endforeach; ?&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;Add Product&lt;/h3&gt;
+&lt;form method="post"&gt;
+    &lt;input type="text" name="name" placeholder="Product name" required&gt;
+    &lt;input type="number" name="price" step="0.01" placeholder="Price" required&gt;
+    &lt;input type="number" name="stock" min="0" placeholder="Stock" required&gt;
+    &lt;input type="text" name="category" placeholder="Category"&gt;
+    &lt;button type="submit"&gt;Add&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What's the difference between <code>include</code> and <code>require</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Both can include any PHP file. The difference is in how they handle errors.">
+                                A) include is for HTML files; require is for PHP files
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! If the file is not found, include produces a warning and the script continues, while require produces a fatal error and the script stops. Use require for essential files (config, database) and include for optional content.">
+                                B) include gives a warning if the file is missing; require gives a fatal error
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both statements can include files from any location. Speed is not the difference.">
+                                C) require is faster because it caches the file
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What does <code>fopen("data.txt", "w")</code> do if the file already has content?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The 'w' mode truncates (empties) the file immediately upon opening it. If you want to add to existing content, use 'a' (append) mode instead.">
+                                A) Erases all existing content — the file becomes empty
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="That's what 'a' (append) mode does. 'w' mode overwrites.">
+                                B) Positions the cursor at the end so new data is appended
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="'w' mode will create the file if it doesn't exist, and erase it if it does. It doesn't throw errors for existing files.">
+                                C) Returns an error because the file already exists
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> Why should you use <code>__DIR__</code> in include paths?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="__DIR__ doesn't affect performance. It affects reliability.">
+                                A) It makes includes faster by caching the directory lookup
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Relative paths like '../includes/file.php' depend on the current working directory, which can change. __DIR__ always resolves to the directory containing the current file, making includes work correctly regardless of how the script is invoked.">
+                                B) It provides an absolute path based on the current file's location, so includes work regardless of the working directory
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="__DIR__ is for path reliability, not security. Security comes from validating paths and not including user-supplied filenames.">
+                                C) It prevents directory traversal attacks
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What flag should you add to <code>file_put_contents()</code> to append data instead of overwriting?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="LOCK_EX prevents concurrent writes, but it doesn't control append vs. overwrite.">
+                                A) LOCK_EX
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! FILE_APPEND tells file_put_contents to add new data to the end of the file instead of replacing existing content. For log files, you'll often combine both: FILE_APPEND | LOCK_EX.">
+                                B) FILE_APPEND
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="FILE_IGNORE_NEW_LINES is a flag for the file() function when reading, not for file_put_contents.">
+                                C) FILE_IGNORE_NEW_LINES
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> When should you use <code>require_once</code> instead of <code>require</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! require_once ensures the file is only included one time, even if the statement is encountered multiple times. This is essential for files that define functions or classes — PHP throws a fatal error if you try to declare the same function or class twice.">
+                                A) When the file defines functions or classes that would cause errors if declared twice
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="require_once is actually slightly slower because it checks whether the file was already included. Use it for correctness, not performance.">
+                                B) When you need the file to load faster
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Both require and require_once produce fatal errors if the file is missing. The difference is about repeated inclusion.">
+                                C) When the file might not exist and you don't want an error
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 9: Summary -->
+            <section id="section9" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong><code>file_get_contents()</code></strong> reads an entire file into a string — the go-to for small/medium files</li>
+                        <li><strong><code>file()</code></strong> reads a file into an array of lines — great for line-by-line processing</li>
+                        <li><strong><code>file_put_contents()</code></strong> writes a string to a file; use <code>FILE_APPEND</code> to add instead of overwrite, <code>LOCK_EX</code> for safe concurrent writes</li>
+                        <li><strong><code>fopen()/fread()/fwrite()/fclose()</code></strong> give fine-grained control for large files, binary data, and CSV operations</li>
+                        <li><strong>Always check before operating:</strong> <code>file_exists()</code>, <code>is_readable()</code>, <code>is_writable()</code></li>
+                        <li><strong><code>fgetcsv()</code>/<code>fputcsv()</code></strong> handle CSV reading and writing with proper quoting and escaping</li>
+                        <li><strong><code>include</code></strong> = warning if missing; <strong><code>require</code></strong> = fatal error if missing</li>
+                        <li><strong><code>_once</code> variants</strong> prevent duplicate inclusion — use for function libraries and class files</li>
+                        <li><strong>Use <code>__DIR__</code></strong> for reliable include paths — never rely on relative paths</li>
+                        <li><strong>Shared layouts</strong> — header.php + footer.php + page content is the standard PHP pattern</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/ref.filesystem.php" target="_blank" rel="noopener">PHP Manual: Filesystem Functions</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.file-get-contents.php" target="_blank" rel="noopener">PHP Manual: file_get_contents()</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.file-put-contents.php" target="_blank" rel="noopener">PHP Manual: file_put_contents()</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.include.php" target="_blank" rel="noopener">PHP Manual: include</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.constants.predefined.php" target="_blank" rel="noopener">PHP Manual: Magic Constants (__DIR__, __FILE__, etc.)</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>With file handling and includes under your belt, Module 4 is complete! In <strong>Lesson 14: Superglobals</strong>, we kick off Module 5 by exploring all of PHP's superglobal arrays — <code>$_SERVER</code>, <code>$_REQUEST</code>, <code>$_FILES</code>, <code>$_ENV</code>, and more — to understand the full range of data PHP makes available to you.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Module 4 Complete!</h3>
+                    <p>You've finished the Web Fundamentals module! You can now build forms, validate input, handle files, and organize code with includes. You're building real web applications!</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_12.html" class="prev-lesson">← Previous: Input Validation &amp; Sanitization</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_14.html" class="next-lesson">Next: Superglobals →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Master PHP functions: declaration, parameters, return values, default values, type hints, scope, anonymous functions, and arrow functions.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Functions - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 2: Core Language</a></li>
+            <li aria-current="page">Lesson 7: Functions</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🧩 Lesson 7: Functions</h1>
+                <p class="lead">Functions are the building blocks of organized code. Instead of writing the same logic over and over, you wrap it in a function and call it by name — like creating your own custom PHP commands.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Declare and call functions with parameters and return values</li>
+                        <li>Use default parameter values and named arguments</li>
+                        <li>Add type hints and return types for safer, self-documenting code</li>
+                        <li>Understand variable scope and the difference between local and global</li>
+                        <li>Create anonymous functions (closures) and arrow functions</li>
+                        <li>Pass functions as arguments using callbacks</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 50 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 6 (loops, break/continue)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">Why Functions?</a></li>
+                        <li><a href="#section2" class="toc-link">Declaring and Calling Functions</a></li>
+                        <li><a href="#section3" class="toc-link">Parameters and Arguments</a></li>
+                        <li><a href="#section4" class="toc-link">Return Values</a></li>
+                        <li><a href="#section5" class="toc-link">Type Hints and Return Types</a></li>
+                        <li><a href="#section6" class="toc-link">Variable Scope</a></li>
+                        <li><a href="#section7" class="toc-link">Anonymous Functions (Closures)</a></li>
+                        <li><a href="#section8" class="toc-link">Arrow Functions</a></li>
+                        <li><a href="#section9" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section10" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: Why Functions? -->
+            <section id="section1" class="lesson-section">
+                <h2>Why Functions?</h2>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>Function:</strong> A named, reusable block of code that performs a specific task. Functions can accept input (parameters), process it, and return output (a return value).</p>
+                </div>
+
+                <p>Functions solve three fundamental problems:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Problem</th>
+                                <th>Without Functions</th>
+                                <th>With Functions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Repetition</strong></td>
+                                <td>Copy-paste the same code everywhere</td>
+                                <td>Write once, call many times</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Complexity</strong></td>
+                                <td>One massive file, hard to follow</td>
+                                <td>Small, focused pieces with clear names</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Maintenance</strong></td>
+                                <td>Bug fix? Update every copy</td>
+                                <td>Fix it in one place</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mermaid">
+                    flowchart LR
+                        A["Input<br/>(Parameters)"] --> B["Function<br/>Process Data"]
+                        B --> C["Output<br/>(Return Value)"]
+                </div>
+
+                <p>You've already used plenty of built-in functions: <code>echo</code>, <code>strlen()</code>, <code>var_dump()</code>, <code>number_format()</code>, <code>count()</code>, <code>in_array()</code>. Now you'll learn to create your own.</p>
+            </section>
+
+            <!-- Section 2: Declaring and Calling -->
+            <section id="section2" class="lesson-section">
+                <h2>Declaring and Calling Functions</h2>
+
+                <h3>Basic Syntax</h3>
+                <pre><code class="language-php">&lt;?php
+// Declare (define) a function
+function greet() {
+    echo "Hello, World! 👋\n";
+}
+
+// Call (invoke) the function
+greet();  // Output: Hello, World! 👋
+greet();  // Output: Hello, World! 👋
+// Call it as many times as you want!</code></pre>
+
+                <h3>Naming Rules</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rule</th>
+                                <th>Valid</th>
+                                <th>Invalid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Start with letter or underscore</td>
+                                <td><code>calculate_tax</code>, <code>_helper</code></td>
+                                <td><code>123abc</code>, <code>-func</code></td>
+                            </tr>
+                            <tr>
+                                <td>Letters, numbers, underscores only</td>
+                                <td><code>get_user_2</code></td>
+                                <td><code>get-user</code>, <code>my func</code></td>
+                            </tr>
+                            <tr>
+                                <td>Case-insensitive (but use consistent casing)</td>
+                                <td><code>myFunc()</code> = <code>MYFUNC()</code></td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>Cannot redeclare an existing function</td>
+                                <td>—</td>
+                                <td>Two <code>function greet()</code> blocks</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ Naming Convention</h4>
+                    <p>PHP convention is <strong>snake_case</strong> for function names: <code>get_user_by_id()</code>, <code>calculate_total()</code>, <code>send_email()</code>. Use descriptive verb-noun names that say what the function <em>does</em>.</p>
+                </div>
+
+                <h3>Functions Can Be Called Before Declaration</h3>
+                <p>PHP reads the entire file before executing, so functions can be called above their declaration:</p>
+                <pre><code class="language-php">&lt;?php
+// This works! PHP loads all function declarations first.
+say_hello();
+
+function say_hello() {
+    echo "Hi there!\n";
+}</code></pre>
+
+                <blockquote>
+                    <strong>💡 Note:</strong> While this works, it's best practice to declare functions before using them for readability. Readers expect definitions before usage.
+                </blockquote>
+            </section>
+
+            <!-- Section 3: Parameters and Arguments -->
+            <section id="section3" class="lesson-section">
+                <h2>Parameters and Arguments</h2>
+
+                <div class="card card-accent">
+                    <h4>📖 Terminology</h4>
+                    <p><strong>Parameter:</strong> The variable name in the function declaration (the placeholder).</p>
+                    <p><strong>Argument:</strong> The actual value passed when calling the function.</p>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+//            parameter ↓
+function greet($name) {
+    echo "Hello, $name! 👋\n";
+}
+
+//    argument ↓
+greet("Alice");   // Hello, Alice! 👋
+greet("Bob");     // Hello, Bob! 👋</code></pre>
+
+                <h3>Multiple Parameters</h3>
+                <pre><code class="language-php">&lt;?php
+function calculate_rectangle_area($width, $height) {
+    $area = $width * $height;
+    echo "A {$width}×{$height} rectangle has an area of $area\n";
+}
+
+calculate_rectangle_area(5, 3);   // Area of 15
+calculate_rectangle_area(10, 7);  // Area of 70</code></pre>
+
+                <h3>Default Parameter Values</h3>
+                <p>Give parameters default values so they become optional:</p>
+                <pre><code class="language-php">&lt;?php
+function greet($name, $greeting = "Hello") {
+    echo "$greeting, $name!\n";
+}
+
+greet("Alice");              // Hello, Alice!
+greet("Bob", "Good morning"); // Good morning, Bob!
+greet("Carol", "Hey");       // Hey, Carol!</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Default Parameters Must Come Last</h4>
+                    <p>Required parameters must come before optional ones:</p>
+                    <pre><code class="language-php">// BAD — default before required
+function bad_func($greeting = "Hello", $name) { ... }
+// What does bad_func("Alice") mean? Is "Alice" the greeting or the name?
+
+// GOOD — required first, then optional
+function good_func($name, $greeting = "Hello") { ... }</code></pre>
+                </div>
+
+                <h3>Named Arguments (PHP 8)</h3>
+                <p>PHP 8 lets you pass arguments by name, so order doesn't matter:</p>
+                <pre><code class="language-php">&lt;?php
+function create_user($name, $email, $role = "viewer", $active = true) {
+    echo "Created $name ($email) as $role";
+    echo $active ? " [active]\n" : " [inactive]\n";
+}
+
+// Positional arguments (traditional)
+create_user("Alice", "alice@example.com", "admin", true);
+
+// Named arguments — skip defaults, any order
+create_user(
+    email: "bob@example.com",
+    name: "Bob",
+    active: false
+);
+// Output: Created Bob (bob@example.com) as viewer [inactive]
+
+// Mix positional and named (positional must come first)
+create_user("Carol", "carol@example.com", role: "editor");</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use Named Arguments</h4>
+                    <p>Named arguments shine when a function has many optional parameters and you only want to set one or two. They also make code more readable at the call site — you can see what each value means without checking the function definition.</p>
+                </div>
+
+                <h3>Variadic Parameters (...)</h3>
+                <p>Accept any number of arguments with the spread operator:</p>
+                <pre><code class="language-php">&lt;?php
+function sum(int ...$numbers): int {
+    $total = 0;
+    foreach ($numbers as $num) {
+        $total += $num;
+    }
+    return $total;
+}
+
+echo sum(1, 2, 3);         // 6
+echo sum(10, 20, 30, 40);  // 100
+echo sum(5);                // 5
+
+// You can also spread an array into arguments
+$prices = [9.99, 24.50, 7.25];
+echo sum(...$prices);       // Works! (if they were ints)</code></pre>
+
+                <h3>Pass by Reference (&amp;)</h3>
+                <p>By default, PHP passes arguments <em>by value</em> — the function gets a copy. To let a function modify the original variable, pass by reference:</p>
+                <pre><code class="language-php">&lt;?php
+// Pass by value (default) — original unchanged
+function add_ten($number) {
+    $number += 10;
+}
+
+$x = 5;
+add_ten($x);
+echo $x; // Still 5! The function modified a copy.
+
+// Pass by reference — original IS modified
+function add_ten_ref(&amp;$number) {
+    $number += 10;
+}
+
+$y = 5;
+add_ten_ref($y);
+echo $y; // 15! The function modified the original.</code></pre>
+
+                <blockquote>
+                    <strong>💡 Tip:</strong> Use pass-by-reference sparingly. Returning a value is almost always cleaner and less surprising. The main use case is when a function needs to modify multiple values (since you can only <code>return</code> one thing — unless you use an array).
+                </blockquote>
+            </section>
+
+            <!-- Section 4: Return Values -->
+            <section id="section4" class="lesson-section">
+                <h2>Return Values</h2>
+
+                <p>Most useful functions <strong>return</strong> a value rather than echoing directly. This lets the caller decide what to do with the result.</p>
+
+                <h3>Basic Return</h3>
+                <pre><code class="language-php">&lt;?php
+function add($a, $b) {
+    return $a + $b;
+}
+
+$result = add(3, 4);
+echo $result;        // 7
+echo add(10, 20);    // 30
+
+// Use the result in expressions
+$total = add(5, 3) * 2;  // 16
+if (add(2, 2) === 4) {
+    echo "Math works!\n";
+}</code></pre>
+
+                <h3>Return Ends the Function</h3>
+                <p><code>return</code> immediately exits the function — any code after it won't run:</p>
+                <pre><code class="language-php">&lt;?php
+function check_age($age) {
+    if ($age &lt; 0) {
+        return "Invalid age";  // Function exits here
+    }
+
+    if ($age &lt; 18) {
+        return "Minor";        // Function exits here
+    }
+
+    return "Adult";            // Only reached if age >= 18
+    echo "This never runs!";   // Dead code
+}</code></pre>
+
+                <h3>Returning Multiple Values (via Array)</h3>
+                <p>PHP functions can only return one value, but that value can be an array:</p>
+                <pre><code class="language-php">&lt;?php
+function get_min_max(array $numbers): array {
+    return [
+        'min' => min($numbers),
+        'max' => max($numbers),
+        'range' => max($numbers) - min($numbers),
+    ];
+}
+
+$stats = get_min_max([4, 8, 1, 15, 3]);
+echo "Min: {$stats['min']}\n";    // 1
+echo "Max: {$stats['max']}\n";    // 15
+echo "Range: {$stats['range']}\n"; // 14
+
+// Or destructure directly:
+['min' => $min, 'max' => $max] = get_min_max([4, 8, 1, 15, 3]);
+echo "Min=$min, Max=$max"; // Min=1, Max=15</code></pre>
+
+                <h3>Functions That Return Nothing</h3>
+                <p>If a function doesn't have a <code>return</code> statement (or uses <code>return;</code> with no value), it returns <code>null</code>:</p>
+                <pre><code class="language-php">&lt;?php
+function log_message($msg) {
+    echo "[LOG] $msg\n";
+    // No return statement — returns null
+}
+
+$result = log_message("Server started");
+var_dump($result); // NULL</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ echo vs. return — The Golden Rule</h4>
+                    <p>Functions should <strong>return</strong> data, not <strong>echo</strong> it. Let the caller decide how to use the result. This makes functions reusable — the same function can feed a web page, an API response, a log file, or a test.</p>
+                    <pre><code class="language-php">// BAD — the function decides how to display
+function get_greeting($name) {
+    echo "&lt;h1&gt;Hello, $name!&lt;/h1&gt;";
+}
+
+// GOOD — the function returns, caller decides
+function get_greeting($name) {
+    return "Hello, $name!";
+}
+
+// Caller can use it however they want:
+echo "&lt;h1&gt;" . get_greeting("Alice") . "&lt;/h1&gt;";
+$json = json_encode(['greeting' => get_greeting("Alice")]);
+error_log(get_greeting("Alice"));</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 5: Type Hints -->
+            <section id="section5" class="lesson-section">
+                <h2>Type Hints and Return Types</h2>
+
+                <p>Type hints tell PHP (and other developers) exactly what types a function expects and returns. They catch bugs early and make code self-documenting.</p>
+
+                <h3>Parameter Type Hints</h3>
+                <pre><code class="language-php">&lt;?php
+function multiply(int $a, int $b): int {
+    return $a * $b;
+}
+
+echo multiply(4, 5);    // 20
+echo multiply(3, 7);    // 21
+// multiply("hello", 5); // TypeError!</code></pre>
+
+                <h3>Available Type Hints</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>int</code></td>
+                                <td>Integer</td>
+                                <td><code>function age(int $n)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>float</code></td>
+                                <td>Floating point</td>
+                                <td><code>function price(float $p)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>string</code></td>
+                                <td>String</td>
+                                <td><code>function greet(string $name)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>bool</code></td>
+                                <td>Boolean</td>
+                                <td><code>function toggle(bool $on)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>array</code></td>
+                                <td>Array</td>
+                                <td><code>function sum(array $nums)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>callable</code></td>
+                                <td>Function/callback</td>
+                                <td><code>function apply(callable $fn)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>?type</code></td>
+                                <td>Nullable (type or null)</td>
+                                <td><code>function find(?string $q)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>void</code></td>
+                                <td>Returns nothing</td>
+                                <td><code>function log(): void</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>mixed</code></td>
+                                <td>Any type (PHP 8)</td>
+                                <td><code>function dump(mixed $v)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>int|string</code></td>
+                                <td>Union type (PHP 8)</td>
+                                <td><code>function id(int|string $id)</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Return Type Declarations</h3>
+                <pre><code class="language-php">&lt;?php
+function divide(float $a, float $b): float {
+    if ($b == 0) {
+        throw new \InvalidArgumentException("Cannot divide by zero");
+    }
+    return $a / $b;
+}
+
+function is_adult(int $age): bool {
+    return $age >= 18;
+}
+
+function get_names(): array {
+    return ["Alice", "Bob", "Carol"];
+}
+
+// void — function doesn't return anything
+function log_event(string $event): void {
+    echo "[" . date("Y-m-d H:i:s") . "] $event\n";
+    // No return statement (or just `return;`)
+}</code></pre>
+
+                <h3>Nullable Types</h3>
+                <pre><code class="language-php">&lt;?php
+// Parameter can be string OR null
+function find_user(?string $email): ?array {
+    if ($email === null) {
+        return null;
+    }
+
+    // Simulate database lookup
+    return ["name" => "Alice", "email" => $email];
+}
+
+$user = find_user("alice@example.com"); // Returns array
+$user = find_user(null);                 // Returns null</code></pre>
+
+                <h3>Union Types (PHP 8)</h3>
+                <pre><code class="language-php">&lt;?php
+// Accept either int or string
+function format_id(int|string $id): string {
+    return "ID-" . $id;
+}
+
+echo format_id(42);       // "ID-42"
+echo format_id("abc");    // "ID-abc"
+
+// Return int or false (common pattern)
+function find_index(array $haystack, mixed $needle): int|false {
+    $key = array_search($needle, $haystack);
+    return $key !== false ? $key : false;
+}</code></pre>
+
+                <h3>Strict Types</h3>
+                <p>By default, PHP will try to coerce values (e.g., passing <code>"5"</code> to an <code>int</code> parameter works). To enforce strict type checking, add this to the top of your file:</p>
+                <pre><code class="language-php">&lt;?php
+declare(strict_types=1);
+
+function add(int $a, int $b): int {
+    return $a + $b;
+}
+
+echo add(3, 4);      // 7 ✅
+echo add("3", "4");  // TypeError! ❌ Strings not accepted in strict mode</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Best Practice</h4>
+                    <p>Use <code>declare(strict_types=1);</code> in new projects. It catches type-related bugs at development time rather than letting them slip through to production. Combined with type hints, it makes PHP feel much more predictable.</p>
+                </div>
+            </section>
+
+            <!-- Section 6: Variable Scope -->
+            <section id="section6" class="lesson-section">
+                <h2>Variable Scope</h2>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>Scope:</strong> The region of code where a variable is accessible. In PHP, functions create their own scope — variables inside a function are invisible outside, and vice versa.</p>
+                </div>
+
+                <h3>Local Scope</h3>
+                <p>Variables created inside a function are <strong>local</strong> — they exist only within that function:</p>
+                <pre><code class="language-php">&lt;?php
+function calculate() {
+    $result = 42;  // Local variable
+    echo "Inside: $result\n"; // 42
+}
+
+calculate();
+echo "Outside: $result\n"; // ⚠️ Warning: Undefined variable</code></pre>
+
+                <h3>Functions Can't See Outside Variables</h3>
+                <p>Unlike many other languages, PHP functions do <strong>not</strong> automatically have access to variables declared outside them:</p>
+                <pre><code class="language-php">&lt;?php
+$greeting = "Hello";
+
+function say_hi() {
+    echo $greeting; // ⚠️ Warning: Undefined variable!
+    // PHP functions have their own scope
+}
+
+say_hi();</code></pre>
+
+                <div class="mermaid">
+                    flowchart TD
+                        subgraph "Global Scope"
+                            A["$greeting = 'Hello'"]
+                            B["$count = 0"]
+                        end
+                        subgraph "Function Scope (say_hi)"
+                            C["Cannot see $greeting"]
+                            D["Has its own local variables"]
+                        end
+                        A -.->|"❌ Not visible"| C
+                </div>
+
+                <h3>The global Keyword (Use Sparingly!)</h3>
+                <p>The <code>global</code> keyword lets a function access an outside variable — but it's generally considered bad practice:</p>
+                <pre><code class="language-php">&lt;?php
+$counter = 0;
+
+function increment() {
+    global $counter;  // Now we can access the outer $counter
+    $counter++;
+}
+
+increment();
+increment();
+increment();
+echo $counter; // 3</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Why global Is Bad Practice</h4>
+                    <p>Using <code>global</code> creates hidden dependencies — the function secretly depends on and modifies external state. This makes code harder to test, debug, and reuse. Instead, pass values as parameters and return results:</p>
+                    <pre><code class="language-php">// BAD — hidden dependency on global
+function calculate_tax() {
+    global $price, $taxRate;
+    return $price * $taxRate;
+}
+
+// GOOD — explicit inputs and outputs
+function calculate_tax(float $price, float $taxRate): float {
+    return $price * $taxRate;
+}
+$tax = calculate_tax(100.00, 0.0825);</code></pre>
+                </div>
+
+                <h3>Static Variables</h3>
+                <p>A <code>static</code> variable retains its value between function calls but stays local to the function:</p>
+                <pre><code class="language-php">&lt;?php
+function get_next_id(): int {
+    static $id = 0;  // Initialized once, persists across calls
+    $id++;
+    return $id;
+}
+
+echo get_next_id(); // 1
+echo get_next_id(); // 2
+echo get_next_id(); // 3
+// $id is NOT accessible outside the function</code></pre>
+
+                <p>Static variables are useful for counters, caches, and one-time initialization within a function.</p>
+            </section>
+
+            <!-- Section 7: Anonymous Functions -->
+            <section id="section7" class="lesson-section">
+                <h2>Anonymous Functions (Closures)</h2>
+
+                <p>An <strong>anonymous function</strong> is a function without a name. You can assign it to a variable, pass it as an argument, or return it from another function.</p>
+
+                <h3>Basic Syntax</h3>
+                <pre><code class="language-php">&lt;?php
+// Assign an anonymous function to a variable
+$greet = function($name) {
+    return "Hello, $name!";
+};  // ← Note the semicolon! It's a statement.
+
+echo $greet("Alice");  // Hello, Alice!
+echo $greet("Bob");    // Hello, Bob!</code></pre>
+
+                <h3>Closures — Capturing Outside Variables</h3>
+                <p>Anonymous functions can capture variables from the surrounding scope using <code>use</code>:</p>
+                <pre><code class="language-php">&lt;?php
+$taxRate = 0.0825;
+
+$calculate_tax = function(float $price) use ($taxRate): float {
+    return $price * $taxRate;
+};
+
+echo $calculate_tax(100);  // 8.25
+echo $calculate_tax(250);  // 20.625
+
+// The captured value is a COPY at the time of creation
+$taxRate = 0.10;  // Changing the outer variable...
+echo $calculate_tax(100);  // Still 8.25! (captured the old value)
+
+// To capture by reference, use &amp;
+$counter = 0;
+$increment = function() use (&amp;$counter) {
+    $counter++;
+};
+
+$increment();
+$increment();
+echo $counter; // 2 — the closure modified the outer variable</code></pre>
+
+                <h3>Functions as Arguments (Callbacks)</h3>
+                <p>One of the most powerful uses of anonymous functions is passing them as arguments — these are called <strong>callbacks</strong>:</p>
+                <pre><code class="language-php">&lt;?php
+$numbers = [3, 1, 4, 1, 5, 9, 2, 6];
+
+// Sort with a custom comparison
+usort($numbers, function($a, $b) {
+    return $b - $a; // Descending order
+});
+print_r($numbers); // [9, 6, 5, 4, 3, 2, 1, 1]
+
+// Filter with a callback
+$evens = array_filter($numbers, function($n) {
+    return $n % 2 === 0;
+});
+print_r($evens); // [6, 4, 2]
+
+// Transform with a callback
+$doubled = array_map(function($n) {
+    return $n * 2;
+}, $numbers);
+print_r($doubled); // [18, 12, 10, 8, 6, 4, 2, 2]</code></pre>
+
+                <h3>Writing Functions That Accept Callbacks</h3>
+                <pre><code class="language-php">&lt;?php
+function apply_to_all(array $items, callable $transform): array {
+    $result = [];
+    foreach ($items as $key => $item) {
+        $result[$key] = $transform($item);
+    }
+    return $result;
+}
+
+$names = ["alice", "bob", "carol"];
+
+$uppercased = apply_to_all($names, function($name) {
+    return strtoupper($name);
+});
+// ["ALICE", "BOB", "CAROL"]
+
+$lengths = apply_to_all($names, function($name) {
+    return strlen($name);
+});
+// [5, 3, 5]
+
+// You can also pass built-in functions by name!
+$capitalized = apply_to_all($names, 'ucfirst');
+// ["Alice", "Bob", "Carol"]</code></pre>
+            </section>
+
+            <!-- Section 8: Arrow Functions -->
+            <section id="section8" class="lesson-section">
+                <h2>Arrow Functions</h2>
+
+                <p>PHP 7.4 introduced <strong>arrow functions</strong> — a shorter syntax for simple anonymous functions. They automatically capture variables from the outer scope (no <code>use</code> needed).</p>
+
+                <h3>Syntax</h3>
+                <pre><code class="language-php">fn($param) => expression</code></pre>
+
+                <h3>Comparison</h3>
+                <pre><code class="language-php">&lt;?php
+// Anonymous function
+$double = function($n) {
+    return $n * 2;
+};
+
+// Arrow function — same thing, shorter
+$double = fn($n) => $n * 2;
+
+echo $double(5); // 10</code></pre>
+
+                <h3>Automatic Variable Capture</h3>
+                <pre><code class="language-php">&lt;?php
+$taxRate = 0.0825;
+
+// Anonymous function — needs "use"
+$calc1 = function($price) use ($taxRate) {
+    return $price * $taxRate;
+};
+
+// Arrow function — captures automatically
+$calc2 = fn($price) => $price * $taxRate;
+
+echo $calc1(100); // 8.25
+echo $calc2(100); // 8.25</code></pre>
+
+                <h3>Arrow Functions with array_map, array_filter</h3>
+                <p>Arrow functions really shine as concise callbacks:</p>
+                <pre><code class="language-php">&lt;?php
+$prices = [10.99, 24.50, 7.25, 18.00, 3.99];
+
+// Filter prices over $10
+$expensive = array_filter($prices, fn($p) => $p > 10);
+// [10.99, 24.50, 18.00]
+
+// Apply 10% discount
+$discounted = array_map(fn($p) => $p * 0.90, $prices);
+// [9.891, 22.05, 6.525, 16.2, 3.591]
+
+// Sum of prices (using array_reduce)
+$total = array_reduce($prices, fn($carry, $p) => $carry + $p, 0);
+// 64.73
+
+// Sort by price descending
+$sorted = $prices;
+usort($sorted, fn($a, $b) => $b &lt;=&gt; $a);
+// [24.50, 18.00, 10.99, 7.25, 3.99]</code></pre>
+
+                <h3>Limitations of Arrow Functions</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Anonymous Function</th>
+                                <th>Arrow Function</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Multiple statements</td>
+                                <td>✅ Yes</td>
+                                <td>❌ Single expression only</td>
+                            </tr>
+                            <tr>
+                                <td>Outer variable capture</td>
+                                <td>Manual (<code>use</code>)</td>
+                                <td>Automatic (by value)</td>
+                            </tr>
+                            <tr>
+                                <td>Modify outer variables</td>
+                                <td>✅ With <code>use (&amp;$var)</code></td>
+                                <td>❌ Always by value</td>
+                            </tr>
+                            <tr>
+                                <td>Return keyword</td>
+                                <td>Required</td>
+                                <td>Implicit (expression is the return)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use Each</h4>
+                    <p><strong>Arrow functions:</strong> Short, one-expression callbacks — filtering, mapping, sorting, simple transforms.</p>
+                    <p><strong>Anonymous functions:</strong> Multi-line logic, need to modify outer variables by reference, or complex processing.</p>
+                    <p><strong>Named functions:</strong> Reusable logic, anything complex enough to deserve a name, called from multiple places.</p>
+                </div>
+            </section>
+
+            <!-- Section 9: Exercises -->
+            <section id="section9" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Temperature Converter</h3>
+                    <p><strong>Objective:</strong> Write functions to convert between Fahrenheit, Celsius, and Kelvin.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create <code>f_to_c($f)</code> — Fahrenheit to Celsius: (F - 32) × 5/9</li>
+                        <li>Create <code>c_to_f($c)</code> — Celsius to Fahrenheit: C × 9/5 + 32</li>
+                        <li>Create <code>c_to_k($c)</code> — Celsius to Kelvin: C + 273.15</li>
+                        <li>Add type hints and return types</li>
+                        <li>Create a <code>convert($temp, $from, $to)</code> function that handles all conversions</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>For the universal <code>convert()</code> function, first convert everything to Celsius as a common base, then convert from Celsius to the target unit. Use <code>match</code> for clean routing.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+function f_to_c(float $f): float {
+    return ($f - 32) * 5 / 9;
+}
+
+function c_to_f(float $c): float {
+    return $c * 9 / 5 + 32;
+}
+
+function c_to_k(float $c): float {
+    return $c + 273.15;
+}
+
+function k_to_c(float $k): float {
+    return $k - 273.15;
+}
+
+function convert(float $temp, string $from, string $to): float {
+    // Normalize to Celsius first
+    $celsius = match ($from) {
+        'F' => f_to_c($temp),
+        'C' => $temp,
+        'K' => k_to_c($temp),
+        default => throw new \InvalidArgumentException("Unknown unit: $from"),
+    };
+
+    // Convert from Celsius to target
+    return match ($to) {
+        'F' => c_to_f($celsius),
+        'C' => $celsius,
+        'K' => c_to_k($celsius),
+        default => throw new \InvalidArgumentException("Unknown unit: $to"),
+    };
+}
+
+// Test it
+echo convert(212, 'F', 'C') . "°C\n";   // 100°C
+echo convert(100, 'C', 'K') . " K\n";    // 373.15 K
+echo convert(0, 'K', 'F') . "°F\n";      // -459.67°F</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Array Utility Functions</h3>
+                    <p><strong>Objective:</strong> Build a small library of reusable array functions.</p>
+
+                    <h4>Create these functions:</h4>
+                    <ol>
+                        <li><code>array_average(array $nums): float</code> — average of all values</li>
+                        <li><code>array_pluck(array $items, string $key): array</code> — extract one field from an array of associative arrays</li>
+                        <li><code>array_group_by(array $items, string $key): array</code> — group items by a field value</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>For <code>array_average</code>, use <code>array_sum()</code> and <code>count()</code>. For <code>array_pluck</code>, loop and extract <code>$item[$key]</code>. For <code>array_group_by</code>, use the field value as the key for a new array.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+function array_average(array $nums): float {
+    if (empty($nums)) {
+        return 0.0;
+    }
+    return array_sum($nums) / count($nums);
+}
+
+function array_pluck(array $items, string $key): array {
+    $result = [];
+    foreach ($items as $item) {
+        if (isset($item[$key])) {
+            $result[] = $item[$key];
+        }
+    }
+    return $result;
+}
+
+function array_group_by(array $items, string $key): array {
+    $groups = [];
+    foreach ($items as $item) {
+        $groupKey = $item[$key] ?? 'unknown';
+        $groups[$groupKey][] = $item;
+    }
+    return $groups;
+}
+
+// Test data
+$employees = [
+    ["name" => "Alice", "dept" => "Engineering", "salary" => 95000],
+    ["name" => "Bob",   "dept" => "Marketing",   "salary" => 72000],
+    ["name" => "Carol", "dept" => "Engineering", "salary" => 105000],
+    ["name" => "Dave",  "dept" => "Marketing",   "salary" => 68000],
+    ["name" => "Eve",   "dept" => "Engineering", "salary" => 88000],
+];
+
+// Get all names
+$names = array_pluck($employees, "name");
+print_r($names); // ["Alice", "Bob", "Carol", "Dave", "Eve"]
+
+// Get all salaries and average
+$salaries = array_pluck($employees, "salary");
+echo "Average salary: $" . number_format(array_average($salaries), 2) . "\n";
+
+// Group by department
+$byDept = array_group_by($employees, "dept");
+foreach ($byDept as $dept => $members) {
+    $deptSalaries = array_pluck($members, "salary");
+    $avg = number_format(array_average($deptSalaries), 2);
+    echo "$dept: " . count($members) . " people, avg \$$avg\n";
+}</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 3: Higher-Order Functions</h3>
+                    <p><strong>Objective:</strong> Practice callbacks and arrow functions by creating a data pipeline.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create an array of product data (name, price, category, in_stock)</li>
+                        <li>Use <code>array_filter</code> with an arrow function to get only in-stock items</li>
+                        <li>Use <code>array_filter</code> again to get only items under $25</li>
+                        <li>Use <code>array_map</code> to apply a 15% discount</li>
+                        <li>Use <code>usort</code> to sort by price ascending</li>
+                        <li>Display the final list</li>
+                    </ol>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$products = [
+    ["name" => "Widget",      "price" => 12.99, "category" => "Tools",    "in_stock" => true],
+    ["name" => "Gadget",      "price" => 49.99, "category" => "Electronics","in_stock" => true],
+    ["name" => "Doohickey",   "price" => 8.50,  "category" => "Tools",    "in_stock" => false],
+    ["name" => "Thingamajig", "price" => 22.00, "category" => "Toys",     "in_stock" => true],
+    ["name" => "Whatchamacallit","price" => 15.75,"category" => "Tools",   "in_stock" => true],
+    ["name" => "Gizmo",       "price" => 31.00, "category" => "Electronics","in_stock" => true],
+];
+
+// Pipeline
+$result = $products;
+
+// Step 1: Only in-stock items
+$result = array_filter($result, fn($p) => $p["in_stock"]);
+
+// Step 2: Only items under $25
+$result = array_filter($result, fn($p) => $p["price"] &lt; 25);
+
+// Step 3: Apply 15% discount
+$result = array_map(fn($p) => [
+    ...$p,
+    "original_price" => $p["price"],
+    "price" => round($p["price"] * 0.85, 2),
+], $result);
+
+// Step 4: Sort by price ascending
+usort($result, fn($a, $b) => $a["price"] &lt;=&gt; $b["price"]);
+
+// Display
+echo "🏷️ On Sale (In Stock, Under \$25, 15% Off):\n\n";
+foreach ($result as $product) {
+    $orig = number_format($product["original_price"], 2);
+    $sale = number_format($product["price"], 2);
+    echo "  {$product['name']}: \$$orig → \$$sale\n";
+}</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What does a function return if it has no <code>return</code> statement?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="0 is an integer value. Functions without return statements don't return integers.">
+                                A) 0
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="false is a boolean value. PHP functions have a specific 'nothing' return value.">
+                                B) false
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Functions without a return statement (or with a bare 'return;') return null. You can declare this intent with a void return type.">
+                                C) null
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="An empty string is still a value. PHP has a special type for 'no value'.">
+                                D) ""
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What's the difference between a parameter and an argument?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="They're different things. One is in the definition, the other at the call site.">
+                                A) They're the same thing
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Parameters are the placeholder names in the function declaration. Arguments are the actual values you pass when calling the function.">
+                                B) Parameters are in the declaration; arguments are the values passed when calling
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="It's the other way around. Think: parameters are the 'plan', arguments are the 'actual'.">
+                                C) Arguments are in the declaration; parameters are passed when calling
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> Why is <code>global</code> considered bad practice?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="global works fine syntactically — the problem is architectural.">
+                                A) It causes syntax errors
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! global creates hidden dependencies between functions and external state. Functions become harder to test, debug, and reuse because they rely on variables that aren't visible in the function signature. Passing parameters and returning values is cleaner.">
+                                B) It creates hidden dependencies that make code harder to test and debug
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="global doesn't affect performance. The concern is code quality and maintainability.">
+                                C) It makes functions run slower
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> What makes arrow functions different from anonymous functions?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Arrow functions can accept multiple parameters. The limitation is about the body.">
+                                A) Arrow functions can only have one parameter
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Arrow functions automatically capture outer variables (by value), only allow a single expression (which is implicitly returned), and use the fn keyword. Anonymous functions need 'use' for capturing, can have multiple statements, and need explicit return.">
+                                B) They auto-capture outer variables, are single-expression, and use the fn keyword
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Arrow functions were introduced in PHP 7.4 and are widely supported.">
+                                C) Arrow functions only work in PHP 8+
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> What does <code>declare(strict_types=1);</code> do?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="strict_types affects type checking, not variable declaration.">
+                                A) Requires all variables to be declared before use
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! With strict_types=1, PHP will throw a TypeError if you pass a string '5' to a function expecting int. Without it, PHP silently coerces the string to an integer. This catches type bugs early.">
+                                B) Prevents PHP from automatically converting types in function arguments
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="strict_types specifically affects how type hints on function parameters and return values are enforced.">
+                                C) Makes all comparisons use === instead of ==
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Summary -->
+            <section id="section10" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Functions</strong> — Named, reusable blocks of code that accept input and return output</li>
+                        <li><strong>Parameters</strong> — Support defaults, named arguments (PHP 8), variadic (<code>...</code>), and pass-by-reference (<code>&amp;</code>)</li>
+                        <li><strong>Return values</strong> — Always prefer <code>return</code> over <code>echo</code>; return arrays for multiple values</li>
+                        <li><strong>Type hints</strong> — Add <code>int</code>, <code>string</code>, <code>array</code>, <code>?type</code>, <code>int|string</code> for safety; use <code>strict_types</code> for enforcement</li>
+                        <li><strong>Scope</strong> — Functions have their own scope; avoid <code>global</code>; use <code>static</code> for persistent local state</li>
+                        <li><strong>Anonymous functions</strong> — Assign to variables, pass as callbacks; capture outer variables with <code>use</code></li>
+                        <li><strong>Arrow functions</strong> — Concise <code>fn($x) =&gt; expr</code> syntax; auto-capture; single expression only</li>
+                        <li><strong>Callbacks</strong> — Pass functions as arguments to <code>array_map</code>, <code>array_filter</code>, <code>usort</code>, and your own functions</li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/language.functions.php" target="_blank" rel="noopener">PHP Manual: Functions</a></li>
+                    <li><a href="https://www.php.net/manual/en/functions.arguments.php" target="_blank" rel="noopener">PHP Manual: Function Arguments</a></li>
+                    <li><a href="https://www.php.net/manual/en/functions.anonymous.php" target="_blank" rel="noopener">PHP Manual: Anonymous Functions</a></li>
+                    <li><a href="https://www.php.net/manual/en/functions.arrow.php" target="_blank" rel="noopener">PHP Manual: Arrow Functions</a></li>
+                    <li><a href="https://www.php.net/manual/en/language.types.declarations.php" target="_blank" rel="noopener">PHP Manual: Type Declarations</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>With functions in your toolkit, you can now organize code beautifully. In <strong>Lesson 8: Arrays</strong>, you'll take a deep dive into PHP's most versatile data structure — indexed arrays, associative arrays, multidimensional arrays, destructuring, and the spread operator.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>You've completed Module 2: Core Language! You now have a solid command of PHP's fundamentals — variables, operators, control flow, loops, and functions. Time to level up with data structures!</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_06.html" class="prev-lesson">← Previous: Loops</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_08.html" class="next-lesson">Next: Arrays →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

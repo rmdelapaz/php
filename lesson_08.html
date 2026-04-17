@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Master PHP arrays: indexed arrays, associative arrays, multidimensional arrays, array destructuring, and the spread operator.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Arrays - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 3: Data Structures</a></li>
+            <li aria-current="page">Lesson 8: Arrays</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>📦 Lesson 8: Arrays</h1>
+                <p class="lead">Arrays are PHP's Swiss Army knife — a single variable that holds an entire collection of values. Whether you're building a shopping cart, storing database rows, or processing form data, arrays are at the center of it all.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Create and manipulate indexed (numeric) arrays</li>
+                        <li>Build and access associative (key-value) arrays</li>
+                        <li>Work with multidimensional arrays (arrays of arrays)</li>
+                        <li>Add, remove, and modify array elements</li>
+                        <li>Use array destructuring to unpack values cleanly</li>
+                        <li>Combine and expand arrays with the spread operator (<code>...</code>)</li>
+                        <li>Loop through arrays with <code>foreach</code> and other techniques</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 50 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 7 (functions, callbacks, arrow functions)</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">What Are Arrays?</a></li>
+                        <li><a href="#section2" class="toc-link">Indexed Arrays</a></li>
+                        <li><a href="#section3" class="toc-link">Associative Arrays</a></li>
+                        <li><a href="#section4" class="toc-link">Modifying Arrays</a></li>
+                        <li><a href="#section5" class="toc-link">Looping Through Arrays</a></li>
+                        <li><a href="#section6" class="toc-link">Multidimensional Arrays</a></li>
+                        <li><a href="#section7" class="toc-link">Array Destructuring</a></li>
+                        <li><a href="#section8" class="toc-link">The Spread Operator</a></li>
+                        <li><a href="#section9" class="toc-link">Useful Array Checks</a></li>
+                        <li><a href="#section10" class="toc-link">Hands-On Exercises</a></li>
+                        <li><a href="#section11" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: What Are Arrays? -->
+            <section id="section1" class="lesson-section">
+                <h2>What Are Arrays?</h2>
+
+                <div class="card card-accent">
+                    <h4>📖 Definition</h4>
+                    <p><strong>Array:</strong> An ordered collection of values stored in a single variable. Each value (called an <em>element</em>) is identified by a <em>key</em> — either a number (indexed array) or a string (associative array).</p>
+                </div>
+
+                <p>Without arrays, storing a list of five student names would require five separate variables. With an array, you store them all in one place and access them by position or label.</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Without Arrays</th>
+                                <th>With an Array</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>$student1 = "Alice";</code><br><code>$student2 = "Bob";</code><br><code>$student3 = "Carol";</code></td>
+                                <td><code>$students = ["Alice", "Bob", "Carol"];</code></td>
+                            </tr>
+                            <tr>
+                                <td>Hard to loop, hard to pass around</td>
+                                <td>Easy to loop, easy to pass to functions</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>PHP has two flavors of array (but they're really the same data structure under the hood):</p>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A["PHP Array"] --> B["Indexed Array<br/>Keys are integers: 0, 1, 2, ..."]
+                        A --> C["Associative Array<br/>Keys are strings: 'name', 'age', ..."]
+                        B --> D["$colors = ['red', 'blue', 'green']"]
+                        C --> E["$user = ['name' => 'Alice', 'age' => 30]"]
+                </div>
+
+                <blockquote>
+                    <strong>💡 Key Insight:</strong> In PHP, <em>all</em> arrays are actually ordered maps — they map keys to values. An "indexed" array is just an array where the keys happen to be consecutive integers starting at 0. This is different from languages like Java or C where arrays and maps are separate data structures.
+                </blockquote>
+            </section>
+
+            <!-- Section 2: Indexed Arrays -->
+            <section id="section2" class="lesson-section">
+                <h2>Indexed Arrays</h2>
+
+                <p>An <strong>indexed array</strong> uses integer keys, starting at 0 by default.</p>
+
+                <h3>Creating Indexed Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+// Short syntax (preferred since PHP 5.4)
+$fruits = ["apple", "banana", "cherry"];
+
+// Legacy syntax (you'll see this in older code)
+$fruits = array("apple", "banana", "cherry");
+
+// Empty array — fill it later
+$colors = [];
+
+// Creating with specific values
+$primes = [2, 3, 5, 7, 11, 13];
+$mixed  = ["hello", 42, true, 3.14, null]; // PHP arrays can hold mixed types</code></pre>
+
+                <h3>Accessing Elements by Index</h3>
+                <p>Array indices start at <strong>0</strong>, not 1:</p>
+                <pre><code class="language-php">&lt;?php
+$fruits = ["apple", "banana", "cherry", "date", "elderberry"];
+//          [0]       [1]       [2]       [3]     [4]
+
+echo $fruits[0]; // apple    (first element)
+echo $fruits[2]; // cherry   (third element)
+echo $fruits[4]; // elderberry (last element)
+
+// Negative indices? PHP doesn't support them natively.
+// But you can calculate from the end:
+$last = $fruits[count($fruits) - 1]; // elderberry
+
+// Access a non-existent index
+echo $fruits[10]; // ⚠️ Warning: Undefined array key 10</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Off-by-One Errors</h4>
+                    <p>The most common array bug: an array with 5 elements has indices 0 through 4, <em>not</em> 1 through 5. If you try <code>$fruits[5]</code>, you'll get an undefined key warning.</p>
+                </div>
+
+                <h3>Counting Elements</h3>
+                <pre><code class="language-php">&lt;?php
+$colors = ["red", "green", "blue"];
+
+echo count($colors);   // 3
+echo sizeof($colors);  // 3 (alias for count — same function)
+
+// Empty check
+if (count($colors) === 0) {
+    echo "No colors!\n";
+}
+
+// Or use the more readable empty() function
+if (empty($colors)) {
+    echo "No colors!\n";
+}</code></pre>
+
+                <h3>Printing Arrays for Debugging</h3>
+                <pre><code class="language-php">&lt;?php
+$scores = [95, 87, 72, 100, 68];
+
+// print_r — human-readable
+print_r($scores);
+/* Output:
+Array
+(
+    [0] => 95
+    [1] => 87
+    [2] => 72
+    [3] => 100
+    [4] => 68
+)
+*/
+
+// var_dump — detailed (with types and sizes)
+var_dump($scores);
+/* Output:
+array(5) {
+  [0] => int(95)
+  [1] => int(87)
+  [2] => int(72)
+  [3] => int(100)
+  [4] => int(68)
+}
+*/
+
+// Quick one-line debug trick
+echo "&lt;pre&gt;" . print_r($scores, true) . "&lt;/pre&gt;";</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Pro Tip: print_r with true</h4>
+                    <p>Passing <code>true</code> as the second argument to <code>print_r()</code> makes it <em>return</em> the string instead of printing it. This is useful for logging, wrapping in <code>&lt;pre&gt;</code> tags, or storing the output.</p>
+                </div>
+            </section>
+
+            <!-- Section 3: Associative Arrays -->
+            <section id="section3" class="lesson-section">
+                <h2>Associative Arrays</h2>
+
+                <p>An <strong>associative array</strong> uses string keys (sometimes called <em>named keys</em>) instead of numbers. Think of them as dictionaries, maps, or objects from other languages.</p>
+
+                <h3>Creating Associative Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+$user = [
+    "name"  => "Alice",
+    "email" => "alice@example.com",
+    "age"   => 30,
+    "admin" => false,
+];
+
+// The => operator means "maps to"
+// "name" => "Alice" means: key "name" maps to value "Alice"</code></pre>
+
+                <h3>Accessing Values by Key</h3>
+                <pre><code class="language-php">&lt;?php
+$user = [
+    "name"  => "Alice",
+    "email" => "alice@example.com",
+    "age"   => 30,
+];
+
+echo $user["name"];   // Alice
+echo $user["email"];  // alice@example.com
+echo $user["age"];    // 30
+
+// Variable interpolation in strings
+echo "Hello, {$user['name']}! You are {$user['age']} years old.\n";
+
+// Non-existent key
+echo $user["phone"]; // ⚠️ Warning: Undefined array key "phone"</code></pre>
+
+                <h3>Safe Access with Null Coalescing</h3>
+                <p>Use <code>??</code> to provide a default value for missing keys:</p>
+                <pre><code class="language-php">&lt;?php
+$user = ["name" => "Alice", "email" => "alice@example.com"];
+
+// If key exists, use it; otherwise use the default
+$phone = $user["phone"] ?? "Not provided";
+echo $phone; // "Not provided"
+
+$name = $user["name"] ?? "Unknown";
+echo $name;  // "Alice" (key exists, so default is ignored)</code></pre>
+
+                <h3>When to Use Indexed vs. Associative</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Use Case</th>
+                                <th>Type</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>List of similar items</td>
+                                <td>Indexed</td>
+                                <td><code>$colors = ["red", "blue", "green"];</code></td>
+                            </tr>
+                            <tr>
+                                <td>A single record with fields</td>
+                                <td>Associative</td>
+                                <td><code>$user = ["name" => "Alice", "age" => 30];</code></td>
+                            </tr>
+                            <tr>
+                                <td>Database rows</td>
+                                <td>Indexed of associative</td>
+                                <td><code>$users = [["name" => "Alice"], ...];</code></td>
+                            </tr>
+                            <tr>
+                                <td>Config settings</td>
+                                <td>Associative</td>
+                                <td><code>$config = ["debug" => true, "db" => "mysql"];</code></td>
+                            </tr>
+                            <tr>
+                                <td>Lookup / dictionary</td>
+                                <td>Associative</td>
+                                <td><code>$codes = ["US" => "United States", ...];</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 4: Modifying Arrays -->
+            <section id="section4" class="lesson-section">
+                <h2>Modifying Arrays</h2>
+
+                <h3>Adding Elements</h3>
+                <pre><code class="language-php">&lt;?php
+// --- Indexed Arrays ---
+$fruits = ["apple", "banana"];
+
+// Append to end (most common)
+$fruits[] = "cherry";     // $fruits is now ["apple", "banana", "cherry"]
+$fruits[] = "date";       // $fruits is now ["apple", "banana", "cherry", "date"]
+
+// array_push — same as [], but can add multiple
+array_push($fruits, "elderberry", "fig");
+// $fruits is now ["apple", "banana", "cherry", "date", "elderberry", "fig"]
+
+// Add to beginning
+array_unshift($fruits, "avocado");
+// ["avocado", "apple", "banana", "cherry", "date", "elderberry", "fig"]
+
+// Insert at specific position (index 2)
+array_splice($fruits, 2, 0, ["blueberry"]);
+// ["avocado", "apple", "blueberry", "banana", ...]
+
+// --- Associative Arrays ---
+$user = ["name" => "Alice"];
+
+// Add a new key
+$user["email"] = "alice@example.com";
+$user["age"] = 30;
+// ["name" => "Alice", "email" => "alice@example.com", "age" => 30]</code></pre>
+
+                <h3>Updating Elements</h3>
+                <pre><code class="language-php">&lt;?php
+$fruits = ["apple", "banana", "cherry"];
+
+// Update by index
+$fruits[1] = "blueberry";
+// ["apple", "blueberry", "cherry"]
+
+$user = ["name" => "Alice", "age" => 30];
+
+// Update by key
+$user["age"] = 31;
+$user["name"] = "Alice Johnson";
+// ["name" => "Alice Johnson", "age" => 31]</code></pre>
+
+                <h3>Removing Elements</h3>
+                <pre><code class="language-php">&lt;?php
+$fruits = ["apple", "banana", "cherry", "date"];
+
+// Remove last element
+$last = array_pop($fruits);
+echo $last; // "date"
+// $fruits is now ["apple", "banana", "cherry"]
+
+// Remove first element
+$first = array_shift($fruits);
+echo $first; // "apple"
+// $fruits is now ["banana", "cherry"]
+
+// Remove by index (leaves a gap!)
+$colors = ["red", "green", "blue", "yellow"];
+unset($colors[1]); // Removes "green"
+print_r($colors);
+// Array ( [0] => red [2] => blue [3] => yellow )
+// Notice: index 1 is GONE, but 2 and 3 didn't shift down!
+
+// Re-index after unset
+$colors = array_values($colors);
+// Array ( [0] => red [1] => blue [2] => yellow )
+
+// Remove from associative array
+$user = ["name" => "Alice", "email" => "alice@example.com", "temp" => "delete me"];
+unset($user["temp"]);
+// ["name" => "Alice", "email" => "alice@example.com"]</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ unset() Leaves Gaps in Indexed Arrays</h4>
+                    <p>When you <code>unset()</code> an element from an indexed array, the remaining keys don't renumber themselves. Use <code>array_values()</code> to re-index, or use <code>array_splice()</code> instead, which automatically re-indexes.</p>
+                    <pre><code class="language-php">// array_splice removes AND re-indexes
+$colors = ["red", "green", "blue", "yellow"];
+array_splice($colors, 1, 1); // Remove 1 element at index 1
+// ["red", "blue", "yellow"] — clean sequential indices!</code></pre>
+                </div>
+
+                <h3>Checking If Keys or Values Exist</h3>
+                <pre><code class="language-php">&lt;?php
+$user = ["name" => "Alice", "email" => "alice@example.com", "active" => false];
+
+// Does a KEY exist?
+echo array_key_exists("name", $user);     // true
+echo array_key_exists("phone", $user);    // false
+
+// isset() — checks key exists AND value is not null
+echo isset($user["name"]);   // true
+echo isset($user["phone"]);  // false
+
+// The difference: isset vs array_key_exists
+$data = ["value" => null];
+echo array_key_exists("value", $data); // true  — key exists
+echo isset($data["value"]);           // false — key exists but value is null!
+
+// Does a VALUE exist in the array?
+$fruits = ["apple", "banana", "cherry"];
+echo in_array("banana", $fruits);   // true
+echo in_array("grape", $fruits);    // false
+
+// Strict comparison (recommended)
+echo in_array("1", [1, 2, 3]);         // true  — "1" == 1 (loose)
+echo in_array("1", [1, 2, 3], true);   // false — "1" !== 1 (strict)</code></pre>
+            </section>
+
+            <!-- Section 5: Looping -->
+            <section id="section5" class="lesson-section">
+                <h2>Looping Through Arrays</h2>
+
+                <h3>foreach — The Go-To Loop for Arrays</h3>
+                <p>The <code>foreach</code> loop is designed specifically for arrays. It visits every element without needing to manage an index:</p>
+
+                <pre><code class="language-php">&lt;?php
+// Indexed array — value only
+$fruits = ["apple", "banana", "cherry"];
+
+foreach ($fruits as $fruit) {
+    echo "I like $fruit\n";
+}
+// I like apple
+// I like banana
+// I like cherry
+
+// Indexed array — index and value
+foreach ($fruits as $index => $fruit) {
+    echo "$index: $fruit\n";
+}
+// 0: apple
+// 1: banana
+// 2: cherry
+
+// Associative array — key and value
+$user = ["name" => "Alice", "age" => 30, "city" => "Portland"];
+
+foreach ($user as $key => $value) {
+    echo "$key: $value\n";
+}
+// name: Alice
+// age: 30
+// city: Portland</code></pre>
+
+                <h3>Modifying Values During Iteration</h3>
+                <p>To change array elements inside a <code>foreach</code>, use a reference (<code>&amp;</code>):</p>
+                <pre><code class="language-php">&lt;?php
+$prices = [10.99, 24.50, 7.25, 18.00];
+
+// Apply 10% discount to all prices
+foreach ($prices as &amp;$price) {
+    $price = round($price * 0.90, 2);
+}
+unset($price); // ← ALWAYS unset the reference after the loop!
+
+print_r($prices);
+// [9.89, 22.05, 6.53, 16.2]</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Always unset() After Reference Loops</h4>
+                    <p>If you use <code>foreach ($array as &amp;$item)</code>, the <code>$item</code> variable remains a reference to the last element after the loop ends. If you later use <code>$item</code> for something else, you'll accidentally overwrite that last element. Always <code>unset($item)</code> after the loop.</p>
+                </div>
+
+                <h3>for Loop with Arrays</h3>
+                <p>Sometimes a traditional <code>for</code> loop is useful when you need the index for calculations:</p>
+                <pre><code class="language-php">&lt;?php
+$scores = [85, 92, 78, 95, 88];
+
+for ($i = 0; $i &lt; count($scores); $i++) {
+    echo "Student " . ($i + 1) . ": {$scores[$i]}\n";
+}
+
+// Pro tip: cache count() for performance in tight loops
+$len = count($scores);
+for ($i = 0; $i &lt; $len; $i++) {
+    // ...
+}</code></pre>
+
+                <h3>Building HTML with foreach</h3>
+                <p>A very common real-world use — generating HTML from array data:</p>
+                <pre><code class="language-php">&lt;?php
+$nav_items = [
+    ["label" => "Home",    "url" => "/"],
+    ["label" => "About",   "url" => "/about"],
+    ["label" => "Contact", "url" => "/contact"],
+];
+?&gt;
+
+&lt;nav&gt;
+    &lt;ul&gt;
+        &lt;?php foreach ($nav_items as $item): ?&gt;
+            &lt;li&gt;&lt;a href="&lt;?= $item['url'] ?&gt;"&gt;&lt;?= $item['label'] ?&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;?php endforeach; ?&gt;
+    &lt;/ul&gt;
+&lt;/nav&gt;</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Alternative Syntax for Templates</h4>
+                    <p>When mixing PHP with HTML, use the alternative syntax: <code>foreach (...): ... endforeach;</code>. It's easier to read than curly braces when HTML sits between the opening and closing of the loop.</p>
+                </div>
+            </section>
+
+            <!-- Section 6: Multidimensional Arrays -->
+            <section id="section6" class="lesson-section">
+                <h2>Multidimensional Arrays</h2>
+
+                <p>A <strong>multidimensional array</strong> is an array of arrays. They're how you represent tables, records from a database, nested data structures, and more.</p>
+
+                <h3>2D Array — Array of Indexed Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+// A grid / matrix
+$matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
+];
+
+echo $matrix[0][0]; // 1  (row 0, column 0)
+echo $matrix[1][2]; // 6  (row 1, column 2)
+echo $matrix[2][1]; // 8  (row 2, column 1)</code></pre>
+
+                <h3>Array of Associative Arrays (Most Common!)</h3>
+                <p>This is by far the most common pattern — it represents a list of records, like rows from a database:</p>
+                <pre><code class="language-php">&lt;?php
+$employees = [
+    ["name" => "Alice",  "dept" => "Engineering", "salary" => 95000],
+    ["name" => "Bob",    "dept" => "Marketing",   "salary" => 72000],
+    ["name" => "Carol",  "dept" => "Engineering", "salary" => 105000],
+    ["name" => "Dave",   "dept" => "Marketing",   "salary" => 68000],
+];
+
+// Access a specific record
+echo $employees[0]["name"];    // Alice
+echo $employees[2]["salary"];  // 105000
+
+// Loop through records
+foreach ($employees as $emp) {
+    echo "{$emp['name']} works in {$emp['dept']} and earns \${$emp['salary']}\n";
+}
+
+// Find engineers only
+foreach ($employees as $emp) {
+    if ($emp["dept"] === "Engineering") {
+        echo "🔧 {$emp['name']}\n";
+    }
+}</code></pre>
+
+                <h3>Nested Associative Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+$config = [
+    "app" => [
+        "name"    => "My PHP App",
+        "version" => "2.1.0",
+        "debug"   => true,
+    ],
+    "database" => [
+        "host"     => "localhost",
+        "name"     => "myapp_db",
+        "user"     => "root",
+        "password" => "",
+    ],
+    "mail" => [
+        "driver" => "smtp",
+        "host"   => "smtp.example.com",
+        "port"   => 587,
+    ],
+];
+
+// Drill into nested levels
+echo $config["app"]["name"];       // My PHP App
+echo $config["database"]["host"];  // localhost
+echo $config["mail"]["port"];      // 587
+
+// Safe deep access with null coalescing
+$cacheDriver = $config["cache"]["driver"] ?? "file";
+// "file" — the "cache" key doesn't exist, so we get the default</code></pre>
+
+                <div class="mermaid">
+                    flowchart TD
+                        A["$config"] --> B["'app'"]
+                        A --> C["'database'"]
+                        A --> D["'mail'"]
+                        B --> B1["'name' => 'My PHP App'"]
+                        B --> B2["'version' => '2.1.0'"]
+                        B --> B3["'debug' => true"]
+                        C --> C1["'host' => 'localhost'"]
+                        C --> C2["'name' => 'myapp_db'"]
+                        C --> C3["'user' => 'root'"]
+                        D --> D1["'driver' => 'smtp'"]
+                        D --> D2["'host' => 'smtp.example.com'"]
+                        D --> D3["'port' => 587"]
+                </div>
+
+                <h3>Looping Nested Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+$departments = [
+    "Engineering" => ["Alice", "Carol", "Eve"],
+    "Marketing"   => ["Bob", "Dave"],
+    "Design"      => ["Frank", "Grace", "Heidi"],
+];
+
+foreach ($departments as $dept => $members) {
+    echo "\n📁 $dept (" . count($members) . " people):\n";
+    foreach ($members as $index => $name) {
+        echo "  " . ($index + 1) . ". $name\n";
+    }
+}
+/* Output:
+📁 Engineering (3 people):
+  1. Alice
+  2. Carol
+  3. Eve
+
+📁 Marketing (2 people):
+  1. Bob
+  2. Dave
+
+📁 Design (3 people):
+  1. Frank
+  2. Grace
+  3. Heidi
+*/</code></pre>
+            </section>
+
+            <!-- Section 7: Destructuring -->
+            <section id="section7" class="lesson-section">
+                <h2>Array Destructuring</h2>
+
+                <p><strong>Destructuring</strong> lets you unpack array values into individual variables in one statement. It's a clean alternative to accessing elements one by one.</p>
+
+                <h3>Indexed Array Destructuring</h3>
+                <pre><code class="language-php">&lt;?php
+$coordinates = [37.7749, -122.4194];
+
+// Without destructuring
+$lat = $coordinates[0];
+$lng = $coordinates[1];
+
+// With destructuring (short syntax — PHP 7.1+)
+[$lat, $lng] = $coordinates;
+echo "Lat: $lat, Lng: $lng\n"; // Lat: 37.7749, Lng: -122.4194
+
+// Legacy syntax (still works)
+list($lat, $lng) = $coordinates;
+
+// Skip elements with empty positions
+$rgb = [255, 128, 0];
+[, , $blue] = $rgb;  // Only grab the third value
+echo $blue; // 0
+
+[$red, , $blue] = $rgb; // Grab first and third
+echo "$red, $blue"; // 255, 0</code></pre>
+
+                <h3>Associative Array Destructuring</h3>
+                <pre><code class="language-php">&lt;?php
+$user = ["name" => "Alice", "email" => "alice@example.com", "age" => 30];
+
+// Destructure by key name
+["name" => $name, "email" => $email] = $user;
+echo "$name ($email)\n"; // Alice (alice@example.com)
+
+// You don't have to grab every key — just the ones you need
+["age" => $age] = $user;
+echo "Age: $age\n"; // Age: 30
+
+// Rename variables during destructuring
+["name" => $userName, "email" => $userEmail] = $user;
+echo $userName; // Alice</code></pre>
+
+                <h3>Destructuring in foreach</h3>
+                <p>This is where destructuring really shines — clean access to fields inside a loop:</p>
+                <pre><code class="language-php">&lt;?php
+$products = [
+    ["name" => "Widget",    "price" => 12.99, "qty" => 50],
+    ["name" => "Gadget",    "price" => 49.99, "qty" => 12],
+    ["name" => "Doohickey", "price" => 8.50,  "qty" => 200],
+];
+
+// Without destructuring
+foreach ($products as $product) {
+    echo "{$product['name']}: \${$product['price']} ({$product['qty']} in stock)\n";
+}
+
+// With destructuring — much cleaner!
+foreach ($products as ["name" => $name, "price" => $price, "qty" => $qty]) {
+    echo "$name: \$$price ($qty in stock)\n";
+}
+
+// Indexed arrays in foreach
+$points = [[1, 2], [3, 4], [5, 6]];
+
+foreach ($points as [$x, $y]) {
+    echo "Point ($x, $y)\n";
+}</code></pre>
+
+                <h3>Destructuring Function Return Values</h3>
+                <pre><code class="language-php">&lt;?php
+function get_min_max(array $numbers): array {
+    return ["min" => min($numbers), "max" => max($numbers)];
+}
+
+// Destructure the return value directly
+["min" => $min, "max" => $max] = get_min_max([4, 8, 1, 15, 3]);
+echo "Min: $min, Max: $max"; // Min: 1, Max: 15</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ When to Use Destructuring</h4>
+                    <p>Destructuring is ideal when you need to work with specific fields from an array — especially inside loops. It gives each value a meaningful variable name, making code more readable than <code>$row['field']</code> repeated everywhere.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Spread Operator -->
+            <section id="section8" class="lesson-section">
+                <h2>The Spread Operator (<code>...</code>)</h2>
+
+                <p>The <strong>spread operator</strong> (<code>...</code>) "unpacks" an array into individual values. It's the inverse of gathering — instead of collecting values into an array, it expands an array into separate values.</p>
+
+                <h3>Merging Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+$fruits = ["apple", "banana"];
+$veggies = ["carrot", "spinach"];
+
+// Spread to merge
+$food = [...$fruits, ...$veggies];
+// ["apple", "banana", "carrot", "spinach"]
+
+// Add items while merging
+$food = [...$fruits, "cherry", ...$veggies, "kale"];
+// ["apple", "banana", "cherry", "carrot", "spinach", "kale"]
+
+// Compare with array_merge
+$food = array_merge($fruits, $veggies); // Same result for indexed arrays</code></pre>
+
+                <h3>Spread with Associative Arrays (PHP 8.1+)</h3>
+                <pre><code class="language-php">&lt;?php
+$defaults = [
+    "theme"    => "light",
+    "language" => "en",
+    "timezone" => "UTC",
+];
+
+$userPrefs = [
+    "theme"    => "dark",
+    "language" => "es",
+];
+
+// Later values override earlier ones (like array_merge)
+$settings = [...$defaults, ...$userPrefs];
+// ["theme" => "dark", "language" => "es", "timezone" => "UTC"]
+
+// Override specific values inline
+$settings = [...$defaults, "theme" => "dark"];
+// ["theme" => "dark", "language" => "en", "timezone" => "UTC"]</code></pre>
+
+                <div class="card card-success">
+                    <h4>✅ Spread for Config/Defaults Pattern</h4>
+                    <p>The spread operator is perfect for merging default settings with user overrides. Put defaults first, then spread user preferences — later values win.</p>
+                </div>
+
+                <h3>Spread in Function Calls</h3>
+                <p>You can unpack an array into function arguments:</p>
+                <pre><code class="language-php">&lt;?php
+function create_user(string $name, string $email, string $role): void {
+    echo "Created $name ($email) as $role\n";
+}
+
+$userData = ["Alice", "alice@example.com", "admin"];
+create_user(...$userData);
+// Created Alice (alice@example.com) as admin
+
+// With named keys (must match parameter names)
+$userData = ["name" => "Bob", "role" => "editor", "email" => "bob@example.com"];
+create_user(...$userData);
+// Created Bob (bob@example.com) as editor — order doesn't matter with named keys!</code></pre>
+
+                <h3>Copying Arrays</h3>
+                <pre><code class="language-php">&lt;?php
+$original = [1, 2, 3, 4, 5];
+
+// Spread creates a shallow copy
+$copy = [...$original];
+
+$copy[] = 6;
+print_r($original); // [1, 2, 3, 4, 5] — original unchanged
+print_r($copy);     // [1, 2, 3, 4, 5, 6]</code></pre>
+            </section>
+
+            <!-- Section 9: Useful Array Checks -->
+            <section id="section9" class="lesson-section">
+                <h2>Useful Array Checks</h2>
+
+                <p>A quick reference of functions you'll use constantly when working with arrays:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Function</th>
+                                <th>Purpose</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>count($arr)</code></td>
+                                <td>Number of elements</td>
+                                <td><code>count([1,2,3]) → 3</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>empty($arr)</code></td>
+                                <td>Is it empty?</td>
+                                <td><code>empty([]) → true</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>is_array($val)</code></td>
+                                <td>Is it an array?</td>
+                                <td><code>is_array("hi") → false</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>in_array($val, $arr)</code></td>
+                                <td>Does value exist?</td>
+                                <td><code>in_array("b", ["a","b"]) → true</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>array_key_exists($k, $arr)</code></td>
+                                <td>Does key exist?</td>
+                                <td><code>array_key_exists("name", $user)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>array_keys($arr)</code></td>
+                                <td>Get all keys</td>
+                                <td><code>array_keys($user) → ["name","age"]</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>array_values($arr)</code></td>
+                                <td>Get all values (re-index)</td>
+                                <td><code>array_values($user) → ["Alice",30]</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>array_search($val, $arr)</code></td>
+                                <td>Find key of a value</td>
+                                <td><code>array_search("b", ["a","b"]) → 1</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code class="language-php">&lt;?php
+$fruits = ["apple", "banana", "cherry"];
+
+// Get all keys
+print_r(array_keys($fruits)); // [0, 1, 2]
+
+// Find a value's position
+$pos = array_search("banana", $fruits);
+echo $pos; // 1
+
+// array_search returns false if not found (use strict check!)
+$pos = array_search("grape", $fruits);
+if ($pos === false) {
+    echo "Not found!\n";
+}
+
+// Check if something is actually an array
+function process_items($items) {
+    if (!is_array($items)) {
+        echo "Expected an array!\n";
+        return;
+    }
+    // ... process items
+}</code></pre>
+
+                <blockquote>
+                    <strong>💡 Tip:</strong> Always use strict comparison (<code>===</code>) when checking the result of <code>array_search()</code>. It returns <code>0</code> when the item is at index 0, and <code>0</code> is falsy! Using <code>== false</code> would incorrectly report "not found" for the first element.
+                </blockquote>
+            </section>
+
+            <!-- Section 10: Exercises -->
+            <section id="section10" class="lesson-section">
+                <h2>Hands-On Exercises</h2>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 1: Student Gradebook</h3>
+                    <p><strong>Objective:</strong> Build and query an associative array of student records.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create an array of 5 students, each with: <code>name</code>, <code>grade</code> (A–F), and <code>score</code> (0–100)</li>
+                        <li>Write a function <code>get_average(array $students): float</code> that returns the average score</li>
+                        <li>Write a function <code>get_highest(array $students): array</code> that returns the student with the highest score</li>
+                        <li>Write a function <code>get_by_grade(array $students, string $grade): array</code> that returns all students with a given grade</li>
+                        <li>Display a formatted report showing each student, the average, and the top student</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>For <code>get_highest</code>, loop through and track the current highest score and corresponding student. For <code>get_by_grade</code>, build a new array of matches using <code>foreach</code>.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$students = [
+    ["name" => "Alice",  "grade" => "A", "score" => 95],
+    ["name" => "Bob",    "grade" => "B", "score" => 84],
+    ["name" => "Carol",  "grade" => "A", "score" => 92],
+    ["name" => "Dave",   "grade" => "C", "score" => 73],
+    ["name" => "Eve",    "grade" => "B", "score" => 88],
+];
+
+function get_average(array $students): float {
+    $total = 0;
+    foreach ($students as $student) {
+        $total += $student["score"];
+    }
+    return $total / count($students);
+}
+
+function get_highest(array $students): array {
+    $top = $students[0];
+    foreach ($students as $student) {
+        if ($student["score"] > $top["score"]) {
+            $top = $student;
+        }
+    }
+    return $top;
+}
+
+function get_by_grade(array $students, string $grade): array {
+    $matches = [];
+    foreach ($students as $student) {
+        if ($student["grade"] === $grade) {
+            $matches[] = $student;
+        }
+    }
+    return $matches;
+}
+
+// Report
+echo "📊 Student Gradebook\n";
+echo str_repeat("=", 40) . "\n";
+foreach ($students as ["name" => $name, "grade" => $grade, "score" => $score]) {
+    echo sprintf("%-8s Grade: %s  Score: %3d\n", $name, $grade, $score);
+}
+echo str_repeat("-", 40) . "\n";
+echo "Average Score: " . number_format(get_average($students), 1) . "\n";
+
+$top = get_highest($students);
+echo "Top Student: {$top['name']} ({$top['score']})\n";
+
+$aStudents = get_by_grade($students, "A");
+echo "\nA Students: ";
+foreach ($aStudents as $s) {
+    echo "{$s['name']} ";
+}
+echo "\n";</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 2: Shopping Cart</h3>
+                    <p><strong>Objective:</strong> Build a shopping cart using arrays with add, remove, and total functionality.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a <code>$cart</code> array (start empty)</li>
+                        <li>Write <code>add_item(array &amp;$cart, string $name, float $price, int $qty): void</code></li>
+                        <li>Write <code>remove_item(array &amp;$cart, string $name): bool</code> — returns true if removed</li>
+                        <li>Write <code>get_total(array $cart): float</code> — sum of (price × qty) for all items</li>
+                        <li>Write <code>display_cart(array $cart): void</code> — formatted cart display</li>
+                        <li>Add 4 items, remove 1, and display the final cart with total</li>
+                    </ol>
+
+                    <details>
+                        <summary>💡 Hint</summary>
+                        <p>Use the item name as the associative key for easy lookup and removal. Each item stores <code>["price" => ..., "qty" => ...]</code>. Pass the cart by reference (<code>&amp;$cart</code>) so functions can modify it directly.</p>
+                    </details>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+function add_item(array &amp;$cart, string $name, float $price, int $qty = 1): void {
+    if (isset($cart[$name])) {
+        $cart[$name]["qty"] += $qty; // If item exists, add to quantity
+    } else {
+        $cart[$name] = ["price" => $price, "qty" => $qty];
+    }
+}
+
+function remove_item(array &amp;$cart, string $name): bool {
+    if (isset($cart[$name])) {
+        unset($cart[$name]);
+        return true;
+    }
+    return false;
+}
+
+function get_total(array $cart): float {
+    $total = 0.0;
+    foreach ($cart as $item) {
+        $total += $item["price"] * $item["qty"];
+    }
+    return $total;
+}
+
+function display_cart(array $cart): void {
+    echo "🛒 Shopping Cart\n";
+    echo str_repeat("=", 50) . "\n";
+
+    if (empty($cart)) {
+        echo "  (empty)\n";
+        return;
+    }
+
+    foreach ($cart as $name => ["price" => $price, "qty" => $qty]) {
+        $subtotal = $price * $qty;
+        echo sprintf("  %-20s %2d × \$%6.2f = \$%7.2f\n",
+            $name, $qty, $price, $subtotal);
+    }
+
+    echo str_repeat("-", 50) . "\n";
+    echo sprintf("  %-20s %18s \$%7.2f\n", "TOTAL", "", get_total($cart));
+}
+
+// Build the cart
+$cart = [];
+add_item($cart, "Widget", 12.99, 3);
+add_item($cart, "Gadget", 49.99, 1);
+add_item($cart, "Cable", 7.50, 2);
+add_item($cart, "Screen Protector", 4.99, 5);
+
+// Remove an item
+remove_item($cart, "Cable");
+
+// Display
+display_cart($cart);</code></pre>
+                    </details>
+                </div>
+
+                <div class="card card-info">
+                    <h3>🏋️ Exercise 3: Config Merger (Spread &amp; Destructuring)</h3>
+                    <p><strong>Objective:</strong> Practice the spread operator and destructuring with a configuration system.</p>
+
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Create a <code>$defaults</code> config array with keys: <code>theme</code>, <code>language</code>, <code>items_per_page</code>, <code>show_sidebar</code>, <code>cache_ttl</code></li>
+                        <li>Create a <code>$user_prefs</code> array that overrides <code>theme</code> and <code>language</code></li>
+                        <li>Create a <code>$admin_overrides</code> array that overrides <code>cache_ttl</code></li>
+                        <li>Use the spread operator to merge all three (defaults → user → admin)</li>
+                        <li>Destructure the final config to extract <code>theme</code> and <code>language</code> into variables</li>
+                        <li>Display all settings</li>
+                    </ol>
+
+                    <details>
+                        <summary>✅ Solution</summary>
+                        <pre><code class="language-php">&lt;?php
+$defaults = [
+    "theme"          => "light",
+    "language"       => "en",
+    "items_per_page" => 20,
+    "show_sidebar"   => true,
+    "cache_ttl"      => 3600,
+];
+
+$user_prefs = [
+    "theme"    => "dark",
+    "language" => "es",
+];
+
+$admin_overrides = [
+    "cache_ttl" => 7200,
+];
+
+// Merge with spread — later values win
+$config = [...$defaults, ...$user_prefs, ...$admin_overrides];
+
+// Destructure specific values
+["theme" => $theme, "language" => $lang] = $config;
+
+echo "🔧 Final Configuration\n";
+echo str_repeat("=", 40) . "\n";
+foreach ($config as $key => $value) {
+    $display = is_bool($value) ? ($value ? "true" : "false") : $value;
+    echo sprintf("  %-18s %s\n", $key, $display);
+}
+echo "\nActive theme: $theme\n";
+echo "Active language: $lang\n";</code></pre>
+                    </details>
+                </div>
+
+                <!-- Quiz -->
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What index does the first element of a PHP array have?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP follows the convention of most programming languages. Arrays don't start at 1.">
+                                A) 1
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! PHP arrays are zero-indexed. The first element is at index 0, the second at 1, and so on.">
+                                B) 0
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="Negative indices aren't used as starting indices in PHP arrays.">
+                                C) -1
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What's the difference between <code>isset($arr["key"])</code> and <code>array_key_exists("key", $arr)</code>?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="They behave differently when a key exists but its value is null.">
+                                A) They're identical
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! isset() returns false if the key exists but its value is null. array_key_exists() returns true if the key exists regardless of the value. Use array_key_exists when null is a valid value.">
+                                B) isset() returns false for null values; array_key_exists() returns true if the key exists even with null
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="isset() doesn't throw errors for missing keys — it returns false.">
+                                C) isset() throws an error if the key doesn't exist
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> What does <code>unset($arr[2])</code> do to an indexed array?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="unset removes the element but doesn't automatically re-index the remaining elements.">
+                                A) Removes element at index 2 and shifts the remaining elements down
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! unset() removes the element but leaves a gap — indices 0, 1, 3, 4, etc. Use array_values() to re-index, or array_splice() which re-indexes automatically.">
+                                B) Removes element at index 2 but leaves a gap in the indices
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="unset() sets the element to undefined by removing it entirely, not by setting it to null.">
+                                C) Sets the element at index 2 to null
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> Why must you call <code>unset($item)</code> after a <code>foreach ($arr as &amp;$item)</code> loop?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP doesn't have memory leak issues from references. The problem is more subtle.">
+                                A) To free memory
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! After a reference foreach, $item is still a reference to the last array element. If you later use $item for something else, you'll accidentally overwrite the last element of the array. unset() breaks that reference.">
+                                B) Because $item remains a reference to the last element and could accidentally overwrite it
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="PHP doesn't require unset for syntax reasons — it's a safety precaution for correctness.">
+                                C) It's a PHP syntax requirement or the code won't run
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 5:</strong> When merging associative arrays with the spread operator, what happens to duplicate keys?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP won't throw an error. It has a clear rule for handling duplicates.">
+                                A) PHP throws an error
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="The first occurrence doesn't win. Think about the order of the spread expressions.">
+                                B) The first value wins
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Just like array_merge(), the last value for a given key wins. This is why you put defaults first and overrides last: [...$defaults, ...$overrides].">
+                                C) The last value wins
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 11: Summary -->
+            <section id="section11" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>Indexed arrays</strong> — Ordered lists with numeric keys starting at 0; created with <code>[]</code></li>
+                        <li><strong>Associative arrays</strong> — Key-value pairs with string keys; created with <code>["key" => "value"]</code></li>
+                        <li><strong>Adding elements</strong> — <code>$arr[] = val</code>, <code>array_push()</code>, <code>array_unshift()</code> for beginning</li>
+                        <li><strong>Removing elements</strong> — <code>array_pop()</code> (end), <code>array_shift()</code> (beginning), <code>unset()</code> (by key), <code>array_splice()</code> (by index, re-indexes)</li>
+                        <li><strong>Checking</strong> — <code>in_array()</code> for values, <code>array_key_exists()</code> or <code>isset()</code> for keys, <code>count()</code> for size</li>
+                        <li><strong>foreach</strong> — The primary way to loop arrays; use <code>&amp;</code> for modification (then <code>unset</code> after!)</li>
+                        <li><strong>Multidimensional</strong> — Arrays of arrays; access with chained brackets: <code>$arr[0]["name"]</code></li>
+                        <li><strong>Destructuring</strong> — Unpack values: <code>[$a, $b] = $arr</code> or <code>["key" => $var] = $arr</code></li>
+                        <li><strong>Spread operator</strong> — Merge arrays: <code>[...$a, ...$b]</code>; unpack into function args: <code>func(...$arr)</code></li>
+                    </ul>
+                </div>
+
+                <h3>📚 Additional Resources</h3>
+                <ul>
+                    <li><a href="https://www.php.net/manual/en/language.types.array.php" target="_blank" rel="noopener">PHP Manual: Arrays</a></li>
+                    <li><a href="https://www.php.net/manual/en/ref.array.php" target="_blank" rel="noopener">PHP Manual: Array Functions</a></li>
+                    <li><a href="https://www.php.net/manual/en/function.list.php" target="_blank" rel="noopener">PHP Manual: list() / Destructuring</a></li>
+                    <li><a href="https://www.php.net/manual/en/migration74.new-features.php" target="_blank" rel="noopener">PHP Manual: Spread Operator</a></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Now that you know how to create and work with arrays, it's time to unlock their full power. In <strong>Lesson 9: Array Functions</strong>, you'll learn PHP's rich library of built-in array functions — <code>array_map</code>, <code>array_filter</code>, <code>array_reduce</code>, sorting, merging, searching, and more.</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Great Work!</h3>
+                    <p>Arrays are one of PHP's most important tools — you'll use them in virtually every project. Master these fundamentals and the array functions in the next lesson will feel natural!</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_07.html" class="prev-lesson">← Previous: Functions</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_09.html" class="next-lesson">Next: Array Functions →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>

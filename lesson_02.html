@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Verify your LAMP stack, configure Apache for PHP, create a phpinfo page, and run your first PHP script.">
+    <meta name="author" content="Ray De La Paz">
+    <title>Setting Up Your Environment - PHP Foundations</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.__mermaid = mermaid;
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: isDark
+                ? { primaryColor: '#334155', primaryTextColor: '#e2e8f0', primaryBorderColor: '#6366f1', lineColor: '#94a3b8', secondaryColor: '#1e293b', tertiaryColor: '#0f172a' }
+                : { primaryColor: '#eff6ff', primaryTextColor: '#1e293b', primaryBorderColor: '#3b82f6', lineColor: '#64748b', secondaryColor: '#f8fafc', tertiaryColor: '#f1f5f9' }
+        });
+    </script>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+    <div class="progress-indicator" role="progressbar" aria-label="Page scroll progress">
+        <div class="progress-bar"></div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
+            <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
+                ☰
+            </button>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#modules">All Modules</a>
+                <span class="nav-divider"></span>
+                <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+                <a href="https://rays-home.netlify.app/contact">Contact</a>
+                <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#modules">Module 1: Getting Started</a></li>
+            <li aria-current="page">Lesson 2: Setting Up Your Environment</li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <div class="container">
+            <header>
+                <h1>🛠️ Lesson 2: Setting Up Your Environment</h1>
+                <p class="lead">Before writing PHP code, you need a working server environment. In this lesson, you'll verify your LAMP stack, configure Apache to serve PHP files, and run your very first PHP script.</p>
+
+                <div class="card card-info">
+                    <h2>🎯 Learning Objectives</h2>
+                    <p>By the end of this lesson, you will be able to:</p>
+                    <ul>
+                        <li>Verify that Apache, PHP, and MySQL are installed and running on your system</li>
+                        <li>Create and view a <code>phpinfo()</code> page to confirm PHP configuration</li>
+                        <li>Understand the Apache document root and how PHP files are served</li>
+                        <li>Write and run your first PHP script in the browser</li>
+                        <li>Set up a project folder for this course</li>
+                    </ul>
+                    <p><strong>Estimated Time:</strong> 45 minutes</p>
+                    <p><strong>Prerequisites:</strong> Lesson 1 (What Is PHP?), a working Ubuntu/WSL system</p>
+                </div>
+
+                <div class="card card-accent">
+                    <h4>📋 Coming from the MySQL Course?</h4>
+                    <p>If you completed <a href="https://rays-mysql.netlify.app/" target="_blank" rel="noopener">MySQL Foundations</a>, you already have MySQL installed and running. This lesson will verify that and add the PHP layer on top. If you're starting fresh, don't worry — we'll walk through everything.</p>
+                </div>
+            </header>
+
+            <details class="card toc-card" open>
+                <summary>
+                    <h2 style="display: inline; margin: 0;">📑 In This Lesson</h2>
+                </summary>
+                <nav aria-label="Table of Contents">
+                    <ol>
+                        <li><a href="#section1" class="toc-link">What Is a LAMP Stack?</a></li>
+                        <li><a href="#section2" class="toc-link">Step 1: Verify Your Stack</a></li>
+                        <li><a href="#section3" class="toc-link">Step 2: Install Anything Missing</a></li>
+                        <li><a href="#section4" class="toc-link">Step 3: The Apache Document Root</a></li>
+                        <li><a href="#section5" class="toc-link">Step 4: Your First PHP File — phpinfo()</a></li>
+                        <li><a href="#section6" class="toc-link">Step 5: Hello, PHP!</a></li>
+                        <li><a href="#section7" class="toc-link">Step 6: Set Up Your Course Project Folder</a></li>
+                        <li><a href="#section8" class="toc-link">Troubleshooting Common Issues</a></li>
+                        <li><a href="#section9" class="toc-link">Knowledge Check</a></li>
+                        <li><a href="#section10" class="toc-link">Summary</a></li>
+                    </ol>
+                </nav>
+            </details>
+
+            <!-- Section 1: What Is a LAMP Stack? -->
+            <section id="section1" class="lesson-section">
+                <h2>What Is a LAMP Stack?</h2>
+
+                <p>A <strong>LAMP stack</strong> is a set of open-source software that works together to serve dynamic web pages. Each letter stands for one layer:</p>
+
+                <div class="mermaid">
+                    graph LR
+                        L["🐧 Linux<br/>(Operating System)"] --> A["🪶 Apache<br/>(Web Server)"]
+                        A --> M["🐬 MySQL<br/>(Database)"]
+                        A --> P["🐘 PHP<br/>(Language)"]
+                        style L fill:#f0f9ff,stroke:#0ea5e9,color:#0c4a6e
+                        style A fill:#fef3c7,stroke:#f59e0b,color:#78350f
+                        style M fill:#ecfdf5,stroke:#10b981,color:#064e3b
+                        style P fill:#f5f3ff,stroke:#8b5cf6,color:#4c1d95
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Role</th>
+                                <th>What It Does for Us</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Linux</strong></td>
+                                <td>Operating System</td>
+                                <td>Ubuntu (or WSL on Windows) — the foundation everything runs on</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Apache</strong></td>
+                                <td>Web Server</td>
+                                <td>Listens for HTTP requests and serves files. When it sees a <code>.php</code> file, it hands it to PHP for processing.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>MySQL</strong></td>
+                                <td>Database</td>
+                                <td>Stores and retrieves structured data. PHP connects to MySQL to read/write data.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PHP</strong></td>
+                                <td>Language</td>
+                                <td>Processes server-side logic, generates HTML, and acts as the glue between Apache and MySQL.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-success">
+                    <h4>✅ Why LAMP?</h4>
+                    <p>The LAMP stack has been the most popular web development stack for decades. It's free, well-documented, runs on virtually every hosting provider, and powers millions of websites including WordPress. Learning LAMP gives you a rock-solid foundation for PHP development.</p>
+                </div>
+            </section>
+
+            <!-- Section 2: Verify Your Stack -->
+            <section id="section2" class="lesson-section">
+                <h2>Step 1: Verify Your Stack</h2>
+
+                <p>Let's check whether each component is already installed. Open your terminal (Ubuntu or WSL) and run these commands one at a time:</p>
+
+                <h3>Check Apache</h3>
+                <pre><code class="language-bash">apache2 -v</code></pre>
+                <p>You should see something like:</p>
+                <div class="card card-output">
+                    <h4>Expected Output:</h4>
+                    <pre><code>Server version: Apache/2.4.x (Ubuntu)
+Server built:   2024-xx-xx</code></pre>
+                </div>
+
+                <h3>Check PHP</h3>
+                <pre><code class="language-bash">php -v</code></pre>
+                <div class="card card-output">
+                    <h4>Expected Output:</h4>
+                    <pre><code>PHP 8.x.x (cli) (built: ...)
+Copyright (c) The PHP Group
+Zend Engine v4.x.x, Copyright (c) Zend Technologies
+    with Zend OPcache v8.x.x, ...</code></pre>
+                </div>
+
+                <h3>Check MySQL</h3>
+                <pre><code class="language-bash">mysql --version</code></pre>
+                <div class="card card-output">
+                    <h4>Expected Output:</h4>
+                    <pre><code>mysql  Ver 8.x.x for Linux on x86_64 (MySQL Community Server - GPL)</code></pre>
+                </div>
+
+                <h3>Check the PHP-MySQL Extension</h3>
+                <pre><code class="language-bash">php -m | grep -i mysql</code></pre>
+                <div class="card card-output">
+                    <h4>Expected Output:</h4>
+                    <pre><code>mysqli
+mysqlnd
+pdo_mysql</code></pre>
+                </div>
+                <p>The <code>pdo_mysql</code> extension is the one we'll use most in this course. If you see it listed, you're good.</p>
+
+                <div class="card card-info">
+                    <h4>📊 Scorecard</h4>
+                    <p>If all four checks pass, skip ahead to <a href="#section4">Step 3: The Apache Document Root</a>. If anything is missing, continue to the next section.</p>
+                </div>
+            </section>
+
+            <!-- Section 3: Install Anything Missing -->
+            <section id="section3" class="lesson-section">
+                <h2>Step 2: Install Anything Missing</h2>
+
+                <p>First, update your package list:</p>
+                <pre><code class="language-bash">sudo apt update</code></pre>
+
+                <h3>Install Apache (if missing)</h3>
+                <pre><code class="language-bash">sudo apt install apache2 -y</code></pre>
+
+                <h3>Install PHP and Common Extensions</h3>
+                <pre><code class="language-bash">sudo apt install php libapache2-mod-php php-mysql php-cli php-common -y</code></pre>
+                <p>This installs:</p>
+                <ul>
+                    <li><code>php</code> — The PHP language itself</li>
+                    <li><code>libapache2-mod-php</code> — The Apache module that lets Apache process PHP files</li>
+                    <li><code>php-mysql</code> — MySQL/PDO extensions for database access</li>
+                    <li><code>php-cli</code> — Command-line PHP (for running scripts from the terminal)</li>
+                    <li><code>php-common</code> — Common PHP modules</li>
+                </ul>
+
+                <h3>Install MySQL (if missing)</h3>
+                <p>If you completed the MySQL Foundations course, you already have this. Otherwise:</p>
+                <pre><code class="language-bash">sudo apt install mysql-server -y
+sudo mysql_secure_installation</code></pre>
+
+                <h3>Start and Enable Services</h3>
+                <pre><code class="language-bash"># Start Apache
+sudo service apache2 start
+
+# Start MySQL
+sudo service mysql start
+
+# Verify both are running
+sudo service apache2 status
+sudo service mysql status</code></pre>
+
+                <div class="card card-warning">
+                    <h4>⚠️ WSL Users: Services Don't Auto-Start</h4>
+                    <p>On WSL (Windows Subsystem for Linux), services don't start automatically when you open your terminal. You'll need to run <code>sudo service apache2 start</code> and <code>sudo service mysql start</code> each time you open a new WSL session. Consider adding these to your <code>~/.bashrc</code> file:</p>
+                    <pre><code class="language-bash"># Add to ~/.bashrc for auto-start (optional)
+sudo service apache2 start 2>/dev/null
+sudo service mysql start 2>/dev/null</code></pre>
+                </div>
+
+                <h3>Verify Apache Is Serving Pages</h3>
+                <p>Open your browser and navigate to:</p>
+                <pre><code>http://localhost</code></pre>
+                <p>You should see the <strong>Apache2 Ubuntu Default Page</strong> — a page that says "It works!" This confirms Apache is running and serving files.</p>
+            </section>
+
+            <!-- Section 4: Document Root -->
+            <section id="section4" class="lesson-section">
+                <h2>Step 3: The Apache Document Root</h2>
+
+                <p>When Apache serves a web page, it looks for files in a specific directory called the <strong>document root</strong>. On Ubuntu, the default document root is:</p>
+
+                <pre><code class="language-bash">/var/www/html</code></pre>
+
+                <p>Any file you place in this directory becomes accessible via <code>http://localhost/filename</code>. This is where your PHP files need to live for Apache to serve them.</p>
+
+                <div class="mermaid">
+                    graph LR
+                        A["Browser requests<br/>http://localhost/hello.php"] --> B["Apache looks in<br/>/var/www/html/hello.php"]
+                        B --> C["PHP processes<br/>the file"]
+                        C --> D["HTML sent back<br/>to browser"]
+                        style A fill:#f0f9ff,stroke:#0ea5e9,color:#0c4a6e
+                        style B fill:#fef3c7,stroke:#f59e0b,color:#78350f
+                        style C fill:#f5f3ff,stroke:#8b5cf6,color:#4c1d95
+                        style D fill:#ecfdf5,stroke:#10b981,color:#064e3b
+                </div>
+
+                <h3>Understanding File Permissions</h3>
+                <p>The <code>/var/www/html</code> directory is owned by <code>root</code>, so you'll need <code>sudo</code> to create files there — or you can change ownership to your user for development purposes:</p>
+
+                <pre><code class="language-bash"># Option A: Use sudo for each file (safe but tedious)
+sudo nano /var/www/html/test.php
+
+# Option B: Change ownership for development (recommended for local dev)
+sudo chown -R $USER:$USER /var/www/html</code></pre>
+
+                <blockquote>
+                    <strong>💡 Note:</strong> Option B makes your life easier during development. On a production server, you'd keep stricter permissions — but for learning on your local machine, this is perfectly fine.
+                </blockquote>
+
+                <h3>Verify PHP Is Connected to Apache</h3>
+                <p>Apache needs to know how to handle <code>.php</code> files. This is usually configured automatically when you install <code>libapache2-mod-php</code>, but let's verify:</p>
+
+                <pre><code class="language-bash"># Check if the PHP module is enabled
+apache2ctl -M | grep php</code></pre>
+
+                <div class="card card-output">
+                    <h4>Expected Output:</h4>
+                    <pre><code> php8_module (shared)</code></pre>
+                </div>
+
+                <p>If you see <code>php8_module</code> (or similar), Apache knows how to process PHP files. If not, enable it:</p>
+
+                <pre><code class="language-bash">sudo a2enmod php8.3    # Replace 8.3 with your PHP version
+sudo service apache2 restart</code></pre>
+            </section>
+
+            <!-- Section 5: phpinfo() -->
+            <section id="section5" class="lesson-section">
+                <h2>Step 4: Your First PHP File — phpinfo()</h2>
+
+                <p>The classic first step with any PHP installation is creating a <code>phpinfo()</code> page. This built-in function displays <em>everything</em> about your PHP configuration — version, loaded extensions, server settings, and more.</p>
+
+                <h3>Create the File</h3>
+                <pre><code class="language-bash"># Navigate to the document root
+cd /var/www/html
+
+# Create the file
+nano info.php</code></pre>
+
+                <p>Type this single line of PHP:</p>
+                <pre><code class="language-php">&lt;?php phpinfo(); ?&gt;</code></pre>
+
+                <p>Save and exit (<kbd>Ctrl+O</kbd>, <kbd>Enter</kbd>, <kbd>Ctrl+X</kbd> in nano).</p>
+
+                <h3>View It in Your Browser</h3>
+                <p>Open your browser and go to:</p>
+                <pre><code>http://localhost/info.php</code></pre>
+
+                <p>You should see a large, detailed page showing your entire PHP configuration. This page is incredibly useful for debugging.</p>
+
+                <h3>What to Look For</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Section</th>
+                                <th>What to Check</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>PHP Version</strong></td>
+                                <td>Should say 8.x at the top of the page</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Server API</strong></td>
+                                <td>Should say <code>Apache 2.0 Handler</code> — confirms PHP is running through Apache</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Loaded Configuration File</strong></td>
+                                <td>Shows the path to <code>php.ini</code> — the main PHP config file</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PDO drivers</strong></td>
+                                <td>Scroll down to the PDO section — should list <code>mysql</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>mysqli</strong></td>
+                                <td>Should have its own section confirming the MySQL extension is loaded</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card card-warning">
+                    <h4>⚠️ Security Warning</h4>
+                    <p><strong>Delete <code>info.php</code> on any public-facing server!</strong> The <code>phpinfo()</code> page reveals detailed information about your server configuration that attackers can use. It's fine for local development, but never leave it on a live site.</p>
+                    <pre><code class="language-bash"># When you're done inspecting, delete it on production servers:
+rm /var/www/html/info.php</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 6: Hello PHP -->
+            <section id="section6" class="lesson-section">
+                <h2>Step 5: Hello, PHP!</h2>
+
+                <p>Now let's write a proper "Hello, World!" script that demonstrates PHP in action — mixing PHP with HTML, just like you'll do throughout this course.</p>
+
+                <h3>Create the File</h3>
+                <pre><code class="language-bash">nano /var/www/html/hello.php</code></pre>
+
+                <h3>Write the Code</h3>
+                <pre><code class="language-php">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Hello PHP!&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #7B68EE; }
+        code { background: #e9ecef; padding: 2px 6px; border-radius: 3px; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;🐘 Hello, PHP!&lt;/h1&gt;
+
+    &lt;div class="card"&gt;
+        &lt;h2&gt;Server Information&lt;/h2&gt;
+        &lt;p&gt;&lt;strong&gt;PHP Version:&lt;/strong&gt; &lt;?php echo phpversion(); ?&gt;&lt;/p&gt;
+        &lt;p&gt;&lt;strong&gt;Server Software:&lt;/strong&gt; &lt;?php echo $_SERVER['SERVER_SOFTWARE']; ?&gt;&lt;/p&gt;
+        &lt;p&gt;&lt;strong&gt;Document Root:&lt;/strong&gt; &lt;?php echo $_SERVER['DOCUMENT_ROOT']; ?&gt;&lt;/p&gt;
+    &lt;/div&gt;
+
+    &lt;div class="card"&gt;
+        &lt;h2&gt;Dynamic Content&lt;/h2&gt;
+        &lt;p&gt;&lt;strong&gt;Current Date:&lt;/strong&gt; &lt;?php echo date('l, F j, Y'); ?&gt;&lt;/p&gt;
+        &lt;p&gt;&lt;strong&gt;Current Time:&lt;/strong&gt; &lt;?php echo date('g:i:s A'); ?&gt;&lt;/p&gt;
+        &lt;p&gt;&lt;strong&gt;Timezone:&lt;/strong&gt; &lt;?php echo date_default_timezone_get(); ?&gt;&lt;/p&gt;
+    &lt;/div&gt;
+
+    &lt;div class="card"&gt;
+        &lt;h2&gt;PHP Can Do Math&lt;/h2&gt;
+        &lt;?php
+            $a = 42;
+            $b = 17;
+            $sum = $a + $b;
+            $product = $a * $b;
+        ?&gt;
+        &lt;p&gt;&lt;code&gt;&lt;?php echo $a; ?&gt; + &lt;?php echo $b; ?&gt; = &lt;?php echo $sum; ?&gt;&lt;/code&gt;&lt;/p&gt;
+        &lt;p&gt;&lt;code&gt;&lt;?php echo $a; ?&gt; × &lt;?php echo $b; ?&gt; = &lt;?php echo $product; ?&gt;&lt;/code&gt;&lt;/p&gt;
+    &lt;/div&gt;
+
+    &lt;div class="card"&gt;
+        &lt;h2&gt;Congratulations! 🎉&lt;/h2&gt;
+        &lt;p&gt;If you can see this page with real data above (not raw PHP code), your
+           LAMP stack is working correctly. PHP is processing this file on the server
+           and sending HTML to your browser.&lt;/p&gt;
+        &lt;p&gt;&lt;strong&gt;Try this:&lt;/strong&gt; Right-click the page and select "View Page Source."
+           Notice that there's no PHP code — only the HTML output. That's server-side
+           processing in action!&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <h3>View It</h3>
+                <p>Navigate to <code>http://localhost/hello.php</code> in your browser. You should see a styled page with real, dynamic data — your PHP version, today's date, the current time, and math results.</p>
+
+                <div class="card card-success">
+                    <h4>✅ The "View Source" Test</h4>
+                    <p>Right-click the page in your browser and select <strong>"View Page Source"</strong>. You'll see only HTML — no <code>&lt;?php</code> tags anywhere. This confirms that PHP processed the file on the server and sent clean HTML to your browser, exactly as we described in Lesson 1.</p>
+                </div>
+
+                <h3>Understanding What Happened</h3>
+                <pre><code class="language-php">&lt;!-- This is PHP embedded in HTML --&gt;
+&lt;p&gt;PHP Version: &lt;?php echo phpversion(); ?&gt;&lt;/p&gt;
+
+&lt;!-- The browser receives: --&gt;
+&lt;p&gt;PHP Version: 8.3.6&lt;/p&gt;</code></pre>
+
+                <p>Key observations:</p>
+                <ul>
+                    <li><code>&lt;?php ... ?&gt;</code> — The opening and closing PHP tags. Everything between them is PHP code.</li>
+                    <li><code>echo</code> — Outputs text (sends it to the HTML).</li>
+                    <li><code>phpversion()</code> — A built-in function that returns the PHP version string.</li>
+                    <li><code>$_SERVER</code> — A superglobal array with server/request information (we'll explore these in Module 5).</li>
+                    <li><code>date()</code> — Formats the current date/time. The letters in the format string control the output.</li>
+                    <li><code>$a = 42;</code> — Variables in PHP start with <code>$</code>. We'll cover this properly in the next lesson.</li>
+                </ul>
+            </section>
+
+            <!-- Section 7: Project Folder -->
+            <section id="section7" class="lesson-section">
+                <h2>Step 6: Set Up Your Course Project Folder</h2>
+
+                <p>Throughout this course, we'll build small projects and exercises. Let's create a dedicated folder inside the document root:</p>
+
+                <pre><code class="language-bash"># Create the course folder
+mkdir -p /var/www/html/php-foundations
+
+# Create subfolders for organization
+mkdir -p /var/www/html/php-foundations/exercises
+mkdir -p /var/www/html/php-foundations/projects</code></pre>
+
+                <p>Your file structure will look like this:</p>
+
+                <pre><code class="language-text">/var/www/html/
+├── index.html          ← Apache default page
+├── info.php            ← phpinfo() (delete on production)
+├── hello.php           ← Your first PHP file
+└── php-foundations/    ← Course work goes here
+    ├── exercises/      ← Lesson exercises
+    └── projects/       ← Mini projects (like the CRUD app)</code></pre>
+
+                <h3>Test It</h3>
+                <p>Create a quick index file for your course folder:</p>
+                <pre><code class="language-bash">nano /var/www/html/php-foundations/index.php</code></pre>
+
+                <pre><code class="language-php">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;PHP Foundations - Course Work&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;PHP Foundations — Course Work&lt;/h1&gt;
+    &lt;p&gt;Welcome! This folder contains exercises and projects
+       from the PHP Foundations course.&lt;/p&gt;
+    &lt;p&gt;Server time: &lt;?php echo date('Y-m-d H:i:s'); ?&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <p>Visit <code>http://localhost/php-foundations/</code> to confirm it works.</p>
+
+                <div class="card card-success">
+                    <h4>✅ Your Editor</h4>
+                    <p>While we used <code>nano</code> in the terminal for these examples, you can use any code editor you prefer — <strong>VS Code</strong> is an excellent choice. If you're on WSL, VS Code can connect directly to your WSL filesystem using the Remote - WSL extension, giving you a full IDE experience while your files live in Linux.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Troubleshooting -->
+            <section id="section8" class="lesson-section">
+                <h2>Troubleshooting Common Issues</h2>
+
+                <h3>"localhost" Shows Nothing or Refuses to Connect</h3>
+                <div class="card card-info">
+                    <p><strong>Cause:</strong> Apache isn't running.</p>
+                    <p><strong>Fix:</strong></p>
+                    <pre><code class="language-bash">sudo service apache2 start
+# Then check status:
+sudo service apache2 status</code></pre>
+                </div>
+
+                <h3>Browser Shows Raw PHP Code Instead of Output</h3>
+                <div class="card card-info">
+                    <p><strong>Cause:</strong> Apache doesn't have the PHP module enabled.</p>
+                    <p><strong>Fix:</strong></p>
+                    <pre><code class="language-bash">sudo apt install libapache2-mod-php -y
+sudo a2enmod php8.3   # Adjust version number
+sudo service apache2 restart</code></pre>
+                </div>
+
+                <h3>phpinfo() Page Doesn't Show pdo_mysql</h3>
+                <div class="card card-info">
+                    <p><strong>Cause:</strong> The PHP-MySQL extension isn't installed.</p>
+                    <p><strong>Fix:</strong></p>
+                    <pre><code class="language-bash">sudo apt install php-mysql -y
+sudo service apache2 restart</code></pre>
+                </div>
+
+                <h3>"Permission Denied" When Creating Files</h3>
+                <div class="card card-info">
+                    <p><strong>Cause:</strong> <code>/var/www/html</code> is owned by root.</p>
+                    <p><strong>Fix:</strong></p>
+                    <pre><code class="language-bash">sudo chown -R $USER:$USER /var/www/html</code></pre>
+                </div>
+
+                <h3>Port 80 Is Already in Use</h3>
+                <div class="card card-info">
+                    <p><strong>Cause:</strong> Another process (often IIS on Windows, or another web server) is using port 80.</p>
+                    <p><strong>Fix:</strong> Find and stop the conflicting process, or change Apache's port:</p>
+                    <pre><code class="language-bash"># Find what's using port 80
+sudo lsof -i :80
+
+# If on WSL and Windows IIS is the issue:
+# Open Windows Services (services.msc) and stop "World Wide Web Publishing Service"</code></pre>
+                </div>
+
+                <h3>MySQL Won't Start</h3>
+                <div class="card card-info">
+                    <p><strong>Cause:</strong> Various — often a permissions or socket issue on WSL.</p>
+                    <p><strong>Fix:</strong></p>
+                    <pre><code class="language-bash"># Try starting with verbose output
+sudo service mysql start
+# Check the error log
+sudo cat /var/log/mysql/error.log | tail -20
+
+# Common WSL fix — create the run directory
+sudo mkdir -p /var/run/mysqld
+sudo chown mysql:mysql /var/run/mysqld
+sudo service mysql start</code></pre>
+                </div>
+            </section>
+
+            <!-- Section 9: Knowledge Check -->
+            <section id="section9" class="lesson-section">
+                <h2>Knowledge Check</h2>
+
+                <div class="card quiz-container">
+                    <h3>🎯 Quick Quiz</h3>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 1:</strong> What does "LAMP" stand for?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="Close, but it's not about the network layer.">
+                                A) Linux, Apache, MongoDB, Python
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Linux is the OS, Apache is the web server, MySQL is the database, and PHP is the programming language.">
+                                B) Linux, Apache, MySQL, PHP
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="LAMP specifically refers to a set of open-source technologies.">
+                                C) Local, Application, Module, Protocol
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 2:</strong> What is the default Apache document root on Ubuntu?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="This is your home directory, not the web server root.">
+                                A) /home/user/public_html
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! Apache serves files from /var/www/html by default on Ubuntu. Any file placed here is accessible via http://localhost/filename.">
+                                B) /var/www/html
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="This is a common location on some systems, but not the default on Ubuntu.">
+                                C) /usr/share/apache2/htdocs
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 3:</strong> If your browser shows raw PHP code (like <code>&lt;?php echo "hello"; ?&gt;</code>) instead of output, what's most likely wrong?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="PHP syntax errors produce error messages, not raw code display.">
+                                A) Your PHP code has a syntax error
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="MySQL is for databases — it's not involved in serving PHP pages.">
+                                B) MySQL isn't running
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! If Apache doesn't have the PHP module enabled, it doesn't know how to process .php files and serves them as plain text instead.">
+                                C) The PHP module isn't enabled in Apache
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Question 4:</strong> Why should you delete <code>info.php</code> (the phpinfo page) on a production server?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-correct="false" data-hint="phpinfo() uses negligible resources.">
+                                A) It uses too much server memory
+                            </button>
+                            <button class="quiz-option" data-correct="true" data-explanation="Correct! The phpinfo() page reveals your PHP version, loaded extensions, configuration paths, and other details that attackers can use to find vulnerabilities in your setup.">
+                                B) It reveals detailed server configuration that attackers can exploit
+                            </button>
+                            <button class="quiz-option" data-correct="false" data-hint="phpinfo() is a standard, built-in PHP function.">
+                                C) It can corrupt your PHP installation
+                            </button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Summary -->
+            <section id="section10" class="lesson-section">
+                <h2>Summary</h2>
+
+                <div class="card card-success">
+                    <h3>🎉 Key Takeaways</h3>
+                    <ul>
+                        <li><strong>LAMP = Linux + Apache + MySQL + PHP</strong> — the classic open-source web stack</li>
+                        <li><strong>Apache serves files from <code>/var/www/html</code></strong> — place your PHP files there for Apache to process them</li>
+                        <li><strong><code>phpinfo()</code></strong> displays your full PHP configuration — essential for debugging, but a security risk on public servers</li>
+                        <li><strong>PHP mixes with HTML</strong> — code inside <code>&lt;?php ... ?&gt;</code> is processed on the server; everything else is sent as-is</li>
+                        <li><strong>WSL tip:</strong> Start Apache and MySQL manually each session with <code>sudo service apache2 start</code> and <code>sudo service mysql start</code></li>
+                    </ul>
+                </div>
+
+                <h3>📋 Environment Checklist</h3>
+                <p>Before moving on, make sure you can check off everything:</p>
+                <ul>
+                    <li>☐ Apache is running (<code>http://localhost</code> loads a page)</li>
+                    <li>☐ PHP is installed (<code>php -v</code> shows version 8.x)</li>
+                    <li>☐ PHP works through Apache (<code>http://localhost/info.php</code> shows the phpinfo page)</li>
+                    <li>☐ MySQL is running (<code>sudo service mysql status</code> says active)</li>
+                    <li>☐ PDO MySQL extension is loaded (visible in phpinfo under PDO drivers)</li>
+                    <li>☐ <code>http://localhost/hello.php</code> displays dynamic content</li>
+                    <li>☐ Course folder exists at <code>/var/www/html/php-foundations/</code></li>
+                </ul>
+
+                <h3>🚀 What's Next?</h3>
+                <p>Your environment is ready! In <strong>Lesson 3: PHP Syntax Basics</strong>, we'll dive into the language itself — variables, data types, <code>echo</code> vs <code>print</code>, comments, and PHP's type system. This is where the real coding begins!</p>
+
+                <div class="card card-accent" style="text-align: center; padding: 2rem;">
+                    <h3>🎉 Congratulations!</h3>
+                    <p>Your LAMP stack is verified and your first PHP scripts are running. You're officially a PHP developer (in training)! 🐘</p>
+                </div>
+            </section>
+
+            <!-- Lesson Navigation -->
+            <nav class="lesson-nav" aria-label="Lesson Navigation">
+                <a href="lesson_01.html" class="prev-lesson">← Previous: What Is PHP?</a>
+                <a href="index.html" class="home-link">🏠 Course Home</a>
+                <a href="lesson_03.html" class="next-lesson">Next: PHP Syntax Basics →</a>
+            </nav>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Ray De La Paz / PetalFawnStudio. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://rays-home.netlify.app/">Ray's House of Fun</a>
+            <a href="https://rays-home.netlify.app/contact">Contact</a>
+            <a href="#" id="print-button">Print Page</a>
+        </div>
+        <p><small>Press <kbd>?</kbd> for keyboard shortcuts</small></p>
+    </footer>
+
+    <script src="js/clipboard.js"></script>
+    <script src="js/course-enhancements.js"></script>
+</body>
+</html>
