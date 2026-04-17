@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="[Course Description - Update this in course-config.json]">
+    <meta name="description" content="A hands-on beginner course that teaches PHP from the ground up — variables, control flow, functions, arrays, forms, OOP, PDO database integration, security, and deployment.">
     <meta name="author" content="Ray De La Paz">
-    <title>[Course Title] - Home</title>
+    <title>PHP Foundations: Server-Side Web Development from Scratch</title>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="icon" type="image/png" href="favicon.png">
 </head>
@@ -21,7 +21,7 @@
     <!-- Navigation -->
     <nav class="main-nav">
         <div class="nav-container">
-            <a href="index.html" class="nav-logo">[Course Title]</a>
+            <a href="index.html" class="nav-logo">PHP Foundations</a>
             <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-expanded="false" aria-controls="nav-links">
                 ☰
             </button>
@@ -50,8 +50,8 @@
         <div class="container">
             <!-- Hero Section -->
             <header>
-                <h1>🎓 Welcome to [Course Title]</h1>
-                <p class="lead">[Brief course description that captures what students will learn]</p>
+                <h1>🐘 PHP Foundations: Server-Side Web Development from Scratch</h1>
+                <p class="lead">Learn PHP from your first script to a full CRUD application. By the end of this course, you'll understand variables, control flow, functions, arrays, forms, OOP, database integration with PDO, security best practices, and deployment.</p>
             </header>
 
             <!-- Overall Progress -->
@@ -62,24 +62,38 @@
             <!-- Introduction Section -->
             <section id="introduction" class="card">
                 <h2>📚 About This Course</h2>
-                <p>[Detailed course description. Explain what the course covers, who it's for, and what makes it unique.]</p>
-                <p>[Add more paragraphs as needed to fully describe the course.]</p>
+                <p>PHP powers over 75% of websites on the internet, including WordPress, Facebook, and Wikipedia. This course teaches you PHP from the ground up — no prior PHP experience required. You'll start with the basics (variables, loops, functions), work through intermediate topics (forms, sessions, OOP), and finish by building a complete database-driven CRUD application.</p>
+                <p>Every lesson includes hands-on code examples, exercises, and quizzes. This course is the second step in a three-course learning path: MySQL Foundations teaches you the database layer, this course teaches you the server-side language, and PHP &amp; WordPress brings it all together for real-world CMS development.</p>
 
                 <h3>What You'll Learn</h3>
                 <ul>
-                    <li>Key concept or skill 1</li>
-                    <li>Key concept or skill 2</li>
-                    <li>Key concept or skill 3</li>
-                    <li>Key concept or skill 4</li>
-                    <li>Key concept or skill 5</li>
+                    <li>PHP syntax, variables, data types, operators, and type juggling</li>
+                    <li>Control flow (if/else, switch, match), loops, and functions</li>
+                    <li>Arrays, array functions, strings, and string manipulation</li>
+                    <li>HTML form processing with <code>$_GET</code> and <code>$_POST</code></li>
+                    <li>Input validation, sanitization, and security fundamentals</li>
+                    <li>Sessions, cookies, and user state management</li>
+                    <li>Object-oriented PHP — classes, inheritance, interfaces, and traits</li>
+                    <li>PDO database connections, prepared statements, and transactions</li>
+                    <li>Building a complete CRUD application from scratch</li>
+                    <li>Security essentials — SQL injection, XSS, CSRF, and password hashing</li>
                 </ul>
 
                 <h3>Who This Course Is For</h3>
                 <ul>
-                    <li>Target audience 1</li>
-                    <li>Target audience 2</li>
-                    <li>Target audience 3</li>
+                    <li>Beginners with basic HTML knowledge who want to learn server-side programming</li>
+                    <li>Front-end developers ready to add backend skills</li>
+                    <li>Students who completed the MySQL Foundations course and want to connect PHP to their databases</li>
+                    <li>Anyone who wants to understand how dynamic websites work under the hood</li>
                 </ul>
+
+                <h3>Learning Path</h3>
+                <p>This course is Part 2 of a three-course sequence:</p>
+                <ol>
+                    <li><a href="https://rays-mysql.netlify.app/" target="_blank" rel="noopener">MySQL Foundations</a> — Database fundamentals and SQL</li>
+                    <li><strong>PHP Foundations</strong> (this course) — Core PHP language + PDO database integration</li>
+                    <li><a href="https://rays-php-wordpress.netlify.app/" target="_blank" rel="noopener">PHP &amp; WordPress</a> — Building dynamic sites with WordPress</li>
+                </ol>
             </section>
 
             <!-- Course Modules/Lessons -->
@@ -89,48 +103,82 @@
                 <!-- Module 1 -->
                 <div class="card lesson-card">
                     <h3>Module 1: Getting Started</h3>
-                    <p>Brief description of what this module covers.</p>
+                    <p>Meet PHP, set up your LAMP stack environment, and write your first scripts.</p>
                     <ul>
-                        <li><a href="lesson_01.html" class="lesson-link">Lesson 1.1: Introduction to [Topic]</a></li>
-                        <li><a href="lesson_02.html" class="lesson-link">Lesson 1.2: Setting Up Your Environment</a></li>
-                        <li><a href="lesson_03.html" class="lesson-link">Lesson 1.3: Your First [Project/Exercise]</a></li>
+                        <li><a href="lesson_01.html" class="lesson-link">Lesson 1: What Is PHP?</a></li>
+                        <li><a href="lesson_02.html" class="lesson-link">Lesson 2: Setting Up Your Environment (LAMP Stack)</a></li>
+                        <li><a href="lesson_03.html" class="lesson-link">Lesson 3: PHP Syntax Basics</a></li>
                     </ul>
                 </div>
 
                 <!-- Module 2 -->
                 <div class="card lesson-card">
-                    <h3>Module 2: Core Concepts</h3>
-                    <p>Brief description of what this module covers.</p>
+                    <h3>Module 2: Core Language</h3>
+                    <p>Master operators, control flow, loops, and functions — the building blocks of every PHP program.</p>
                     <ul>
-                        <li><a href="lesson_04.html" class="lesson-link">Lesson 2.1: Understanding [Concept]</a></li>
-                        <li><a href="lesson_05.html" class="lesson-link">Lesson 2.2: Working with [Feature]</a></li>
-                        <li><a href="lesson_06.html" class="lesson-link">Lesson 2.3: Advanced [Topic]</a></li>
+                        <li><a href="lesson_04.html" class="lesson-link">Lesson 4: Operators &amp; Expressions</a></li>
+                        <li><a href="lesson_05.html" class="lesson-link">Lesson 5: Control Flow (if/else, switch, match)</a></li>
+                        <li><a href="lesson_06.html" class="lesson-link">Lesson 6: Loops (for, while, do-while, foreach)</a></li>
+                        <li><a href="lesson_07.html" class="lesson-link">Lesson 7: Functions</a></li>
                     </ul>
                 </div>
 
                 <!-- Module 3 -->
                 <div class="card lesson-card">
-                    <h3>Module 3: Practical Applications</h3>
-                    <p>Brief description of what this module covers.</p>
+                    <h3>Module 3: Data Structures</h3>
+                    <p>Work with arrays and strings — PHP's most important data structures and their powerful built-in functions.</p>
                     <ul>
-                        <li><a href="lesson_07.html" class="lesson-link">Lesson 3.1: Building [Project]</a></li>
-                        <li><a href="lesson_08.html" class="lesson-link">Lesson 3.2: Best Practices</a></li>
-                        <li><a href="lesson_09.html" class="lesson-link">Lesson 3.3: Case Studies</a></li>
+                        <li><a href="lesson_08.html" class="lesson-link">Lesson 8: Arrays</a></li>
+                        <li><a href="lesson_09.html" class="lesson-link">Lesson 9: Array Functions</a></li>
+                        <li><a href="lesson_10.html" class="lesson-link">Lesson 10: Strings &amp; String Functions</a></li>
                     </ul>
                 </div>
 
                 <!-- Module 4 -->
                 <div class="card lesson-card">
-                    <h3>Module 4: Advanced Topics</h3>
-                    <p>Brief description of what this module covers.</p>
+                    <h3>Module 4: Web Fundamentals</h3>
+                    <p>Handle HTML forms, validate and sanitize user input, and work with files — the core of server-side web development.</p>
                     <ul>
-                        <li><a href="lesson_10.html" class="lesson-link">Lesson 4.1: Advanced [Technique]</a></li>
-                        <li><a href="lesson_11.html" class="lesson-link">Lesson 4.2: Performance Optimization</a></li>
-                        <li><a href="lesson_12.html" class="lesson-link">Lesson 4.3: Future Trends</a></li>
+                        <li><a href="lesson_11.html" class="lesson-link">Lesson 11: Working with Forms ($_GET &amp; $_POST)</a></li>
+                        <li><a href="lesson_12.html" class="lesson-link">Lesson 12: Input Validation &amp; Sanitization</a></li>
+                        <li><a href="lesson_13.html" class="lesson-link">Lesson 13: File Handling &amp; Includes</a></li>
                     </ul>
                 </div>
 
-                <!-- Add more modules as needed -->
+                <!-- Module 5 -->
+                <div class="card lesson-card">
+                    <h3>Module 5: State &amp; OOP</h3>
+                    <p>Manage user state with sessions and cookies, then organize your code with object-oriented programming.</p>
+                    <ul>
+                        <li><a href="lesson_14.html" class="lesson-link">Lesson 14: Superglobals</a></li>
+                        <li><a href="lesson_15.html" class="lesson-link">Lesson 15: Sessions &amp; Cookies</a></li>
+                        <li><a href="lesson_16.html" class="lesson-link">Lesson 16: OOP — Classes &amp; Objects</a></li>
+                        <li><a href="lesson_17.html" class="lesson-link">Lesson 17: OOP — Inheritance, Interfaces &amp; Traits</a></li>
+                    </ul>
+                </div>
+
+                <!-- Module 6 -->
+                <div class="card lesson-card">
+                    <h3>Module 6: Database Integration</h3>
+                    <p>Connect PHP to MySQL with PDO, write secure queries with prepared statements, and build a complete CRUD application.</p>
+                    <ul>
+                        <li><a href="lesson_18.html" class="lesson-link">Lesson 18: Error Handling (try/catch, Exceptions)</a></li>
+                        <li><a href="lesson_19.html" class="lesson-link">Lesson 19: PDO — Connecting to MySQL &amp; Prepared Statements</a></li>
+                        <li><a href="lesson_20.html" class="lesson-link">Lesson 20: PDO — CRUD, Transactions &amp; Fetch Styles</a></li>
+                        <li><a href="lesson_21.html" class="lesson-link">Lesson 21: Building a CRUD App (Mini Project)</a></li>
+                    </ul>
+                </div>
+
+                <!-- Module 7 -->
+                <div class="card lesson-card">
+                    <h3>Module 7: Real-World Skills</h3>
+                    <p>Handle file uploads, secure your applications against common attacks, deploy to hosting, and plan your next steps.</p>
+                    <ul>
+                        <li><a href="lesson_22.html" class="lesson-link">Lesson 22: File Uploads &amp; Email</a></li>
+                        <li><a href="lesson_23.html" class="lesson-link">Lesson 23: Security Fundamentals (SQLi, XSS, CSRF)</a></li>
+                        <li><a href="lesson_24.html" class="lesson-link">Lesson 24: Deployment, Next Steps &amp; Best Practices</a></li>
+                    </ul>
+                </div>
             </section>
 
             <!-- Prerequisites Section -->
@@ -138,16 +186,20 @@
                 <h2>✅ Prerequisites</h2>
                 <p>Before starting this course, you should have:</p>
                 <ul>
-                    <li>Prerequisite knowledge or skill 1</li>
-                    <li>Prerequisite knowledge or skill 2</li>
-                    <li>Required software or tools installed</li>
+                    <li>Basic HTML knowledge (you can write a simple HTML page with forms)</li>
+                    <li>Comfort with the command line (typing commands, navigating directories)</li>
+                    <li>A working LAMP stack — if you completed the <a href="https://rays-mysql.netlify.app/" target="_blank" rel="noopener">MySQL Foundations</a> course, you already have this set up</li>
+                    <li>No prior PHP or programming experience required</li>
                 </ul>
 
                 <h3>Required Software</h3>
                 <ul>
-                    <li>Software/Tool 1 (version X.X or higher)</li>
-                    <li>Software/Tool 2</li>
-                    <li>Text editor or IDE (recommendations: VS Code, Sublime Text, etc.)</li>
+                    <li><strong>Ubuntu / WSL</strong> — Linux environment</li>
+                    <li><strong>Apache 2.x</strong> — Web server to run PHP files</li>
+                    <li><strong>PHP 8.x</strong> — The PHP interpreter with common extensions (Lesson 2 covers installation)</li>
+                    <li><strong>MySQL 8.x</strong> — Database server (already installed from the MySQL course)</li>
+                    <li><strong>phpMyAdmin</strong> — Visual database management (already installed from the MySQL course)</li>
+                    <li><strong>A text editor</strong> — VS Code recommended</li>
                 </ul>
             </section>
 
@@ -155,26 +207,41 @@
             <section id="resources" class="card">
                 <h2>📚 Additional Resources</h2>
 
-                <h3>Recommended Reading</h3>
+                <h3>Course Reference Pages</h3>
                 <ul>
-                    <li><a href="#">Book or Article 1</a></li>
-                    <li><a href="#">Book or Article 2</a></li>
-                    <li><a href="#">Book or Article 3</a></li>
+                    <li><a href="cheat-sheet.html">📋 PHP Cheat Sheet</a> — quick syntax reference for every concept</li>
+                    <li><a href="glossary.html">📖 Glossary</a> — definitions of all key terms and concepts</li>
+                    <li><a href="common-errors.html">❌ Common Errors</a> — error messages explained with fixes</li>
+                    <li><a href="troubleshooting.html">🔧 Troubleshooting</a> — solutions for installation, connection, and setup issues</li>
                 </ul>
 
-                <h3>Useful Links</h3>
+                <h3>External Reference</h3>
                 <ul>
-                    <li><a href="#">Official Documentation</a></li>
-                    <li><a href="#">Community Forum</a></li>
-                    <li><a href="#">Related Tools/Resources</a></li>
+                    <li><a href="https://www.php.net/manual/en/" target="_blank" rel="noopener">PHP Official Documentation</a></li>
+                    <li><a href="https://www.php.net/manual/en/funcref.php" target="_blank" rel="noopener">PHP Function Reference</a></li>
+                    <li><a href="https://www.w3schools.com/php/" target="_blank" rel="noopener">W3Schools — PHP Tutorial</a></li>
+                    <li><a href="https://www.php.net/manual/en/book.pdo.php" target="_blank" rel="noopener">PDO Documentation</a></li>
+                </ul>
+
+                <h3>Tools</h3>
+                <ul>
+                    <li><a href="https://www.phpmyadmin.net/" target="_blank" rel="noopener">phpMyAdmin</a></li>
+                    <li><a href="https://code.visualstudio.com/" target="_blank" rel="noopener">Visual Studio Code</a></li>
+                    <li><a href="https://getcomposer.org/" target="_blank" rel="noopener">Composer</a> — PHP dependency manager</li>
+                    <li><a href="https://xdebug.org/" target="_blank" rel="noopener">Xdebug</a> — PHP debugging tool</li>
+                </ul>
+
+                <h3>Continue Learning</h3>
+                <ul>
+                    <li><strong>Previous Course:</strong> <a href="https://rays-mysql.netlify.app/" target="_blank" rel="noopener">MySQL Foundations</a></li>
+                    <li><strong>Next Course:</strong> <a href="https://rays-php-wordpress.netlify.app/" target="_blank" rel="noopener">PHP &amp; WordPress Development</a></li>
+                    <li><a href="https://rays-home.netlify.app/" target="_blank" rel="noopener">Browse all courses at Ray's House of Fun</a></li>
                 </ul>
 
                 <h3>Support</h3>
-                <p>If you have questions or need help:</p>
+                <p>Questions or feedback? Reach out:</p>
                 <ul>
-                    <li>Email: <a href="mailto:support@example.com">support@example.com</a></li>
-                    <li>Discord/Slack: [Community Link]</li>
-                    <li>Office Hours: [Schedule]</li>
+                    <li><a href="https://rays-home.netlify.app/contact">Contact Ray</a></li>
                 </ul>
             </section>
 

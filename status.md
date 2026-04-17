@@ -1,7 +1,7 @@
 # PHP Foundations Course — Status
 
 ## Location: `\\wsl$\Ubuntu\home\practicalace\projects\php`
-## Netlify URL: TBD (e.g., rays-php.netlify.app)
+## Netlify URL: rays-php.netlify.app
 ## Last Updated: 2026-04-17
 ## Supplementary Pages: troubleshooting.html, glossary.html, cheat-sheet.html, common-errors.html
 
@@ -158,15 +158,26 @@ MySQL Foundations (done, rays-mysql.netlify.app) → PHP Foundations → PHP & W
   - [x] Lesson 23: Security Fundamentals ✅
   - [x] Lesson 24: Deployment, Next Steps & Best Practices ✅
 - [x] Step 4 — Supplementary pages (troubleshooting, glossary, cheat sheet, common errors) ✅
-- [ ] Step 5 — Favicon creation
-- [ ] Step 6 — Browser testing
+- [x] Step 5 — Favicon creation ✅
+- [x] Step 6 — Browser testing ✅
 - [ ] Step 7 — Verify prev/next navigation links
-- [ ] Step 8 — Update Ray's House of Fun with course link
+- [x] Step 8 — Update Ray's House of Fun with course link ✅
 
 ---
 
 ## What to Do Next
 
-**Step 5: Favicon creation**
-1. Create a favicon for the PHP Foundations course
-2. Then proceed to Step 6 (browser testing), Step 7 (nav links), Step 8 (Ray's House of Fun)
+**Step 6 Browser Testing Results (2026-04-17):**
+- ✅ Lesson pages: hero banner, breadcrumbs, code blocks with Copy button, Mermaid diagrams all render correctly
+- ✅ Dark mode: proper contrast, styled nav/footer/cards, theme toggle persists
+- ✅ Mobile (375px): hamburger menu, responsive content, tables scroll horizontally
+- ✅ Supplementary pages: cheat-sheet, troubleshooting, glossary, common-errors all render with proper hero/TOC/nav
+- ✅ Lesson 24 bottom nav: "Previous: Security Fundamentals" + "Course Complete!" (no broken next link)
+- ✅ Footer: copyright, Ray's House of Fun link, Contact link, Print Page link all present
+- ⚠️ **INDEX.HTML STILL HAS TEMPLATE PLACEHOLDERS** — title says "[Course Title]", body shows placeholder "Key concept or skill", "Target audience", etc. The module listing works (reads from course-config.json) but all surrounding content is un-customized template text. **FIXED 2026-04-17** — index.html fully customized with PHP course content, learning path, prerequisites, resource links (cheat sheet, glossary, common errors, troubleshooting), and external references. Also updated MySQL course index.html to link to PHP Foundations (was "coming soon").
+
+**Step 7: Verify prev/next navigation links**
+1. Check all 24 lessons have correct prev/next links
+2. Then the only remaining issue is the index.html customization
+
+Note: Step 8 (Ray's House of Fun) is complete — PHP Foundations added to index, search, and updates pages.
